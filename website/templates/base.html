@@ -25,6 +25,20 @@
     });
   </script>
 
+  <!-- Simple-DataTables (Frontend Interaction) -->
+  <link href="{% static 'css/simple-datatables.css' %}" rel="stylesheet">
+  
+  <style>
+    /* Tailwind compatibility overrides for simple-datatables */
+    .datatable-wrapper .datatable-container { border-bottom: none; }
+    .datatable-selector, .datatable-input { 
+        background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.25rem 0.5rem; 
+    }
+    .datatable-top, .datatable-bottom { padding: 1rem 1.25rem; font-size: 0.875rem; color: rgba(255,255,255,0.7); }
+    .datatable-sorter::before, .datatable-sorter::after { opacity: 0.3 !important; }
+    .datatable-ascending .datatable-sorter::after, .datatable-descending .datatable-sorter::before { border-top-color: white !important; border-bottom-color: white !important; opacity: 1 !important; }
+  </style>
+
   {% block extra_head %}{% endblock %}
 </head>
 
@@ -230,6 +244,23 @@
     </div>
   </footer>
 
+  <!-- Simple-DataTables script -->
+  <script src="{% static 'js/simple-datatables.js' %}" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Find elements wrapped in the Datatable pattern or with a specific ID.
+      // Easiest is to target `#dataTable` or `.datatable`
+      const table = document.querySelector("#dataTable");
+      if (table) {
+        new simpleDatatables.DataTable(table, {
+            searchable: true,
+            fixedHeight: false,
+            perPage: 15,
+            perPageSelect: [15, 30, 50, 100],
+        });
+      }
+    });
+  </script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

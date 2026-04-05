@@ -40,6 +40,25 @@ class AdminUserListView(IsAdminMixin, ListView):
             qs = qs.filter(email__icontains=q)
         return qs
 
+class AdminUserCreateView(IsAdminMixin, CreateView):
+    model = CustomUser
+    template_name = "admin/generic_form.html"
+    fields = ["email", "first_name", "last_name", "is_active", "role", "is_vendor"]
+    success_url = reverse_lazy("management:user_list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = "Create New User"
+        ctx["cancel_url"] = self.success_url
+        return ctx
+
+    def form_valid(self, form):
+        # We manually build the user so it hashes a default unusable password or similar,
+        # but since we're using generic forms, we'll let it save directly if it's fine.
+        # CustomUser uses email as unique.
+        messages.success(self.request, "User created successfully.")
+        return super().form_valid(form)
+
 class AdminUserUpdateView(IsAdminMixin, UpdateView):
     model = CustomUser
     template_name = "admin/generic_form.html"
@@ -115,6 +134,22 @@ class AdminMenuListView(IsAdminMixin, ListView):
     template_name = "admin/menu_list.html"
     context_object_name = "menus"
 
+class AdminMenuCreateView(IsAdminMixin, CreateView):
+    model = Menu
+    template_name = "admin/generic_form.html"
+    fields = "__all__"
+    success_url = reverse_lazy("management:menu_list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = "Create New Menu"
+        ctx["cancel_url"] = self.success_url
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, "Menu created.")
+        return super().form_valid(form)
+
 class AdminMenuUpdateView(IsAdminMixin, UpdateView):
     model = Menu
     template_name = "admin/generic_form.html"
@@ -136,6 +171,22 @@ class AdminSiteSettingsListView(IsAdminMixin, ListView):
     model = SiteSetting
     template_name = "admin/settings_list.html"
     context_object_name = "settings"
+
+class AdminSiteSettingsCreateView(IsAdminMixin, CreateView):
+    model = SiteSetting
+    template_name = "admin/generic_form.html"
+    fields = ["key", "value"]
+    success_url = reverse_lazy("management:settings_list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = "Create New Setting"
+        ctx["cancel_url"] = self.success_url
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, "Setting created.")
+        return super().form_valid(form)
 
 class AdminSiteSettingsUpdateView(IsAdminMixin, UpdateView):
     model = SiteSetting
@@ -166,3 +217,19 @@ class AdminResourceListView(IsAdminMixin, ListView):
         if q:
             qs = qs.filter(title__icontains=q)
         return qs
+
+class AdminResourceCreateView(IsAdminMixin, CreateView):
+    model = ResourceItem
+    template_name = "admin/generic_form.html"
+    fields = ["title", "description", "grade", "learning_area", "file", "is_free", "price", "vendor"]
+    success_url = reverse_lazy("management:resource_list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = "Create New Resource"
+        ctx["cancel_url"] = self.success_url
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, "Resource created successfully.")
+        return super().form_valid(form)

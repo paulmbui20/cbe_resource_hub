@@ -9,6 +9,7 @@ urlpatterns = [
     
     # Users
     path("users/", views.AdminUserListView.as_view(), name="user_list"),
+    path("users/add/", views.AdminUserCreateView.as_view(), name="user_add"),
     path("users/<int:pk>/edit/", views.AdminUserUpdateView.as_view(), name="user_edit"),
     
     # Pages
@@ -19,12 +20,15 @@ urlpatterns = [
     
     # Menus
     path("menus/", views.AdminMenuListView.as_view(), name="menu_list"),
+    path("menus/add/", views.AdminMenuCreateView.as_view(), name="menu_add"),
     path("menus/<int:pk>/edit/", views.AdminMenuUpdateView.as_view(), name="menu_edit"),
     
     # Settings
     path("settings/", views.AdminSiteSettingsListView.as_view(), name="settings_list"),
+    path("settings/add/", views.AdminSiteSettingsCreateView.as_view(), name="settings_add"),
     path("settings/<int:pk>/edit/", views.AdminSiteSettingsUpdateView.as_view(), name="settings_edit"),
     
     # Resources (Read-only list, management actions go to regular edit)
     path("resources/", views.AdminResourceListView.as_view(), name="resource_list"),
+    path("resources/add/", views.AdminResourceCreateView.as_view(), name="resource_add"),
 ]
