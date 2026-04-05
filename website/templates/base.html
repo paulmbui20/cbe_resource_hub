@@ -29,14 +29,55 @@
   <link href="{% static 'css/simple-datatables.css' %}" rel="stylesheet">
   
   <style>
-    /* Tailwind compatibility overrides for simple-datatables */
+    /* ── Dark theme for ALL native select elements ── */
+    select {
+      background-color: #0d1117 !important;
+      color: white !important;
+      border-color: rgba(255,255,255,0.1) !important;
+    }
+    select option {
+      background-color: #0d1117 !important;
+      color: white !important;
+    }
+    /* ── Alpine.js x-cloak hide ── */
+    [x-cloak] { display: none !important; }
+    /* ── simple-datatables dark theme overrides ── */
     .datatable-wrapper .datatable-container { border-bottom: none; }
     .datatable-selector, .datatable-input { 
-        background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.25rem 0.5rem; 
+      background-color: #0d1117 !important;
+      color: white !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      border-radius: 8px;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.875rem;
     }
-    .datatable-top, .datatable-bottom { padding: 1rem 1.25rem; font-size: 0.875rem; color: rgba(255,255,255,0.7); }
-    .datatable-sorter::before, .datatable-sorter::after { opacity: 0.3 !important; }
-    .datatable-ascending .datatable-sorter::after, .datatable-descending .datatable-sorter::before { border-top-color: white !important; border-bottom-color: white !important; opacity: 1 !important; }
+    .datatable-selector option { background-color: #0d1117; color: white; }
+    .datatable-top, .datatable-bottom { 
+      padding: 1rem 1.25rem;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.6);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .datatable-top label, .datatable-bottom label { color: rgba(255,255,255,0.5); }
+    .datatable-pagination-list-item a {
+      color: rgba(255,255,255,0.7) !important;
+      background: rgba(255,255,255,0.05) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      border-radius: 6px;
+    }
+    .datatable-active a {
+      background: var(--color-brand-primary, #3b82f6) !important;
+      color: white !important;
+    }
+    .datatable-sorter::before, .datatable-sorter::after { opacity: 0.25 !important; }
+    .datatable-ascending .datatable-sorter::after,
+    .datatable-descending .datatable-sorter::before { opacity: 0.9 !important; }
+    /* scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 9999px; }
   </style>
 
   {% block extra_head %}{% endblock %}

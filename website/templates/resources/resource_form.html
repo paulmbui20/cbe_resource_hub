@@ -66,6 +66,13 @@
           </div>
         </div>
 
+        {# Resource Type #}
+        <div class="mb-5">
+          <label for="{{ form.resource_type.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Resource Type *</label>
+          {{ form.resource_type }}
+          {% if form.resource_type.errors %}<p class="mt-1 text-xs text-red-400">{{ form.resource_type.errors.0 }}</p>{% endif %}
+        </div>
+
         {# File Upload #}
         <div class="mb-6">
           <label for="{{ form.file.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Resource File *</label>

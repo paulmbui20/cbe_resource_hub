@@ -272,7 +272,7 @@ class AdminResourceListView(IsAdminMixin, ListView):
 class AdminResourceCreateView(IsAdminMixin, CreateView):
     model = ResourceItem
     template_name = "admin/generic_form.html"
-    fields = ["title", "description", "grade", "learning_area", "file", "is_free", "price", "vendor"]
+    fields = ["title", "slug", "resource_type", "description", "grade", "learning_area", "file", "is_free", "price", "vendor"]
     success_url = reverse_lazy("management:resource_list")
 
     def get_context_data(self, **kwargs):
@@ -288,7 +288,7 @@ class AdminResourceCreateView(IsAdminMixin, CreateView):
 class AdminResourceUpdateView(IsAdminMixin, UpdateView):
     model = ResourceItem
     template_name = "admin/generic_form.html"
-    fields = ["title", "description", "grade", "learning_area", "file", "is_free", "price", "vendor"]
+    fields = ["title", "slug", "resource_type", "description", "grade", "learning_area", "file", "is_free", "price", "vendor"]
     success_url = reverse_lazy("management:resource_list")
 
     def get_context_data(self, **kwargs):

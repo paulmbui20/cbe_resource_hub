@@ -3,7 +3,9 @@
 {% block title %}Manage Users{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10" x-data="{ 
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+     data-bulk-toggle-url="{% url 'management:user_bulk_toggle' %}"
+     x-data="{ 
     selected: [],
     toggleAll() {
         const checkboxes = document.querySelectorAll('.user-checkbox');
@@ -15,8 +17,9 @@
     },
     async submitBulk(action) {
         if (!this.selected.length) return alert('No users selected.');
+        const url = this.$el.dataset.bulkToggleUrl;
         try {
-            const res = await fetch('{% url \'management:user_bulk_toggle\' %}', {
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

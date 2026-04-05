@@ -42,6 +42,11 @@
               {% render_field field class="w-4 h-4 text-brand-primary bg-white/5 border-white/10 rounded focus:ring-brand-primary focus:ring-2" %}
               <span class="text-sm text-white/80">{{ field.help_text }}</span>
             </div>
+          {% elif field.field.widget.input_type == 'select' %}
+            {% render_field field class="w-full rounded-lg bg-[#0d1117] border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary appearance-none" %}
+            {% if field.help_text %}
+            <p class="mt-1 text-xs text-white/40">{{ field.help_text }}</p>
+            {% endif %}
           {% else %}
             {% render_field field class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary" %}
             {% if field.help_text %}

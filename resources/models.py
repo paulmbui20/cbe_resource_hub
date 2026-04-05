@@ -15,6 +15,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
+from tinymce.models import HTMLField
 
 
 class EducationLevel(models.Model):
@@ -113,7 +114,7 @@ class ResourceItem(models.Model):
         max_length=255,
         db_index=True,
     )
-    description: str = models.TextField()
+    description: str = HTMLField()
 
     # --- Curriculum Classification ---
     grade: Grade = models.ForeignKey(
