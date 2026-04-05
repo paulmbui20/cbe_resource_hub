@@ -71,6 +71,7 @@ class ResourceListView(ListView):
 
         # --- Optional filtering via GET params ---
         grade_id = self.request.GET.get("grade")
+        resource_type = self.request.GET.get("resource_type")
         area_id = self.request.GET.get("area")
         level_id = self.request.GET.get("level")
         q = self.request.GET.get("q", "").strip()
@@ -83,6 +84,8 @@ class ResourceListView(ListView):
             qs = qs.filter(grade__level_id=level_id)
         if q:
             qs = qs.filter(title__icontains=q)
+        if resource_type:
+            qs = qs.filter(resource_type=resource_type)
 
         return qs
 
@@ -94,6 +97,7 @@ class ResourceListView(ListView):
         context["current_area"] = self.request.GET.get("area", "")
         context["current_level"] = self.request.GET.get("level", "")
         context["search_query"] = self.request.GET.get("q", "")
+        context["resource_type"] = self.request.GET.get("resource_type", "")
         
         # Pre-fetch user favorites to avoid N+1 queries in the template
         if self.request.user.is_authenticated:

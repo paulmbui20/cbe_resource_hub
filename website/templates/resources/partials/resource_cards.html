@@ -28,6 +28,9 @@
           KES {{ resource.price }}
         </span>
         {% endif %}
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/70">
+          {{ resource.resource_type.name }}
+        </span>
         </div>
         
         <!-- Favorite Action (z-10 so it's clickable above the stretched link) -->

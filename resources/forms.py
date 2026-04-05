@@ -5,12 +5,13 @@ class ResourceItemForm(forms.ModelForm):
     class Meta:
         model = ResourceItem
         fields = [
-            'title', 'description', 
+            'title', 'resource_type', 'description', 
             'grade', 'learning_area', 
             'file', 'is_free', 'price'
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary'}),
+            'resource_type': forms.Select(attrs={'class': 'w-full rounded-lg bg-black/50 border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary'}),
             'description': forms.Textarea(attrs={'class': 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary', 'rows': 4}),
             'grade': forms.Select(attrs={'class': 'w-full rounded-lg bg-black/50 border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary'}),
             'learning_area': forms.Select(attrs={'class': 'w-full rounded-lg bg-black/50 border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary'}),
