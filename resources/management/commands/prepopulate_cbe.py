@@ -5,11 +5,11 @@ from resources.models import EducationLevel, Grade, LearningArea
 
 
 class Command(BaseCommand):
-    help = "Prepopulate Kenyan CBC (CBE) curriculum structure (2026 aligned)."
+    help = "Prepopulate Kenyan CBC (CBE) curriculum structure (@ 2026 aligned)."
 
     @transaction.atomic
     def handle(self, *args, **kwargs):
-        self.stdout.write(self.style.NOTICE("📚 Populating CBC Curriculum (Kenya 2026)..."))
+        self.stdout.write(self.style.NOTICE("📚 Populating CBE Curriculum (Kenya as at 2026)..."))
 
         # --------------------------------------------------
         # 1. EDUCATION LEVELS + GRADES (CBC STRUCTURE)
@@ -160,4 +160,3 @@ class Command(BaseCommand):
         )
 
         self.stdout.write(self.style.SUCCESS("🎉 CBC Curriculum prepopulation complete!"))
-        
