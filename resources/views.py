@@ -15,7 +15,11 @@ from typing import TYPE_CHECKING, Any
 
 from django.db.models import QuerySet
 from django.http import HttpResponse
-from django.views.generic import DetailView, ListView
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
+from django.urls import reverse_lazy
+from django.contrib import messages
+from .forms import ResourceItemForm
 
 from .models import EducationLevel, Grade, LearningArea, ResourceItem
 
@@ -90,6 +94,13 @@ class ResourceListView(ListView):
         context["current_area"] = self.request.GET.get("area", "")
         context["current_level"] = self.request.GET.get("level", "")
         context["search_query"] = self.request.GET.get("q", "")
+        
+        # Pre-fetch user favorites to avoid N+1 queries in the template
+        if self.request.user.is_authenticated:
+            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+        else:
+            context["user_favorite_ids"] = set()
+            
         return context
 
     def render_to_response(
@@ -131,3 +142,96 @@ class ResourceDetailView(DetailView):
         obj: ResourceItem = super().get_object(queryset)
         obj.increment_downloads()
         return obj
+
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+
+
+class ToggleFavoriteView(LoginRequiredMixin, DetailView):
+    """
+    HTMX endpoint for toggling favorited state of a ResourceItem.
+    Returns just the star button partial.
+    """
+    model = ResourceItem
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        resource = self.get_object()
+        user = request.user
+        
+        # Toggle logic
+        if resource in user.favorites.all():
+            user.favorites.remove(resource)
+            is_favorited = False
+        else:
+            user.favorites.add(resource)
+            is_favorited = True
+            
+        # If it's an HTMX request, we return just the button snippet.
+        if request.headers.get("HX-Request"):
+            html = render_to_string(
+                "resources/partials/favorite_button.html",
+                {"resource": resource, "is_favorited": is_favorited},
+                request=request
+            )
+            return HttpResponse(html)
+            
+        # Fallback for non-HTMX
+        from django.shortcuts import redirect
+        return redirect(resource.get_absolute_url())
+
+
+class VendorRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_content_vendor
+
+
+class ResourceCreateView(VendorRequiredMixin, CreateView):
+    model = ResourceItem
+    form_class = ResourceItemForm
+    template_name = "resources/resource_form.html"
+
+    def form_valid(self, form):
+        form.instance.vendor = self.request.user
+        messages.success(self.request, "Resource uploaded successfully!")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:dashboard")
+
+
+class ResourceUpdateView(VendorRequiredMixin, UpdateView):
+    model = ResourceItem
+    form_class = ResourceItemForm
+    template_name = "resources/resource_form.html"
+
+    def get_queryset(self):
+        # Only allow editing own resources, unless admin
+        qs = super().get_queryset()
+        if self.request.user.is_superuser or self.request.user.role == 'admin':
+            return qs
+        return qs.filter(vendor=self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, "Resource updated successfully!")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:dashboard")
+
+
+class ResourceDeleteView(VendorRequiredMixin, DeleteView):
+    model = ResourceItem
+    template_name = "resources/resource_confirm_delete.html"
+    success_url = reverse_lazy("accounts:dashboard")
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser or self.request.user.role == 'admin':
+            return qs
+        return qs.filter(vendor=self.request.user)
+        
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Resource deleted successfully.")
+        return super().delete(request, *args, **kwargs)

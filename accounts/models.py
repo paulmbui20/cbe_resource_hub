@@ -98,6 +98,13 @@ class CustomUser(AbstractUser):
         help_text="Primary role of this user within the platform.",
     )
 
+    # ── User Preferences ──────────────────────────────────────────────────────
+    favorites = models.ManyToManyField(
+        "resources.ResourceItem",
+        related_name="favorited_by",
+        blank=True,
+    )
+
     # Email is the login field
     USERNAME_FIELD  = "email"
     REQUIRED_FIELDS = []          # removes all extra prompts from `createsuperuser`

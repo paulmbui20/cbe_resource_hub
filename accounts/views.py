@@ -4,7 +4,8 @@ from __future__ import annotations
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, UpdateView
+from django.views.generic import TemplateView, UpdateView, View
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django import forms
 from django.contrib import messages
@@ -49,6 +50,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         except Exception:
             ctx["email_verified"] = False
 
+        # User's favorites
+        ctx["my_favorites"] = (
+            user.favorites.select_related("grade", "grade__level", "learning_area")
+            .order_by("-created_at")[:10]
+        )
+        ctx["my_favorites_count"] = user.favorites.count()
+
         return ctx
 
 
@@ -65,3 +73,26 @@ class ProfileView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, "Profile updated successfully.")
         return super().form_valid(form)
+
+
+
+
+class BecomeVendorView(LoginRequiredMixin, View):
+    """
+    Allows a standard user to become a vendor.
+    Only users with role == USER can upgrade themselves to VENDOR.
+    """
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        if user.role == CustomUser.Role.USER:
+            user.role = CustomUser.Role.VENDOR
+            user.is_vendor = True
+            user.save(update_fields=["role", "is_vendor"])
+            messages.success(request, "You are now a Content Creator! You can start uploading resources.")
+        elif user.role == CustomUser.Role.ADMIN or user.is_superuser:
+            messages.warning(request, "Admins inherently have creator privileges.")
+        else:
+            messages.info(request, "You are already a Content Creator.")
+            
+        return redirect("accounts:dashboard")
+        

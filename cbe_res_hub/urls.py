@@ -20,6 +20,7 @@ urlpatterns = [
 
     # ── Account dashboard / profile ──────────────────────────────────────────
     path("account/", include("accounts.urls", namespace="accounts")),
+    path("management/", include("website.urls.admin_urls", namespace="management")),
 
     # ── CBC resources (/resources/) ──────────────────────────────────────────
     path("resources/", include("resources.urls")),

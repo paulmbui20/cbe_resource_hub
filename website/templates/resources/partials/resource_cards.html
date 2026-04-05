@@ -10,9 +10,9 @@
     <div class="h-1.5 bg-gradient-to-r from-brand-primary to-brand-accent"></div>
 
     <div class="p-5 flex flex-col flex-1 gap-3">
-
-      <!-- Header badges -->
-      <div class="flex flex-wrap items-center gap-2">
+      <!-- Header -->
+      <div class="flex justify-between items-start gap-2">
+        <div class="flex flex-wrap items-center gap-2">
         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-primary/20 text-brand-accent">
           {{ resource.learning_area.name }}
         </span>
@@ -27,6 +27,18 @@
         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-gold/20 text-brand-gold">
           KES {{ resource.price }}
         </span>
+        {% endif %}
+        </div>
+        
+        <!-- Favorite Action (z-10 so it's clickable above the stretched link) -->
+        {% if user.is_authenticated %}
+        <div class="relative z-10 shrink-0">
+          {% if resource.id in user_favorite_ids %}
+            {% include 'resources/partials/favorite_button.html' with is_favorited=True %}
+          {% else %}
+            {% include 'resources/partials/favorite_button.html' with is_favorited=False %}
+          {% endif %}
+        </div>
         {% endif %}
       </div>
 
