@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class EmailUserManager(UserManager):
@@ -85,9 +86,9 @@ class CustomUser(AbstractUser):
         default=False,
         help_text="Designates whether this user is a content vendor/creator.",
     )
-    phone_number: str = models.CharField(
-        max_length=15,
+    phone_number = PhoneNumberField(
         blank=True,
+        null=True,
         help_text="Optional contact phone number.",
     )
     role: str = models.CharField(
