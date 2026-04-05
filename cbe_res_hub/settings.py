@@ -132,6 +132,7 @@ MIDDLEWARE: list[str] = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "axes.middleware.AxesMiddleware",
+    "cbe_res_hub.middleware.ForcePasswordChangeMiddleware",
     "django.middleware.gzip.GZipMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "silk.middleware.SilkyMiddleware",

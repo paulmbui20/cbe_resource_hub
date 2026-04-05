@@ -39,13 +39,14 @@ class ResourceItemAdmin(admin.ModelAdmin):
         "title",
         "grade",
         "learning_area",
+        "resource_type",
         "is_free",
         "price",
         "downloads",
         "vendor",
         "created_at",
     )
-    list_filter = ("is_free", "grade__level", "learning_area")
+    list_filter = ("is_free", "grade__level", "learning_area", "resource_type")
     search_fields = ("title", "description", "vendor__username")
     prepopulated_fields = {"slug": ("title",)}
     readonly_fields = ("downloads", "created_at", "updated_at")
@@ -56,7 +57,7 @@ class ResourceItemAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             "Content",
-            {"fields": ("title", "slug", "description", "file")},
+            {"fields": ("title", "slug", "resource_type", "description", "file")},
         ),
         (
             "Curriculum",

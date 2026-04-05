@@ -130,7 +130,6 @@ class ResourceItem(models.Model):
     # --- File Storage (Cloudflare R2 in production) ---
     file = models.FileField(
         upload_to="resources/%Y/%m/",
-        help_text="Uploaded to Cloudflare R2 in production via django-storages.",
     )
 
     # --- Multivendor Marketplace Future-Proofing ---
@@ -153,9 +152,29 @@ class ResourceItem(models.Model):
         default="0.00",
         help_text="Purchase price in KES. Ignored when is_free=True.",
     )
+    resource_type : str = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        choices=[
+            ("lesson_plan", "Lesson Plan"),
+            ("schemes_of_work", "Schemes of Work"),
+            ("curriculum_design", "Curriculum Design"),
+            ("record_of_work", "Record of Work"),
+            ("teachers_guide", "Teachers Guide"),
+            ("textbook", "Textbook"),
+            ("notes", "Notes"),
+            ("exam", "Exam"),
+            ("other", "Other"),
+            ("report_card", "Report Card")
+        ],
+        default="other",
+        help_text="The type of resource.",
+    )
+        
     downloads: int = models.PositiveIntegerField(
         default=0,
-        help_text="Cumulative download count. Increment via F() expression.",
+        help_text="Cumulative download count.",
     )
 
     # --- Timestamps ---

@@ -97,6 +97,10 @@ class CustomUser(AbstractUser):
         default=Role.USER,
         help_text="Primary role of this user within the platform.",
     )
+    must_change_password: bool = models.BooleanField(
+        default=False,
+        help_text="If True, the user is forced to change their password on the next login.",
+    )
 
     # ── User Preferences ──────────────────────────────────────────────────────
     favorites = models.ManyToManyField(

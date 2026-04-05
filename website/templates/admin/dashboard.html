@@ -44,6 +44,28 @@
     </a>
   </div>
 
+  {# System Architecture / Dependencies #}
+  <div class="mb-12">
+    <h2 class="text-lg font-semibold text-white mb-4">Architecture & Curriculum</h2>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <a href="{% url 'management:level_list' %}" class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Education Levels</span>
+      </a>
+      <a href="{% url 'management:grade_list' %}" class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Grades</span>
+      </a>
+      <a href="{% url 'management:learningarea_list' %}" class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Learning Areas</span>
+      </a>
+      <a href="{% url 'management:menu_list' %}" class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Menus</span>
+      </a>
+      <a href="{% url 'management:menuitem_list' %}" class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Menu Items</span>
+      </a>
+    </div>
+  </div>
+
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     {# Recent Users #}
     <div>

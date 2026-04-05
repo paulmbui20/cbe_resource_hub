@@ -53,10 +53,19 @@ class AdminUserCreateView(IsAdminMixin, CreateView):
         return ctx
 
     def form_valid(self, form):
-        # We manually build the user so it hashes a default unusable password or similar,
-        # but since we're using generic forms, we'll let it save directly if it's fine.
-        # CustomUser uses email as unique.
-        messages.success(self.request, "User created successfully.")
+        import secrets
+        import string
+        from django.contrib import messages
+        
+        user = form.save(commit=False)
+        alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+        raw_password = "".join(secrets.choice(alphabet) for i in range(12))
+        
+        user.set_password(raw_password)
+        user.must_change_password = True
+        user.save()
+        
+        messages.success(self.request, f"User created securely! Their generated password is: {raw_password}")
         return super().form_valid(form)
 
 class AdminUserUpdateView(IsAdminMixin, UpdateView):
@@ -74,6 +83,39 @@ class AdminUserUpdateView(IsAdminMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, "User updated successfully.")
         return super().form_valid(form)
+
+class AdminUserDeleteView(IsAdminMixin, DeleteView):
+    model = CustomUser
+    success_url = reverse_lazy("management:user_list")
+    
+    def form_valid(self, form):
+        messages.success(self.request, "User permanently deleted.")
+        return super().form_valid(form)
+
+from django.http import JsonResponse
+import json
+
+class AdminUserBulkToggleView(IsAdminMixin, TemplateView):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            action = data.get("action")
+            user_ids = data.get("user_ids", [])
+            
+            if action not in ["enable", "disable"] or not user_ids:
+                return JsonResponse({"error": "Invalid request"}, status=400)
+            
+            # Guard against disabling self
+            if action == "disable" and str(request.user.id) in [str(u) for u in user_ids]:
+                return JsonResponse({"error": "You cannot disable your own account."}, status=403)
+                
+            is_active_val = (action == "enable")
+            updated = CustomUser.objects.filter(id__in=user_ids).update(is_active=is_active_val)
+            messages.success(request, f"Successfully {action}d {updated} users.")
+            return JsonResponse({"success": True})
+            
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
 # ── CMS Pages ────────────────────────────────────────────────────────────────
 class AdminPageListView(IsAdminMixin, ListView):
@@ -115,18 +157,11 @@ class AdminPageUpdateView(IsAdminMixin, UpdateView):
 
 class AdminPageDeleteView(IsAdminMixin, DeleteView):
     model = Page
-    template_name = "resources/resource_confirm_delete.html" # Re-use confirmation layout visually
     success_url = reverse_lazy("management:page_list")
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "Delete Page?"
-        ctx["cancel_url"] = self.success_url
-        return ctx
-
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, "Page deleted automatically.")
-        return super().delete(request, *args, **kwargs)
+    def form_valid(self, form):
+        messages.success(self.request, "Page permanently deleted.")
+        return super().form_valid(form)
 
 # ── CMS Menus ────────────────────────────────────────────────────────────────
 class AdminMenuListView(IsAdminMixin, ListView):
@@ -164,6 +199,14 @@ class AdminMenuUpdateView(IsAdminMixin, UpdateView):
 
     def form_valid(self, form):
         messages.success(self.request, "Menu updated.")
+        return super().form_valid(form)
+
+class AdminMenuDeleteView(IsAdminMixin, DeleteView):
+    model = Menu
+    success_url = reverse_lazy("management:menu_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Menu permanently deleted.")
         return super().form_valid(form)
 
 # ── Site Settings ────────────────────────────────────────────────────────────
@@ -204,6 +247,14 @@ class AdminSiteSettingsUpdateView(IsAdminMixin, UpdateView):
         messages.success(self.request, "Site setting updated.")
         return super().form_valid(form)
 
+class AdminSiteSettingsDeleteView(IsAdminMixin, DeleteView):
+    model = SiteSetting
+    success_url = reverse_lazy("management:settings_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Setting permanently deleted.")
+        return super().form_valid(form)
+
 # ── Resources ────────────────────────────────────────────────────────────────
 class AdminResourceListView(IsAdminMixin, ListView):
     model = ResourceItem
@@ -232,4 +283,28 @@ class AdminResourceCreateView(IsAdminMixin, CreateView):
 
     def form_valid(self, form):
         messages.success(self.request, "Resource created successfully.")
+        return super().form_valid(form)
+
+class AdminResourceUpdateView(IsAdminMixin, UpdateView):
+    model = ResourceItem
+    template_name = "admin/generic_form.html"
+    fields = ["title", "description", "grade", "learning_area", "file", "is_free", "price", "vendor"]
+    success_url = reverse_lazy("management:resource_list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = f"Edit Resource: {self.object.title}"
+        ctx["cancel_url"] = self.success_url
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, "Resource updated successfully.")
+        return super().form_valid(form)
+
+class AdminResourceDeleteView(IsAdminMixin, DeleteView):
+    model = ResourceItem
+    success_url = reverse_lazy("management:resource_list")
+    
+    def form_valid(self, form):
+        messages.success(self.request, "Resource permanently deleted.")
         return super().form_valid(form)
