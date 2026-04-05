@@ -1,37 +1,61 @@
 [project]
 name = "cbe-resource-hub"
 version = "0.1.0"
-description = "Add your description here"
+description = "Open-source CBE/CBC educational resource hub for Kenyan learners"
 readme = "README.md"
+license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
 dependencies = [
+    # ── Django core ───────────────────────────────────────────────────────────
     "django>=6.0.3",
+    # ── ASGI / Channels ───────────────────────────────────────────────────────
+    "daphne>=4.1.2",
+    "channels>=4.2.0",
+    "channels-redis>=4.2.1",
+    # ── Database ──────────────────────────────────────────────────────────────
+    "psycopg[binary]>=3.3.3",
+    # ── Cache / Redis ─────────────────────────────────────────────────────────
+    "django-redis>=6.0.0",
+    "redis>=7.4.0",
+    "hiredis>=3.3.1",
+    # ── Auth / Accounts ───────────────────────────────────────────────────────
     "django-allauth>=65.15.1",
     "django-allauth-ui>=1.8.1",
+    "pyjwt>=2.10.1",  # Required by allauth Google OAuth provider
     "django-axes>=8.3.1",
+    "django-phonenumber-field>=8.4.0",
+    "phonenumbers>=9.0.27",
+    # ── Task queue ────────────────────────────────────────────────────────────
+    "celery>=5.5.1",
     "django-celery-beat>=2.9.0",
     "django-celery-results>=2.6.0",
-    "django-cors-headers>=4.9.0",
-    "django-dbbackup>=5.2.0",
-    "django-debug-toolbar>=6.3.0",
-    "django-mptt>=0.18.0",
-    "django-ninja>=1.6.2",
-    "django-phonenumber-field>=8.4.0",
-    "django-redis>=6.0.0",
-    "django-silk[formatting]>=5.5.0",
-    "django-smart-ratelimit>=2.2.0",
+    # ── Storage ───────────────────────────────────────────────────────────────
     "django-storages[s3]>=1.14.6",
-    "django-taggit>=6.1.0",
+    # ── CMS & Forms ───────────────────────────────────────────────────────────
     "django-tinymce>=5.0.0",
-    "gunicorn>=25.3.0",
-    "hiredis>=3.3.1",
-    "phonenumbers>=9.0.27",
+    "django-taggit>=6.1.0",
+    "django-widget-tweaks>=1.5.0",
+    # ── Rate limiting & security ──────────────────────────────────────────────
+    "django-smart-ratelimit>=2.2.0",
+    "django-cors-headers>=4.9.0",
+    # ── Dev tooling ───────────────────────────────────────────────────────────
+    "django-debug-toolbar>=6.3.0",
+    "django-silk[formatting]>=5.5.0",
+    # ── Database backups ──────────────────────────────────────────────────────
+    "django-dbbackup>=5.2.0",
+    # ── Monitoring ────────────────────────────────────────────────────────────
+    "sentry-sdk>=2.25.1",
+    # ── Logging ───────────────────────────────────────────────────────────────
+    "python-json-logger>=3.3.0",
+    # ── Images ────────────────────────────────────────────────────────────────
     "pillow>=12.2.0",
-    "pip>=26.0.1",
-    "pip-audit>=2.10.0",
-    "psycopg2-binary>=2.9.11",
+    # ── Environment ───────────────────────────────────────────────────────────
+    "python-dotenv>=1.2.2",
+    # ── Server ────────────────────────────────────────────────────────────────
+    "gunicorn>=25.3.0",
+    # ── Testing ───────────────────────────────────────────────────────────────
     "pytest>=9.0.2",
     "pytest-django>=4.12.0",
-    "python-dotenv>=1.2.2",
-    "redis>=7.4.0",
+    # ── Security audit ────────────────────────────────────────────────────────
+    "pip-audit>=2.10.0",
 ]

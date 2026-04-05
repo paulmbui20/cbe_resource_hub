@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" x-data="{ mobileMenuOpen: false }">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}" />
+  <title>{% block title %}{{ site_settings.site_name|default:'CBE Resource Hub' }}{% endblock %} | CBC Kenya</title>
+
+  <!-- Bun / Tailwind v4 generated CSS -->
+  <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+
+  <!-- HTMX — local asset, loaded with defer -->
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
+
+  <!-- Alpine.js — local asset, loaded with defer -->
+  <script src="{% static 'js/alpine.min.js' %}" defer></script>
+
+  <!-- HTMX ↔ Django CSRF strategy: attach the CSRF token to every mutating request -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.body.addEventListener('htmx:configRequest', function (event) {
+        event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+      });
+    });
+  </script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-brand-secondary text-white min-h-screen flex flex-col antialiased">
+
+  <!-- ═══════════════════════════════════════════════════ HEADER ════ -->
+  <header class="sticky top-0 z-50 border-b border-white/10 backdrop-blur-md bg-brand-secondary/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+
+        <!-- Wordmark -->
+        <a href="/" class="flex items-center gap-2 group">
+          <span class="text-2xl" aria-hidden="true">📚</span>
+          <span class="font-bold text-lg tracking-tight text-white group-hover:text-brand-primary transition-colors">
+            {{ site_settings.site_name|default:'CBE Resource Hub' }}
+          </span>
+        </a>
+
+        <!-- Desktop nav (primary header menu) -->
+        {% with primary=menus.primary_header %}
+        {% if primary %}
+        <nav class="hidden md:flex items-center gap-6" aria-label="Main navigation">
+          {% for item in primary.items.all %}
+            {% if not item.parent %}
+            <div class="relative" x-data="{ open: false }">
+              {% if item.children.exists %}
+              <button @click="open = !open" @keydown.escape="open = false"
+                      class="text-sm text-white/80 hover:text-white transition-colors flex items-center gap-1 py-1">
+                {{ item.title }}
+                <svg class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div x-show="open" x-transition @click.outside="open = false"
+                   class="absolute top-full left-0 mt-2 w-48 rounded-xl border border-white/10 bg-brand-secondary/95 backdrop-blur shadow-xl py-1 z-50">
+                {% for child in item.children.all %}
+                <a href="{{ child.url }}" class="block px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors">
+                  {{ child.title }}
+                </a>
+                {% endfor %}
+              </div>
+              {% else %}
+              <a href="{{ item.url }}" class="text-sm text-white/80 hover:text-white transition-colors py-1">
+                {{ item.title }}
+              </a>
+              {% endif %}
+            </div>
+            {% endif %}
+          {% endfor %}
+        </nav>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Mobile hamburger -->
+        <button @click="mobileMenuOpen = !mobileMenuOpen"
+                class="md:hidden p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Toggle mobile menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            <path x-show="mobileMenuOpen"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Mobile nav drawer -->
+    <div x-show="mobileMenuOpen" x-transition class="md:hidden border-t border-white/10 bg-brand-secondary/95 backdrop-blur px-4 py-3">
+      {% with primary=menus.primary_header %}
+      {% if primary %}
+      {% for item in primary.items.all %}
+        {% if not item.parent %}
+        <a href="{{ item.url }}" class="block py-2 text-sm text-white/80 hover:text-white transition-colors">
+          {{ item.title }}
+        </a>
+        {% endif %}
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════ CONTENT ════ -->
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════ FOOTER ════ -->
+  <footer class="border-t border-white/10 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <!-- Brand column -->
+        <div>
+          <span class="font-bold text-white text-lg">
+            {{ site_settings.site_name|default:'CBE Resource Hub' }}
+          </span>
+          <p class="mt-2 text-sm text-white/50 leading-relaxed">
+            Free, open-source CBC curriculum resources for every Kenyan learner.
+          </p>
+        </div>
+
+        <!-- Footer menu -->
+        {% with footer=menus.footer %}
+        {% if footer %}
+        <div>
+          <h3 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Quick Links</h3>
+          <ul class="space-y-2">
+            {% for item in footer.items.all %}
+              {% if not item.parent %}
+              <li>
+                <a href="{{ item.url }}" class="text-sm text-white/50 hover:text-white transition-colors">
+                  {{ item.title }}
+                </a>
+              </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Contact -->
+        <div>
+          <h3 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Contact</h3>
+          {% if site_settings.support_email %}
+          <a href="mailto:{{ site_settings.support_email }}" class="text-sm text-white/50 hover:text-white transition-colors">
+            {{ site_settings.support_email }}
+          </a>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <div class="mt-10 border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <p class="text-xs text-white/30">
+          &copy; {% now "Y" %} {{ site_settings.site_name|default:'CBE Resource Hub' }}. Licensed under Apache 2.0.
+        </p>
+        <p class="text-xs text-white/30">Built with ❤️ for Kenyan learners.</p>
+      </div>
+    </div>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ resource.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
+    <a href="/" class="hover:text-white transition-colors">Home</a>
+    <span>/</span>
+    <a href="{% url 'resources:list' %}" class="hover:text-white transition-colors">Resources</a>
+    <span>/</span>
+    <span class="text-white/70 truncate max-w-[200px]">{{ resource.title }}</span>
+  </nav>
+
+  <div class="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+    <!-- Top accent bar -->
+    <div class="h-1.5 bg-gradient-to-r from-brand-primary to-brand-accent"></div>
+
+    <div class="p-8">
+      <!-- Badges -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-brand-primary/20 text-brand-accent">
+          {{ resource.learning_area.name }}
+        </span>
+        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 text-white/70">
+          {{ resource.grade.level.name }} &rsaquo; {{ resource.grade.name }}
+        </span>
+        {% if resource.is_free %}
+        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Free</span>
+        {% endif %}
+      </div>
+
+      <h1 class="text-2xl font-bold text-white mb-3">{{ resource.title }}</h1>
+      <p class="text-white/60 leading-relaxed mb-8">{{ resource.description }}</p>
+
+      <!-- Download button -->
+      <a href="{{ resource.file.url }}"
+         download
+         class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-primary hover:bg-brand-accent text-white font-semibold text-sm transition-colors shadow-lg shadow-brand-primary/30">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Download Resource
+      </a>
+
+      <p class="mt-4 text-xs text-white/30">
+        {{ resource.downloads }} download{{ resource.downloads|pluralize }} &bull;
+        Added {{ resource.created_at|date:"N j, Y" }}
+        {% if resource.vendor %}&bull; by {{ resource.vendor.get_full_name|default:resource.vendor.username }}{% endif %}
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
