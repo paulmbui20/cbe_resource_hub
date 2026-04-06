@@ -14,7 +14,7 @@ class ContactMessage(models.Model):
     """A message submitted via the public Contact Us form."""
 
     name = models.CharField(max_length=150)
-    email = models.EmailField()
+    email = models.EmailField(null=True, blank=True)
     phone = PhoneNumberField(
         blank=True,
         null=True,

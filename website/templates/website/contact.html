@@ -59,6 +59,7 @@
                        value="{{ form.name.value|default:'' }}"
                        placeholder="Your full name"
                        autocomplete="name"
+                       required
                        class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all hover:border-white/20">
                 {% if form.name.errors %}
                 <p class="mt-1.5 text-xs text-red-400">{{ form.name.errors.0 }}</p>
@@ -66,7 +67,7 @@
               </div>
               <div>
                 <label for="{{ form.email.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">
-                  Email Address <span class="text-brand-primary">*</span>
+                  Email Address
                 </label>
                 <input type="email" name="email" id="{{ form.email.id_for_label }}"
                        value="{{ form.email.value|default:'' }}"
@@ -97,7 +98,7 @@
                 </label>
                 <input type="text" name="subject" id="{{ form.subject.id_for_label }}"
                        value="{{ form.subject.value|default:'' }}"
-                       placeholder="How can we help?"
+                       placeholder="How can we help?" required
                        class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all hover:border-white/20">
                 {% if form.subject.errors %}
                 <p class="mt-1.5 text-xs text-red-400">{{ form.subject.errors.0 }}</p>
@@ -111,7 +112,7 @@
                 Message <span class="text-brand-primary">*</span>
               </label>
               <textarea name="message" id="{{ form.message.id_for_label }}"
-                        rows="6"
+                        rows="6" required
                         placeholder="Tell us what's on your mind. The more detail, the better we can help…"
                         class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all hover:border-white/20 resize-none">{{ form.message.value|default:'' }}</textarea>
               {% if form.message.errors %}

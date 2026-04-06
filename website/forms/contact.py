@@ -11,6 +11,7 @@ class ContactForm(forms.Form):
         widget=forms.TextInput(attrs={"placeholder": "Your full name", "autocomplete": "name"}),
     )
     email = forms.EmailField(
+        required=False,
         widget=forms.EmailInput(attrs={"placeholder": "your@email.com", "autocomplete": "email"}),
     )
     phone = PhoneNumberField(
