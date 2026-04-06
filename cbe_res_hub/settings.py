@@ -679,7 +679,7 @@ if os.getenv("SENTRY_DSN"):
 TINYMCE_DEFAULT_CONFIG = {
     "theme": "silver",
     "height": 800,
-    "width": 650,
+    "width": 1100,
     "menubar": "file edit view insert format tools table help",
     "plugins": (
         "accordion autosave autoresize advlist autolink lists link image charmap "

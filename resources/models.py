@@ -107,9 +107,6 @@ class ResourceItem(models.Model):
     Multivendor marketplace fields (vendor, is_free, price, downloads) are
     included now for zero-migration cost when the marketplace is activated.
     """
-
-    
-
     title: str = models.CharField(max_length=255)
     slug: str = models.SlugField(
         unique=True,

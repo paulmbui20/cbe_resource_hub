@@ -3,9 +3,9 @@
 {% block title %}Manage Users{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
-     data-bulk-toggle-url="{% url 'management:user_bulk_toggle' %}"
-     x-data="{ 
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+         data-bulk-toggle-url="{% url 'management:user_bulk_toggle' %}"
+         x-data="{
     selected: [],
     toggleAll() {
         const checkboxes = document.querySelectorAll('.user-checkbox');
@@ -33,97 +33,133 @@
     }
 }">
 
-  <nav class="flex items-center gap-2 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
-    <a href="{% url 'management:dashboard' %}" class="hover:text-white transition-colors">Admin Panel</a>
-    <span>/</span>
-    <span class="text-white/60">Users</span>
-  </nav>
+        <nav class="flex items-center gap-2 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
+            <a href="{% url 'management:dashboard' %}" class="hover:text-white transition-colors">Admin Panel</a>
+            <span>/</span>
+            <span class="text-white/60">Users</span>
+        </nav>
 
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-    <h1 class="text-2xl font-bold text-white">Manage Users</h1>
-    <a href="{% url 'management:user_add' %}" class="px-4 py-2 rounded-xl bg-brand-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-primary/20 whitespace-nowrap">+ Add New User</a>
-  </div>
-      <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search by email..." 
-             class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2 pr-10 text-sm text-white focus:ring-2 focus:ring-brand-primary placeholder:text-white/30">
-      <button type="submit" class="absolute inset-y-0 right-0 px-3 flex items-center text-white/40 hover:text-white transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      </button>
-    </form>
-  </div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <h1 class="text-2xl font-bold text-white">Manage Users</h1>
+            <a href="{% url 'management:user_add' %}"
+               class="px-4 py-2 rounded-xl bg-brand-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-primary/20 whitespace-nowrap">+
+                Add New User</a>
+        </div>
+        <form class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search by email..."
+                   class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2 pr-10 text-sm text-white focus:ring-2 focus:ring-brand-primary placeholder:text-white/30">
+            <button type="submit"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-accent hover:bg-blue-60 text-white hover:bg-brand-primary font-semibold transition-colors shadow-lg shadow-brand-primary/20 whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                Search
+            </button>
+        </form>
 
-  <div class="flex flex-col sm:flex-row items-center justify-between bg-white/5 border border-white/10 rounded-xl p-3 mb-6 transition-all" x-show="selected.length > 0" x-cloak>
-    <div class="text-sm font-medium text-white/80"><span x-text="selected.length"></span> users selected</div>
-    <div class="flex space-x-2 mt-3 sm:mt-0">
-      <button @click="submitBulk('enable')" type="button" class="px-4 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 text-sm font-semibold transition-colors">Enable Selected</button>
-      <button @click="submitBulk('disable')" type="button" class="px-4 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-sm font-semibold transition-colors">Disable Selected</button>
-    </div>
-  </div>
+        <div class="flex flex-col sm:flex-row items-center justify-between bg-white/5 border border-white/10 rounded-xl p-3 mb-6 transition-all"
+             x-show="selected.length > 0" x-cloak>
+            <div class="text-sm font-medium text-white/80"><span x-text="selected.length"></span> users selected</div>
+            <div class="flex space-x-2 mt-3 sm:mt-0">
+                <button @click="submitBulk('enable')" type="button"
+                        class="px-4 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 text-sm font-semibold transition-colors">
+                    Enable Selected
+                </button>
+                <button @click="submitBulk('disable')" type="button"
+                        class="px-4 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-sm font-semibold transition-colors">
+                    Disable Selected
+                </button>
+            </div>
+        </div>
 
-  <div class="rounded-2xl border border-white/8 overflow-hidden bg-white/5 pb-2">
-    <table class="w-full text-sm" id="dataTable">
-      <thead>
-        <tr class="border-b border-white/8 bg-white/[0.03]">
-          <th class="px-5 py-3 text-left w-12">
-            <input type="checkbox" @click="toggleAll()" class="w-4 h-4 rounded border-white/20 bg-white/5 text-brand-primary focus:ring-brand-primary">
-          </th>
-          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">User</th>
-          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">Status & Role</th>
-          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden md:table-cell">Joined</th>
-          <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-white/5">
-        {% for u in users %}
-        <tr class="hover:bg-white/[0.02] transition-colors" :class="selected.includes('{{ u.pk }}') ? 'bg-white/[0.05]' : ''">
-          <td class="px-5 py-3">
-             <input type="checkbox" value="{{ u.pk }}" x-model="selected" class="user-checkbox w-4 h-4 rounded border-white/20 bg-white/5 text-brand-primary focus:ring-brand-primary">
-          </td>
-          <td class="px-5 py-3">
-            <div class="font-medium text-white">{{ u.email }}</div>
-            <div class="text-xs text-white/40 mt-1">{% if u.first_name %}{{ u.first_name }} {{ u.last_name }}{% else %}<span class="italic text-white/20">Name missing</span>{% endif %}</div>
-          </td>
-          <td class="px-5 py-3 hidden sm:table-cell space-y-1">
-            <div>
+        <div class="rounded-2xl border border-white/8 overflow-hidden bg-white/5 pb-2">
+            <table class="w-full text-sm" id="dataTable">
+                <thead>
+                <tr class="border-b border-white/8 bg-white/[0.03]">
+                    <th class="px-5 py-3 text-left w-12">
+                        <input type="checkbox" @click="toggleAll()"
+                               class="w-4 h-4 rounded border-white/20 bg-white/5 text-brand-primary focus:ring-brand-primary">
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">User</th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">
+                        Status & Role
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden md:table-cell">
+                        Joined
+                    </th>
+                    <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                {% for u in users %}
+                    <tr class="hover:bg-white/[0.02] transition-colors"
+                        :class="selected.includes('{{ u.pk }}') ? 'bg-white/[0.05]' : ''">
+                        <td class="px-5 py-3">
+                            <input type="checkbox" value="{{ u.pk }}" x-model="selected"
+                                   class="user-checkbox w-4 h-4 rounded border-white/20 bg-white/5 text-brand-primary focus:ring-brand-primary">
+                        </td>
+                        <td class="px-5 py-3">
+                            <div class="font-medium text-white">{{ u.email }}</div>
+                            <div class="text-xs text-white/40 mt-1">
+                                {% if u.first_name %}{{ u.first_name }} {{ u.last_name }}{% else %}
+                                    <span class="italic text-white/20">Name missing</span>{% endif %}</div>
+                        </td>
+                        <td class="px-5 py-3 hidden sm:table-cell space-y-1">
+                            <div>
               <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
                 {% if u.is_active %}bg-green-500/20 text-green-400{% else %}bg-red-500/20 text-red-400{% endif %}">
                 {% if u.is_active %}Active{% else %}Disabled{% endif %}
               </span>
-            </div>
-            <div>
+                            </div>
+                            <div>
               <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
                 {% if u.role == 'admin' %}bg-purple-500/20 text-purple-400
                 {% elif u.role == 'vendor' %}bg-blue-500/20 text-blue-400
                 {% else %}bg-white/10 text-white/60{% endif %}">
                 {{ u.get_role_display }}
               </span>
-            </div>
-          </td>
-          <td class="px-5 py-3 text-white/40 hidden md:table-cell">{{ u.date_joined|date:"M d, Y" }}</td>
-          <td class="px-5 py-3 text-right space-x-2">
-            <a href="{% url 'management:user_edit' u.pk %}" class="text-brand-accent hover:text-white transition-colors text-xs font-semibold px-3 py-1.5 rounded bg-brand-primary/10 hover:bg-brand-primary/20">Edit</a>
-            <button type="button" @click.prevent="$dispatch('open-delete-modal', { url: '{% url 'management:user_delete' u.pk %}', name: '{{ u.email|escapejs }}' })" class="text-red-400 hover:text-red-300 transition-colors text-xs font-semibold px-3 py-1.5 rounded bg-red-400/10 hover:bg-red-400/20">Delete</button>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="4" class="px-5 py-8 text-center text-white/40">No users found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  
-  {% if is_paginated %}
-  <div class="mt-6 flex items-center justify-center gap-2">
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm">&laquo; Prev</a>
-    {% endif %}
-    <span class="text-white/40 text-sm">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm">Next &raquo;</a>
-    {% endif %}
-  </div>
-  {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-5 py-3 text-white/40 hidden md:table-cell">{{ u.date_joined|date:"M d, Y" }}</td>
+                        <td class="px-5 py-3 text-right space-x-2">
+                            <a href="{% url 'management:user_edit' u.pk %}"
+                               class="text-brand-accent hover:text-white transition-colors text-xs font-semibold px-3 py-1.5 rounded bg-brand-primary/10 hover:bg-brand-primary/20">Edit</a>
+                            <button type="button"
+                                    @click.prevent="$dispatch('open-delete-modal', { url: '{% url 'management:user_delete' u.pk %}', name: '{{ u.email|escapejs }}' })"
+                                    class="text-red-400 hover:text-red-300 transition-colors text-xs font-semibold px-3 py-1.5 rounded bg-red-400/10 hover:bg-red-400/20">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-5 py-8 text-center text-white/40">No users found.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-</div>
+        {% if is_paginated %}
+            <div class="mt-6 flex items-center justify-center gap-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page=
+                            {{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+                       class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm">&laquo;
+                        Prev</a>
+                {% endif %}
+                <span class="text-white/40 text-sm">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page=
+                            {{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+                       class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm">Next
+                        &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </div>
 {% endblock %}
