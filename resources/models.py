@@ -198,6 +198,11 @@ class ResourceItem(models.Model):
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
 
+    def delete(self, using=None, keep_parents=False):
+        if self.file:
+            self.file.delete(save=False)
+        return super().delete(using=using, keep_parents=keep_parents)
+
     def get_absolute_url(self) -> str:
         from django.urls import reverse
         return reverse("resources:resource_detail", kwargs={"slug": self.slug})
