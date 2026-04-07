@@ -1,6 +1,8 @@
 """cbe_res_hub/urls.py"""
 from __future__ import annotations
 
+import sys
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -31,8 +33,8 @@ urlpatterns = [
 
 ]
 
-# ── Development only ─────────────────────────────────────────────────────────
-if settings.DEBUG:
+# ── Development only (excludes testing environment)─────────────────────────────
+if not ("pytest" in sys.modules or "test" in sys.argv) or settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
     import debug_toolbar  # noqa: PLC0415

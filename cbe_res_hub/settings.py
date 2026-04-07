@@ -1,5 +1,5 @@
 """
-Django settings for cbe_res_hub — Django 6.0+
+Django settings for cbe_res_hub — Django 6.0+ currently on (6.0.3)
 
 Sections:
     1.  Core / Security
@@ -118,6 +118,7 @@ MY_APPS: list[str] = [
     "cms.apps.CmsConfig",
     "resources.apps.ResourcesConfig",
     "website.apps.WebsiteConfig",
+    "files.apps.FilesConfig",
 ]
 
 INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + MY_APPS
@@ -125,7 +126,7 @@ INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + MY_APPS
 # ──────────────────────────────────────────────────────────────────────────────
 # 3. MIDDLEWARE
 # ──────────────────────────────────────────────────────────────────────────────
-MIDDLEWARE: list[str] = [
+MAIN_MIDDLEWARE: list[str] = [
     "django_smart_ratelimit.middleware.RateLimitMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -700,10 +701,6 @@ if _prod:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 
-    # Page-level caching middleware (correct insertion order)
-    MIDDLEWARE.insert(1, "django.middleware.cache.UpdateCacheMiddleware")
-    MIDDLEWARE.append("django.middleware.cache.FetchFromCacheMiddleware")
-
     # Remove dev_console handler in production loggers
     for _logger_cfg in LOGGING["loggers"].values():
         if "dev_console" in _logger_cfg.get("handlers", []):
@@ -741,6 +738,12 @@ if _prod:
                 "OPTIONS": _BACKUP_R2_OPTIONS,
             },
         }
+
+        MIDDLEWARE = MAIN_MIDDLEWARE
+
+        # Page-level caching middleware (correct insertion order)
+        MIDDLEWARE.insert(1, "django.middleware.cache.UpdateCacheMiddleware")
+        MIDDLEWARE.append("django.middleware.cache.FetchFromCacheMiddleware")
 else:
     # --- Development ---
     if DEBUG:
@@ -762,7 +765,7 @@ else:
     }
 
     INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + MY_APPS + LOCAL_APPS
-    MIDDLEWARE: list[str] = MIDDLEWARE + LOCAL_MIDDLEWARE
+    MIDDLEWARE: list[str] = MAIN_MIDDLEWARE + LOCAL_MIDDLEWARE
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 22. TEST OVERRIDES
@@ -783,6 +786,9 @@ if "pytest" in sys.modules or "test" in sys.argv:
     }
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
+
+    INSTALLED_APPS = DEFAULT_APPS + MY_APPS + THIRD_PARTY_APPS
+    MIDDLEWARE = MAIN_MIDDLEWARE
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Quick reference

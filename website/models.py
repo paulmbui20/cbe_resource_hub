@@ -6,6 +6,9 @@ them from the custom management panel.
 """
 from __future__ import annotations
 
+from uuid import uuid4
+
+from django.core.files.storage import storages
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils.text import slugify
@@ -13,6 +16,57 @@ from phonenumber_field.modelfields import PhoneNumberField
 from tinymce.models import HTMLField
 
 from resources.validators import validate_image_file_magic
+
+
+def partner_featured_image_upload_path(instance, filename):
+    """
+        Generate upload path for partner featured image with collision prevention.
+    """
+
+    # Get extension safely
+    ext = filename.split('.')[-1] if '.' in filename else ''
+
+    # Safely handle title (limit length and handle empty titles)
+    safe_title = slugify(instance.name or 'file')[:50] or 'untitled'
+
+    # Generate unique filename
+    filename = f"{safe_title}-{uuid4()}.{ext}" if ext else f"{safe_title}-{uuid4()}"
+
+    # Return path (category will be set before this is called)
+    name = getattr(instance, 'name')
+    return f"partners/featured_images/{name}/{filename}"
+
+
+class PublicFilesStorageCallable:
+    """
+    Callable that returns the appropriate storage backend for files.
+    This is evaluated at runtime, not at class definition time.
+    """
+
+    def __call__(self):
+        from django.conf import settings
+        from django.core.files.storage import FileSystemStorage
+
+        # In tests, always use FileSystemStorage
+        if 'test' in settings.DATABASES['default']['NAME']:
+            return FileSystemStorage()
+
+        try:
+            return storages['public_files']
+        except (KeyError, AttributeError):
+            # Fallback to default storage
+            return storages['default']
+
+    def deconstruct(self):
+        """
+        Allow Django to serialize this for migrations.
+        """
+        return (
+            'website.models.PublicFilesStorageCallable',
+            [],
+            {}
+        )
+
 
 
 class ContactMessage(models.Model):
@@ -51,7 +105,8 @@ class Partner(models.Model):
     slug = models.SlugField(max_length=255, null=True, blank=True)
     featured_image = models.ImageField(
         validators=[validate_image_file_magic],
-        upload_to='partners/featured_images/',
+        upload_to=partner_featured_image_upload_path,
+        storage=PublicFilesStorageCallable(),
         null=True,
     )
     description = HTMLField(null=True, blank=True)
