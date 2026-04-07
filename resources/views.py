@@ -3,7 +3,7 @@ resources/views.py
 
 High-performance class-based views for CBE resource browsing.
 
-Key optimisations:
+Key optimizations:
     - select_related() on every FK to eliminate N+1 database queries
     - HTMX-aware pagination: full page for normal requests, partial HTML
       for HTMX requests (infinite scroll / "Load more" pattern)
@@ -90,7 +90,6 @@ class ResourceListView(ListView):
             qs = qs.filter(title__icontains=q)
         if resource_type:
             qs = qs.filter(resource_type=resource_type)
-        print(qs)
 
         return qs
 

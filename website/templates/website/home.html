@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Free CBC Learning Resources for Kenyan Students{% endblock %}
+{% block title %}Free CBE Learning Resources for Kenyan Students{% endblock %}
 
 {% block content %}
 
@@ -9,18 +9,18 @@
 <section class="relative overflow-hidden">
   {# Ambient glow #}
   <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-brand-primary/20 blur-3xl"></div>
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-225 h-125 rounded-full bg-brand-primary/20 blur-3xl"></div>
   </div>
 
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-accent text-xs font-medium mb-6">
       <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-accent opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-brand-accent"></span></span>
-      100% Free &bull; Open Source &bull; CBC Aligned
+      100% Free &bull; Open Source &bull; CBE Aligned
     </div>
 
     <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight mb-6">
-      Free CBC Resources<br>
-      <span class="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">for Every Kenyan Learner</span>
+      Free CBE Resources<br>
+      <span class="bg-linear-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">for Every Kenyan Learner</span>
     </h1>
     <p class="max-w-2xl mx-auto text-lg text-white/60 leading-relaxed mb-10">
       Download curriculum-aligned worksheets, lesson plans, and revision materials
@@ -31,7 +31,7 @@
       <a href="{% url 'resources:list' %}"
          class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-brand-primary hover:bg-blue-600 text-white font-semibold text-sm transition-all shadow-xl shadow-brand-primary/30 hover:scale-105">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
         </svg>
         Browse All Resources
       </a>
@@ -39,7 +39,7 @@
          class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-sm transition-all hover:scale-105">
         Browse by Level
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
       </a>
     </div>
@@ -47,7 +47,7 @@
 </section>
 
 {# ═══════════════════════════════════════════ STATS STRIP ════════════════════ #}
-<section class="border-y border-white/5 bg-white/[0.02]">
+<section class="border-y border-white/5 bg-white/2">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <dl class="grid grid-cols-2 sm:grid-cols-3 gap-6 text-center">
       <div>
@@ -76,14 +76,14 @@
     </div>
     <a href="{% url 'resources:list' %}" class="text-sm text-brand-accent hover:text-white transition-colors flex items-center gap-1">
       View all
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
     </a>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
     {% for resource in featured_resources %}
     <article class="group relative flex flex-col rounded-2xl bg-white/5 border border-white/10 hover:border-brand-primary/50 hover:bg-white/8 transition-all duration-300 overflow-hidden shadow-md hover:shadow-brand-primary/10 hover:shadow-lg">
-      <div class="h-1 bg-gradient-to-r from-brand-primary to-brand-accent"></div>
+      <div class="h-1 bg-linear-to-r from-brand-primary to-brand-accent"></div>
       <div class="p-5 flex flex-col flex-1 gap-3">
         <div class="flex flex-wrap gap-1.5">
           <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-primary/15 text-brand-accent">{{ resource.learning_area.name }}</span>
@@ -96,7 +96,7 @@
         <div class="pt-2 border-t border-white/5 flex items-center justify-between text-xs text-white/30">
           <span>{{ resource.grade.level.name }}</span>
           <span class="flex items-center gap-1">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
             {{ resource.downloads }}
           </span>
         </div>
@@ -109,7 +109,7 @@
 
 {# ═══════════════════════════════════════════ BROWSE BY LEVEL ═══════════════ #}
 {% if education_levels %}
-<section id="levels" class="bg-white/[0.02] border-t border-white/5">
+<section id="levels" class="bg-white/2 border-t border-white/5">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <h2 class="text-2xl font-bold text-white mb-2">Browse by Education Level</h2>
     <p class="text-sm text-white/50 mb-8">Find resources aligned to your child's curriculum stage</p>
@@ -126,7 +126,7 @@
           <p class="text-xs text-white/40 mt-0.5">{{ level.grades.count }} grade{{ level.grades.count|pluralize }}</p>
         </div>
         <svg class="w-4 h-4 text-white/20 group-hover:text-brand-accent ml-auto shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
         </svg>
       </a>
       {% endfor %}
@@ -137,19 +137,19 @@
 
 {# ═══════════════════════════════════════════ CTA STRIP ══════════════════════ #}
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-  <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-primary/30 to-brand-secondary border border-brand-primary/20 p-10 text-center">
+  <div class="relative rounded-3xl overflow-hidden bg-linear-to-br from-brand-primary/30 to-brand-secondary border border-brand-primary/20 p-10 text-center">
     <div class="pointer-events-none absolute inset-0" aria-hidden="true">
       <div class="absolute bottom-0 right-0 w-64 h-64 bg-brand-accent/10 rounded-full blur-3xl"></div>
     </div>
     <h2 class="text-3xl font-bold text-white mb-3 relative">Ready to start learning?</h2>
     <p class="text-white/60 mb-8 relative max-w-xl mx-auto">
-      Every resource is free, open-source, and aligned to the Kenyan CBC curriculum.
+      Every resource is free, open-source, and aligned to the Kenyan CBE curriculum.
       No account needed — just click and download.
     </p>
     <a href="{% url 'resources:list' %}"
        class="relative inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-white text-brand-secondary font-bold text-sm hover:bg-white/90 transition-all shadow-xl hover:scale-105">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
       </svg>
       Browse All Resources
     </a>
