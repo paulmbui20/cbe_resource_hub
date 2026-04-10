@@ -1,0 +1,7 @@
+New User Signup
+---------------
+Email: {{ user.email }}
+Full Name: {{ user.get_full_name|default:"Not provided" }}
+Signup Date: {{ user.date_joined }}
+
+You can manage this user in the admin panel.

@@ -23,6 +23,8 @@
 - **Built-in Rate Limiting** — `django-smart-ratelimit` + `django-axes` brute-force protection
 - **Performance** — Query profiling via Silk, async-ready with Django 6 ASGI
 - **Global Toast Notifications** — Alpine.js system auto-fires Django messages; also JS-dispatchable from any page
+- **Robust Notification System** — Async Celery-powered email delivery with retries, idempotency, and SMTP-safe rate limiting
+- **Notification Dashboard** — Visualize email history, delivery status, and manual retry triggers
 - **Dynamic Menus** — CMS-driven header & footer navigation, zero code changes needed
 - **Contact Page** — Full form with email delivery, honeypot anti-spam, and animated responsive UI
 

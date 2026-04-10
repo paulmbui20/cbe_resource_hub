@@ -1,0 +1,10 @@
+Security Alert: IP Lockout
+--------------------------
+A brute-force attempted was detected and the source IP has been locked out.
+
+IP Address: {{ ip_address }}
+Attempted Username: {{ username|default:"N/A" }}
+Timestamp: {{ timestamp }}
+User Agent: {{ user_agent }}
+
+No action is required unless this is an unexpected spike in security alerts.

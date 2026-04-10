@@ -8,6 +8,7 @@ from accounts.models import CustomUser
 from cms.models import Page, Menu, SiteSetting
 from resources.models import ResourceItem
 from website.models import ContactMessage, Partner
+from notifications.admin_views import AdminNotificationListView, AdminNotificationRetryView
 
 class IsAdminMixin(UserPassesTestMixin):
     def test_func(self):

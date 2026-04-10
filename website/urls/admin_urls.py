@@ -91,4 +91,8 @@ urlpatterns = [
     path("partners/add/", views.AdminPartnerCreateView.as_view(), name="partner_add"),
     path("partners/<int:pk>/edit/", views.AdminPartnerUpdateView.as_view(), name="partner_edit"),
     path("partners/<int:pk>/delete/", views.AdminPartnerDeleteView.as_view(), name="partner_delete"),
+
+    # Notifications
+    path("notifications/", views.AdminNotificationListView.as_view(), name="notification_list"),
+    path("notifications/<int:pk>/retry/", views.AdminNotificationRetryView.as_view(), name="notification_retry"),
 ]

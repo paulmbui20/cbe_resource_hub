@@ -120,6 +120,7 @@ MY_APPS: list[str] = [
     "website.apps.WebsiteConfig",
     "files.apps.FilesConfig",
     "seo.apps.SeoConfig",
+    "notifications.apps.NotificationsConfig",
 ]
 
 INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + MY_APPS

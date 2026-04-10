@@ -1,0 +1,29 @@
+{% extends "notifications/email_base.html" %}
+
+{% block content %}
+<h2>New Resource Uploaded</h2>
+<p>A new learning resource has been uploaded to the <strong>CBE Resource Hub</strong>.</p>
+
+<table>
+  <tr>
+    <th>Title</th>
+    <td>{{ resource.title }}</td>
+  </tr>
+  <tr>
+    <th>Grade</th>
+    <td>{{ resource.grade }}</td>
+  </tr>
+  <tr>
+    <th>Price</th>
+    <td>{% if resource.is_free %}Free{% else %}KSh {{ resource.price }}{% endif %}</td>
+  </tr>
+  <tr>
+    <th>Uploaded By</th>
+    <td>{{ resource.vendor.email|default:"System Admin" }}</td>
+  </tr>
+</table>
+
+<p>The resource is currently pending review or published based on system settings.</p>
+
+<a href="{{ request.scheme }}://{{ request.get_host }}{% url 'management:resource_edit' resource.pk %}" class="btn">View in Dashboard</a>
+{% endblock %}

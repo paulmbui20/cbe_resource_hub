@@ -56,33 +56,21 @@ class ContactView(FormView):
 
         # Persist to database so admins can read it in the management panel
         from website.models import ContactMessage
-        ContactMessage.objects.create(
+        msg = ContactMessage.objects.create(
             name=data["name"],
-            email=data["email"],
-            phone=data.get("phone", ""),
+            email=data.get("email"),
+            phone=data.get("phone"),
             subject=data["subject"],
             message=data["message"],
         )
 
-        # Send email notification to site admin
-        phone_line = f"\nPhone: {data['phone']}" if data.get("phone") else ""
-        try:
-            send_mail(
-                subject=f"[CBE Hub Contact] {data['subject']}",
-                message=(
-                    f"From: {data['name']} <{data['email']}>{phone_line}\n\n"
-                    f"{data['message']}"
-                ),
-                from_email=support_email,
-                recipient_list=[support_email],
-                fail_silently=True,
-            )
-        except Exception:
-            pass  # never crash the user experience on email failure
+        # Trigger robust async notification
+        from notifications.notifier import notify_contact_form
+        notify_contact_form(msg)
 
         messages.success(
             self.request,
-            f"Thanks {data['name']}. Your message has been received. We will get back to you shortly.",
+            "Your message has been sent successfully. We will get back to you shortly.",
         )
         return super().form_valid(form)
 
