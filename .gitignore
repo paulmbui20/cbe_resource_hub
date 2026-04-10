@@ -146,3 +146,5 @@ GitHub.sublime-settings
 .history
 
 /static
+# github cicd temporarily ignored 
+.github/

@@ -13,4 +13,5 @@ like ads in a minimalistic way that's non-intrusive and doesn't destroy ux, also
 7. A robust notification system preferably in its own app that exposes tasks (function) that can be called (function should be very easy to  work with and be well documented) when events happen \
 to que/send and email via **CELERY** to the admin, when important events happen like signup, attempted bruteforce(axes timeout), contact form submission, resource item upload etc., notifications, \
 notifications should be fault-tolerant with idempotency retry logic, but be safe such that they don't max out the SMTP limits, with  custom admin ui to visualize and trigger retry etc.
-1. Initializing pytest correctly and adding comprehensive test cases 
+8. Adding comprehensive test cases 
+9. 
