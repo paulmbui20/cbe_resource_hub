@@ -8,9 +8,11 @@ WordPress-like dynamic CMS functionality:
 """
 from __future__ import annotations
 
+from django.utils.html import strip_tags
 from django.db import models
 from django.utils.text import slugify
 from tinymce.models import HTMLField
+from seo.models import SlugRedirectMixin, SEOModel
 
 
 class SiteSetting(models.Model):
@@ -103,7 +105,7 @@ class MenuItem(models.Model):
         return f"[{self.menu.name}] {prefix}{self.title}"
 
 
-class Page(models.Model):
+class Page(SEOModel, SlugRedirectMixin, models.Model):
     """
     A static CMS page served at /pages/<slug>/.
 
@@ -111,7 +113,6 @@ class Page(models.Model):
     editor (e.g. TinyMCE via django-tinymce) can be plugged in at the form
     layer without requiring a model migration.
     """
-
     title: str = models.CharField(max_length=200)
     slug: str = models.SlugField(
         unique=True,
@@ -127,8 +128,6 @@ class Page(models.Model):
         db_index=True,
         help_text="Only published pages are visible to the public.",
     )
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Page"
@@ -142,6 +141,10 @@ class Page(models.Model):
     def save(self, *args, **kwargs) -> None:
         if not self.slug:
             self.slug = slugify(self.title)
+        if self.title and not self.meta_title:
+            self.meta_title = self.title
+        if self.content and not self.meta_description:
+            self.meta_description = strip_tags(self.content)
         super().save(*args, **kwargs)
 
     def get_absolute_url(self) -> str:

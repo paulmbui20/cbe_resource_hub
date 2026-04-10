@@ -2,6 +2,7 @@ from django.urls import path
 from website import admin_views as views
 from website import admin_dependency_views as dep_views
 from files import views as file_views
+from seo import admin_views as seo_views
 
 app_name = "management"
 
@@ -77,4 +78,11 @@ urlpatterns = [
     path("contacts/", views.AdminContactMessageListView.as_view(), name="contact_list"),
     path("contacts/<int:pk>/", views.AdminContactMessageDetailView.as_view(), name="contact_detail"),
     path("contacts/<int:pk>/delete/", views.AdminContactMessageDeleteView.as_view(), name="contact_delete"),
+
+    # SEO Management
+    path("seo/", seo_views.AdminSlugRedirectListView.as_view(), name="seo_redirect_list"),
+    path("seo/add/", seo_views.AdminSlugRedirectCreateView.as_view(), name="seo_redirect_add"),
+    path("seo/<int:pk>/edit/", seo_views.AdminSlugRedirectUpdateView.as_view(), name="seo_redirect_edit"),
+    path("seo/<int:pk>/delete/", seo_views.AdminSlugRedirectDeleteView.as_view(), name="seo_redirect_delete"),
+    path("seo/audit/", seo_views.AdminSEOAuditView.as_view(), name="seo_audit"),
 ]

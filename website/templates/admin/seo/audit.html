@@ -1,0 +1,150 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}SEO Audit Report{% endblock %}
+
+{% block admin_content %}
+<div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8">
+    <div>
+      <div class="flex items-center gap-3 mb-1">
+        <div class="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+        </div>
+        <h1 class="text-2xl font-bold text-white tracking-tight">SEO Audit</h1>
+      </div>
+      <p class="text-white/40 text-sm ml-12">Review SEO metadata coverage across all Resources.</p>
+    </div>
+    <a href="{% url 'management:seo_redirect_list' %}" class="shrink-0 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 hover:text-white font-medium text-sm transition-all flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+      Slug Redirects
+    </a>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+      <p class="text-2xl font-bold text-white">{{ resources|length }}</p>
+      <p class="text-xs text-white/40 mt-0.5">Total Resources</p>
+    </div>
+    <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+      <p class="text-2xl font-bold {% if resource_issues > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">{{ resource_issues }}</p>
+      <p class="text-xs text-white/40 mt-0.5">Missing SEO Metadata</p>
+    </div>
+    {% with complete_count=resources|length|add:"-"|add:resource_issues %}
+    <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+      <p class="text-2xl font-bold text-emerald-400">{{ resources|length|add:resource_issues|add:"-"|add:resource_issues }}</p>
+      <p class="text-xs text-white/40 mt-0.5">SEO Complete</p>
+    </div>
+    {% endwith %}
+    <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+      {% if resources|length > 0 %}
+        {% widthratio resources|length|add:"-"|add:resource_issues resources|length 100 as pct %}
+        <p class="text-2xl font-bold text-white">–</p>
+      {% else %}
+        <p class="text-2xl font-bold text-white">–</p>
+      {% endif %}
+      <p class="text-xs text-white/40 mt-0.5">Coverage %</p>
+    </div>
+  </div>
+
+  {% if resource_issues > 0 %}
+  <div class="flex items-center gap-3 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl mb-6">
+    <svg class="w-5 h-5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+    <p class="text-sm text-amber-300/90"><strong class="text-amber-300">{{ resource_issues }} resource{{ resource_issues|pluralize }}</strong> {{ resource_issues|pluralize:"is,are" }} missing SEO meta title or description. Click the edit button to fill in the missing fields.</p>
+  </div>
+  {% endif %}
+
+  <!-- Resources SEO Table -->
+  <div class="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden mb-10">
+    <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+      <h2 class="font-bold text-white flex items-center gap-2">
+        <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+        Resources
+      </h2>
+      <span class="text-xs text-white/30">{{ resources|length }} total</span>
+    </div>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-white/10 bg-white/[0.02]">
+          <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Title / Slug</th>
+          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden md:table-cell">Meta Title</th>
+          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden lg:table-cell">Meta Description</th>
+          <th class="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden sm:table-cell">Score</th>
+          <th class="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        {% for resource in resources %}
+        {% with has_title=resource.meta_title has_desc=resource.meta_description %}
+        {% with score_num=0 %}
+        <tr class="group hover:bg-white/[0.04] transition-colors">
+          <td class="px-6 py-4">
+            <p class="text-white font-medium text-sm truncate max-w-[200px]">{{ resource.title }}</p>
+            <code class="text-[11px] text-white/30 font-mono mt-0.5 block">/{{ resource.slug }}/</code>
+          </td>
+          <td class="px-4 py-4 hidden md:table-cell">
+            {% if resource.meta_title %}
+              <div>
+                <p class="text-white/70 text-xs truncate max-w-[200px]">{{ resource.meta_title }}</p>
+                <span class="text-[11px] mt-0.5 block {% if resource.meta_title|length > 60 %}text-red-400{% else %}text-emerald-400{% endif %}">{{ resource.meta_title|length }}/60 chars</span>
+              </div>
+            {% else %}
+              <span class="text-xs text-red-400/70 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                Missing
+              </span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-4 hidden lg:table-cell">
+            {% if resource.meta_description %}
+              <div>
+                <p class="text-white/70 text-xs truncate max-w-[240px]">{{ resource.meta_description }}</p>
+                <span class="text-[11px] mt-0.5 block {% if resource.meta_description|length > 160 %}text-red-400{% else %}text-emerald-400{% endif %}">{{ resource.meta_description|length }}/160 chars</span>
+              </div>
+            {% else %}
+              <span class="text-xs text-red-400/70 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                Missing
+              </span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-4 hidden sm:table-cell text-center">
+            {% if has_title and has_desc %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                Good
+              </span>
+            {% elif has_title or has_desc %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 text-xs font-bold border border-amber-500/20">
+                Partial
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                Missing
+              </span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center justify-end">
+              <a href="{% url 'management:resource_edit' resource.pk %}" class="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors" title="Edit SEO fields">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endwith %}
+        {% endwith %}
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-12 text-center text-white/30 font-medium">No resources found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
