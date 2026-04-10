@@ -1,11 +1,78 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" x-data="{ mobileMenuOpen: false }">
+<html lang="en" prefix="og: https://ogp.me/ns#" x-data="{ mobileMenuOpen: false }">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="{{ site_settings.meta_description|default:'Free CBE curriculum resources for Kenyan learners.' }}" />
-  <title>{% block title %}{{ site_settings.site_name|default:'CBE Resource Hub' }}{% endblock %} | CBE Kenya</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  {# ── SEO: Title ───────────────────────────────────────────────────────── #}
+  {% block seo_title_block %}
+    <title>{% block title %}{{ site_settings.site_name|default:'CBE Resource Hub' }}{% endblock %} — Kenya CBC Learning Resources</title>
+    <meta name="title" content="{% block meta_title_value %}{{ site_settings.site_name|default:'CBE Resource Hub' }} — Kenya CBC Learning Resources{% endblock %}" />
+  {% endblock %}
+
+  {# ── SEO: Description ─────────────────────────────────────────────────── #}
+  {% block seo_description_block %}
+    <meta name="description" content="{% block meta_description_value %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners. Download Grade 1–9 notes, past papers, lesson plans, and more.' }}{% endblock %}" />
+  {% endblock %}
+
+  {# ── SEO: Keywords / Author / Robots ──────────────────────────────────── #}
+  <meta name="keywords" content="{% block meta_keywords_value %}CBC Kenya, Grade resources, curriculum, KICD, free learning materials, CBC notes, exam papers{% endblock %}" />
+  <meta name="author" content="CBE Resource Hub" />
+  <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}" />
+  <meta name="language" content="English" />
+  <meta name="revisit-after" content="7 days" />
+  <meta name="theme-color" content="#0d1117" />
+
+  {# ── SEO: Canonical ───────────────────────────────────────────────────── #}
+  <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}" />
+
+  {# ── SEO: Open Graph ──────────────────────────────────────────────────── #}
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}" />
+  <meta property="og:site_name" content="{{ site_settings.site_name|default:'CBE Resource Hub' }}" />
+  <meta property="og:locale" content="en_KE" />
+  <meta property="og:url" content="{{ request.build_absolute_uri }}" />
+  <meta property="og:title" content="{% block og_title %}{{ site_settings.site_name|default:'CBE Resource Hub' }} — Kenya CBC Learning Resources{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}" />
+  <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-default.png' %}{% endblock %}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="CBE Resource Hub — Free CBC Resources for Kenyan Learners" />
+
+  {# ── SEO: Twitter Card ────────────────────────────────────────────────── #}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@cbekenya" />
+  <meta name="twitter:title" content="{% block twitter_title %}{{ site_settings.site_name|default:'CBE Resource Hub' }}{% endblock %}" />
+  <meta name="twitter:description" content="{% block twitter_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}" />
+  <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-default.png' %}{% endblock %}" />
+
+  {# ── SEO: JSON-LD Structured Data ─────────────────────────────────────── #}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "{{ site_settings.site_name|default:'CBE Resource Hub'|escapejs }}",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "description": "{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.'|escapejs }}",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ request.scheme }}://{{ request.get_host }}{% url 'resources:list' %}?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  {% block structured_data %}{% endblock %}
+
+  {# ── SEO: Sitemaps & Feeds ────────────────────────────────────────────── #}
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+
+  {# ── Preconnects ──────────────────────────────────────────────────────── #}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
   <!-- Bun / Tailwind v4 generated CSS -->
   <link rel="stylesheet" href="{% static 'css/src/output.css' %}" />

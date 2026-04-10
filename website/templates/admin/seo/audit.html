@@ -64,7 +64,7 @@
       </h2>
       <span class="text-xs text-white/30">{{ pages|length }} total · {{ page_issues }} issue{{ page_issues|pluralize }}</span>
     </div>
-    <table class="w-full text-sm">
+    <table id="pagesAuditTable" class="w-full text-sm">
       <thead>
         <tr class="border-b border-white/10 bg-white/[0.02]">
           <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Title / Slug</th>
@@ -141,7 +141,7 @@
       </h2>
       <span class="text-xs text-white/30">{{ resources|length }} total · {{ resource_issues }} issue{{ resource_issues|pluralize }}</span>
     </div>
-    <table class="w-full text-sm">
+    <table id="resourcesAuditTable" class="w-full text-sm">
       <thead>
         <tr class="border-b border-white/10 bg-white/[0.02]">
           <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Title / Slug</th>
@@ -197,6 +197,30 @@
       </tbody>
     </table>
   </div>
-
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    ['pagesAuditTable', 'resourcesAuditTable'].forEach(function(id) {
+      const table = document.getElementById(id);
+      if (table && table.querySelector('tbody tr:not([colspan])')) {
+        new simpleDatatables.DataTable(table, {
+          searchable: true,
+          perPage: 25,
+          perPageSelect: [10, 25, 50],
+          labels: {
+            placeholder: 'Search...',
+            noRows: 'No records found',
+            info: 'Showing {start} to {end} of {rows} entries',
+          },
+          columns: [
+            { select: [3, 4, 5], sortable: false },
+          ],
+        });
+      }
+    });
+  });
+</script>
 {% endblock %}

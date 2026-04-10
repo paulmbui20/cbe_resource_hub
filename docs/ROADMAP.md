@@ -12,5 +12,5 @@ like ads in a minimalistic way that's non-intrusive and doesn't destroy ux, also
 6. add validators file type based on file magic and signature not just file name for ResourceItem model and enhance existing validators 
 7. A robust notification system preferably in its own app that exposes tasks (function) that can be called when events happen \
 to que/send and email via **CELERY** to the admin, when important events happen like signup, contact form submission, resource item upload etc., notifications, \
-notifications should be fault-tolerant with retry logic, but be safe such that they don't max out the SMTP limits
-8. Initializing pytest correctly and adding comprehensive test cases 
+notifications should be fault-tolerant with retry logic, but be safe such that they don't max out the SMTP limits, with  custom admin ui to visualize and trigger retry etc.
+1. Initializing pytest correctly and adding comprehensive test cases 

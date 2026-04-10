@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /management/
+Disallow: /accounts/
+Disallow: /account/
+Disallow: /tinymce/
+Disallow: /silk/
+Disallow: /__debug__/
+Disallow: /health/
+
+# Allow search engines to index all public resources and pages
+Allow: /resources/
+Allow: /pages/
+Allow: /partners/
+Allow: /contact/
+
+# Sitemap location
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

@@ -6,11 +6,19 @@ import sys
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
+from django.views.generic import TemplateView
+
+from website.sitemaps import sitemaps as SITEMAPS
 
 urlpatterns = [
     # ── Root ────────────────────────────────────────────────────────────────
     path("", include("website.urls.website_urls")),
+
+    # ── SEO: robots.txt & sitemap.xml ─────────────────────────────────────
+    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots"),
+    path("sitemap.xml", sitemap, {"sitemaps": SITEMAPS}, name="django.contrib.sitemaps.views.sitemap"),
 
     # ── Django admin ─────────────────────────────────────────────────────────
     path("admin/", admin.site.urls),

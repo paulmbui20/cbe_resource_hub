@@ -1,7 +1,37 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ resource.title }}{% endblock %}
+{% block title %}{{ resource.meta_title|default:resource.title }}{% endblock %}
+{% block meta_title_value %}{{ resource.meta_title|default:resource.title }} — CBE Resource Hub{% endblock %}
+{% block meta_description_value %}{{ resource.meta_description|default:resource.title }}{% endblock %}
+{% block og_title %}{{ resource.meta_title|default:resource.title }}{% endblock %}
+{% block og_description %}{{ resource.meta_description|default:resource.description|striptags|truncatechars:200 }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% if resource.featured_image %}{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ resource.featured_image.url }}{% endblock %}{% endif %}
+{% block twitter_title %}{{ resource.meta_title|default:resource.title }}{% endblock %}
+{% block twitter_description %}{{ resource.meta_description|default:resource.title }}{% endblock %}
+{% block meta_keywords_value %}{{ resource.meta_keywords|default:'CBC Kenya, learning resources, grade resources' }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LearningResource",
+  "name": "{{ resource.title|escapejs }}",
+  "description": "{{ resource.meta_description|default:resource.title|escapejs }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "learningResourceType": "{{ resource.get_resource_type_display|escapejs }}",
+  {% if resource.grade %}"educationalLevel": "{{ resource.grade|escapejs }}",{% endif %}
+  {% if resource.learning_area %}"about": "{{ resource.learning_area|escapejs }}",{% endif %}
+  "isAccessibleForFree": {{ resource.is_free|yesno:'true,false' }},
+  "publisher": {
+    "@type": "Organization",
+    "name": "CBE Resource Hub",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
