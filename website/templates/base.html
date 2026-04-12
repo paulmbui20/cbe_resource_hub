@@ -80,6 +80,13 @@
   <!-- HTMX — local asset, loaded with defer -->
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
 
+  <!-- Alpine.js Intersect plugin (required for x-intersect) — loaded before Alpine -->
+  <script src="{% static 'js/alpine-intersect.min.js' %}" defer></script>
+
+  <!-- Alpine.js Collapse plugin (required for x-collapse) — loaded before Alpine -->
+  <script src="{% static 'js/alpine-collapse.min.js' %}" defer></script>
+
+
   <!-- Alpine.js — local asset, loaded with defer -->
   <script src="{% static 'js/alpine.min.js' %}" defer></script>
 
@@ -293,8 +300,6 @@
     </div>
   </header>
 
-  <!-- ═══════════════════════════════════════════════════ PARTNER BANNERS ════ -->
-  {% include "partials/partner_banners.html" %}
 
   <!-- ═══════════════════════════════════════════════════ CONTENT ════ -->
   <main class="flex-1">

@@ -13,6 +13,7 @@ from django.core.mail import send_mail
 from django.views.generic import FormView, TemplateView
 
 from resources.models import EducationLevel, LearningArea, ResourceItem
+from resources.views import RESOURCE_TYPE_INFO
 from website.forms import ContactForm
 from website.models import Partner
 
@@ -32,13 +33,41 @@ class HomePageView(TemplateView):
             .order_by("-created_at")[:8]
         )
 
+        # Top 8 popular resources by downloads
+        ctx["popular_resources"] = (
+            ResourceItem.objects.select_related(
+                "grade", "grade__level", "learning_area"
+            )
+            .filter(is_free=True)
+            .order_by("-downloads")[:8]
+        )
+
         # Stats strip
-        ctx["total_resources"]    = ResourceItem.objects.count()
-        ctx["total_levels"]       = EducationLevel.objects.count()
-        ctx["total_areas"]        = LearningArea.objects.count()
-        ctx["education_levels"]   = (
+        from django.db.models import Sum
+        ctx["total_resources"]  = ResourceItem.objects.count()
+        ctx["total_levels"]     = EducationLevel.objects.count()
+        ctx["total_areas"]      = LearningArea.objects.count()
+        ctx["total_downloads"]  = ResourceItem.objects.aggregate(d=Sum("downloads"))["d"] or 0
+        ctx["education_levels"] = (
             EducationLevel.objects.prefetch_related("grades").order_by("order")
         )
+
+        # Resource type cards with icon, label, desc, count
+        resource_type_cards = []
+        for key, info in RESOURCE_TYPE_INFO.items():
+            count = ResourceItem.objects.filter(resource_type=key, is_free=True).count()
+            resource_type_cards.append({
+                "key":   key,
+                "icon":  info["icon"],
+                "label": info["label"],
+                "desc":  info["desc"],
+                "count": count,
+            })
+        ctx["resource_type_cards"] = resource_type_cards
+
+        # Partners for homepage section (show_as_banner=True ones)
+        ctx["homepage_partners"] = Partner.objects.filter(show_as_banner=True).order_by("name")
+
         return ctx
 
 

@@ -117,10 +117,12 @@ class ResourceListView(ListView):
         """
         Return a partial HTML snippet for HTMX requests; full page otherwise.
 
-        This keeps a single view handling both standard navigation and
-        HTMX-driven infinite scroll / search without duplication.
+        Also returns a compact suggestions dropdown partial when the request
+        includes ``suggestions=1`` (used by the homepage live-search bar).
         """
-        if self.request.headers.get("HX-Request"):
+        if self.request.GET.get("suggestions") == "1":
+            self.template_name = "resources/partials/search_suggestions.html"
+        elif self.request.headers.get("HX-Request"):
             self.template_name = self.partial_template_name
         return super().render_to_response(context, **response_kwargs)
 
@@ -238,3 +240,52 @@ class ResourceDeleteView(VendorRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Resource deleted successfully.")
         return super().delete(request, *args, **kwargs)
+
+
+# ── Resource Type Detail (SEO landing page per type) ──────────────────────────
+# Map resource_type key → (icon emoji, short description for the landing page)
+RESOURCE_TYPE_INFO: dict[str, dict] = {
+    "lesson_plan":        {"icon": "📋", "label": "Lesson Plans",       "desc": "Day-by-day structured teaching blueprints for effective classroom delivery."},
+    "schemes_of_work":    {"icon": "📅", "label": "Schemes of Work",     "desc": "Term-long curriculum plans helping teachers cover the full syllabus on time."},
+    "curriculum_design":  {"icon": "🗺️", "label": "Curriculum Design",   "desc": "Comprehensive curriculum frameworks and competency-based programme designs."},
+    "record_of_work":     {"icon": "📒", "label": "Records of Work",      "desc": "Official records documenting what has been taught in each class and term."},
+    "teachers_guide":     {"icon": "📖", "label": "Teachers' Guides",    "desc": "Step-by-step instructional manuals to help educators deliver quality lessons."},
+    "textbook":           {"icon": "📚", "label": "Textbooks",            "desc": "Approved learner study books aligned to the latest CBC/CBE curriculum."},
+    "notes":              {"icon": "📝", "label": "Notes",                "desc": "Concise revision notes and summaries covering key topics in every subject."},
+    "exam":               {"icon": "✏️", "label": "Exams & Past Papers",  "desc": "Past examination papers and mock exams to help learners prepare and practice."},
+    "report_card":        {"icon": "🗒️", "label": "Report Cards",         "desc": "Official learner assessment and progress report card templates."},
+    "other":              {"icon": "📂", "label": "Other Resources",      "desc": "Additional CBC-aligned resources that don't fit a specific category above."},
+}
+
+
+class ResourceTypeDetailView(ListView):
+    """
+    SEO-optimised landing page for a specific resource type.
+
+    URL: /resources/type/<resource_type>/
+    """
+
+    model = ResourceItem
+    template_name = "resources/resource_type_detail.html"
+    context_object_name = "resources"
+    paginate_by = 12
+
+    def get_queryset(self) -> QuerySet[ResourceItem]:
+        self.resource_type = self.kwargs["resource_type"]
+        return (
+            ResourceItem.objects.select_related("grade", "grade__level", "learning_area")
+            .filter(resource_type=self.resource_type, is_free=True)
+            .order_by("-created_at")
+        )
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        info = RESOURCE_TYPE_INFO.get(self.resource_type, {"icon": "📂", "label": self.resource_type.replace("_", " ").title(), "desc": ""})
+        ctx["resource_type_key"] = self.resource_type
+        ctx["resource_type_label"] = info["label"]
+        ctx["resource_type_icon"] = info["icon"]
+        ctx["resource_type_desc"] = info["desc"]
+        ctx["resource_type_count"] = self.get_queryset().count()
+        # For related types sidebar / cross-links
+        ctx["all_resource_types"] = RESOURCE_TYPE_INFO
+        return ctx
