@@ -7,7 +7,8 @@
 {% block og_title %}{{ resource.meta_title|default:resource.title }}{% endblock %}
 {% block og_description %}{{ resource.meta_description|default:resource.description|striptags|truncatechars:200 }}{% endblock %}
 {% block og_type %}article{% endblock %}
-{% if resource.featured_image %}{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ resource.featured_image.url }}{% endblock %}{% endif %}
+{% block og_image %}{% if resource.featured_image and resource.featured_image.name %}{{ request.scheme }}://{{ request.get_host }}{{ resource.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-default.png' %}{% endif %}{% endblock %}
+{% block twitter_image %}{% if resource.featured_image and resource.featured_image.name %}{{ request.scheme }}://{{ request.get_host }}{{ resource.featured_image.url }}{% endif %}{% endblock %}
 {% block twitter_title %}{{ resource.meta_title|default:resource.title }}{% endblock %}
 {% block twitter_description %}{{ resource.meta_description|default:resource.title }}{% endblock %}
 {% block meta_keywords_value %}{{ resource.meta_keywords|default:'CBC Kenya, learning resources, grade resources' }}{% endblock %}

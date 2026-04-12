@@ -27,6 +27,9 @@
 - **Notification Dashboard** — Visualize email history, delivery status, and manual retry triggers
 - **Dynamic Menus** — CMS-driven header & footer navigation, zero code changes needed
 - **Contact Page** — Full form with email delivery, honeypot anti-spam, and animated responsive UI
+- **Enhanced Homepage** — Live HTMX search bar with debounced suggestions dropdown, resource type card grid, compact level pills, tabbed recent/popular sections, animated intersection stats counter, and scroll-to-top FAB
+- **SEO Landing Pages** — Per resource-type detail pages (`/resources/type/<type>/`) with JSON-LD `CollectionPage` schema, breadcrumbs, pagination, and sidebar navigation
+- **Sitemap & robots.txt** — Auto-generated `sitemap.xml` and configurable `robots.txt` for Search Console
 
 ---
 
@@ -179,8 +182,9 @@ Visit: http://localhost:8000
 
 | URL | Description |
 |-----|-------------|
-| `/` | Public homepage with resource browser |
-| `/resources/` | Searchable resource catalogue |
+| `/` | Public homepage — live search, resource type cards, stats, partners |
+| `/resources/` | Searchable & filterable resource catalogue |
+| `/resources/type/<type>/` | SEO-optimised resource type landing page |
 | `/contact/` | Contact form |
 | `/management/` | Custom admin panel (Admin/Superuser only) |
 | `/accounts/login/` | Email login page |
@@ -188,6 +192,8 @@ Visit: http://localhost:8000
 | `/accounts/social/login/google/` | Google OAuth entry |
 | `/account/password/change/` | Password change (forced on first admin-created login) |
 | `/pages/<slug>/` | CMS static pages |
+| `/sitemap.xml` | Auto-generated sitemap |
+| `/robots.txt` | Search engine crawl directives |
 
 ---
 
@@ -313,9 +319,48 @@ uv run python manage.py migrate
 uv run python manage.py createsuperuser
 uv run python manage.py collectstatic
 
-# Run tests
+# Run tests with pytest (recommended)
+uv run pytest
+
+# Run tests with coverage
+uv run pytest --cov=. --cov-report=html
+
+# Legacy test runner (also works)
 uv run python manage.py test
 ```
+
+---
+
+## 🖼 Template Patterns & Gotchas
+
+### FileField / ImageField `.url` safety
+
+Django's `ImageField` and `FileField` raise `ValueError` if you call `.url` when no file is associated (even if the field is not `None`). Always guard with `.name`:
+
+```html
+{# ❌ Wrong — raises ValueError if field is empty #}
+{% if resource.featured_image %}{{ resource.featured_image.url }}{% endif %}
+
+{# ✅ Correct #}
+{% if resource.featured_image and resource.featured_image.name %}
+  {{ resource.featured_image.url }}
+{% endif %}
+```
+
+### HTMX live search
+
+The homepage search bar uses HTMX partial responses. The view returns `resources/partials/search_suggestions.html` (max 6 results) when `?suggestions=1` is in the query string:
+
+```python
+# resources/views.py — ResourceListView
+if self.request.GET.get('suggestions') == '1':
+    self.template_name = 'resources/partials/search_suggestions.html'
+```
+
+### Animated stats counter
+
+The stats section uses a vanilla `IntersectionObserver` (no Alpine plugin dependency) that dispatches a `animate-stats` CustomEvent on the section when it enters the viewport. Alpine listens with `@animate-stats.window` and runs the counter animation. This is more reliable than `x-intersect` because it doesn't depend on Alpine plugin loading order.
+
 
 ---
 
