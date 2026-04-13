@@ -206,7 +206,7 @@
 <body class="bg-brand-secondary text-white min-h-screen flex flex-col antialiased">
 
 <!-- ═══════════════════════════════════════════════════ HEADER ════ -->
-<header class="sticky top-0 z-50 border-b border-white/10 backdrop-blur-md bg-brand-secondary/80">
+<header class="sticky top-0 z-40 border-b border-white/10 backdrop-blur-md bg-brand-secondary/80">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
 
@@ -241,7 +241,7 @@
                                             </svg>
                                         </button>
                                         <div x-show="open" x-transition @click.outside="open = false"
-                                             class="absolute top-full left-0 mt-2 w-48 rounded-xl border border-white/10 bg-brand-secondary/95 backdrop-blur shadow-xl py-1 z-50">
+                                             class="absolute top-full left-0 mt-2 w-48 rounded-xl border border-white/10 bg-brand-secondary/95 backdrop-blur shadow-xl py-1 z-40">
                                             {% for child in item.children.all %}
                                                 <a href="{{ child.url }}"
                                                    class="block px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors">{{ child.title }}</a>
@@ -282,7 +282,7 @@
                             </svg>
                         </button>
                         <div x-show="open" x-transition @click.outside="open = false"
-                             class="absolute top-full right-0 mt-2 w-52 rounded-xl border border-white/10 bg-brand-secondary/95 backdrop-blur shadow-2xl py-1.5 z-50">
+                             class="absolute top-full right-0 mt-2 w-52 rounded-xl border border-white/10 bg-brand-secondary/95 backdrop-blur shadow-2xl py-1.5 z-40">
                             <div class="px-4 py-2 border-b border-white/5">
                                 <p class="text-xs text-white/40 truncate">{{ user.email }}</p>
                                 <p class="text-xs font-medium text-brand-accent capitalize mt-0.5">{{ user.get_role_display }}</p>

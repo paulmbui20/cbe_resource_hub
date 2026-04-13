@@ -6,8 +6,8 @@
   <article class="group relative flex flex-col rounded-2xl bg-white/5 border border-white/10 hover:border-brand-primary/50 hover:bg-white/8 transition-all duration-300 overflow-hidden shadow-md hover:shadow-brand-primary/10 hover:shadow-lg"
            id="resource-{{ resource.pk }}">
 
-    <!-- Coloured top stripe based on learning area -->
-    <div class="h-1.5 bg-gradient-to-r from-brand-primary to-brand-accent"></div>
+    <!-- Colored top stripe based on learning area -->
+    <div class="h-1.5 bg-linear-to-r from-brand-primary to-brand-accent"></div>
 
     <div class="p-5 flex flex-col flex-1 gap-3">
       <!-- Header -->
@@ -62,7 +62,7 @@
         <span class="flex items-center gap-1">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
           </svg>
           {{ resource.downloads }} downloads
         </span>
