@@ -5,8 +5,10 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
     {# ── SEO: Title ───────────────────────────────────────────────────────── #}
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/logo.svg' %}"/>
+    <link rel="shortcut icon" href="{% static 'images/logo.svg' %}"/>
+
     {% block seo_title_block %}
         <title>{% block title %}{{ site_settings.site_name|default:'CBE Resource Hub' }}{% endblock %} — Kenya CBC
             Learning Resources</title>
@@ -43,7 +45,7 @@
     <meta property="og:description" content="
             {% block og_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}"/>
     <meta property="og:image" content="
-            {% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-default.png' %}{% endblock %}"/>
+            {% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endblock %}"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
     <meta property="og:image:alt" content="CBE Resource Hub — Free CBC Resources for Kenyan Learners"/>
@@ -56,7 +58,7 @@
     <meta name="twitter:description" content="
             {% block twitter_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}"/>
     <meta name="twitter:image" content="
-            {% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-default.png' %}{% endblock %}"/>
+            {% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endblock %}"/>
 
     {# ── SEO: JSON-LD Structured Data ─────────────────────────────────────── #}
     <script type="application/ld+json">
@@ -211,8 +213,8 @@
         <div class="flex items-center justify-between h-16">
 
             <!-- Wordmark -->
-            <a href="/" class="flex items-center gap-2 group shrink-0">
-                <span class="text-2xl" aria-hidden="true">📚</span>
+            <a href="/" class="flex items-center gap-2.5 group shrink-0">
+                <img src="{% static 'images/logo.svg' %}" alt="Logo" class="w-8 h-8 transition-transform group-hover:scale-105" />
                 <span class="font-bold text-lg tracking-tight text-white group-hover:text-brand-primary transition-colors">
             {{ site_settings.site_name|default:'CBE Resource Hub' }}
           </span>
