@@ -220,9 +220,6 @@
 
             <!-- Desktop nav -->
             <nav class="hidden md:flex items-center gap-6" aria-label="Main navigation">
-                <a href="{% url 'home' %}" class="text-sm text-white/70 hover:text-white transition-colors">Home</a>
-                <a href="{% url 'resources:list' %}" class="text-sm text-white/70 hover:text-white transition-colors">Resources</a>
-
                 <!-- CMS-driven menu items -->
                 {% with primary=menus.primary_header %}
                     {% if primary %}
@@ -256,9 +253,6 @@
                         {% endfor %}
                     {% endif %}
                 {% endwith %}
-
-                <a href="{% url 'contact' %}"
-                   class="text-sm text-white/70 hover:text-white transition-colors">Contact</a>
 
             </nav>
 
@@ -355,15 +349,22 @@
     <!-- Mobile nav drawer -->
     <div x-show="mobileMenuOpen" x-transition
          class="md:hidden border-t border-white/10 bg-brand-secondary/95 backdrop-blur px-4 py-4 space-y-1">
-        <a href="{% url 'home' %}" class="block py-2 text-sm text-white/80 hover:text-white transition-colors">Home</a>
-        <a href="{% url 'resources:list' %}"
-           class="block py-2 text-sm text-white/80 hover:text-white transition-colors">Resources</a>
-        <a href="{% url 'contact' %}" class="block py-2 text-sm text-white/80 hover:text-white transition-colors">Contact</a>
-        {% with primary=menus.primary_header %}{% if primary %}
-            {% for item in primary.items.all %}{% if not item.parent %}
-                <a href="{{ item.url }}"
-                   class="block py-2 text-sm text-white/80 hover:text-white transition-colors">{{ item.title }}</a>
-            {% endif %}{% endfor %}{% endif %}{% endwith %}
+        {% with primary=menus.primary_header %}
+            {% if primary %}
+                {% for item in primary.items.all %}
+                    {% if not item.parent %}
+                        {% if item.children.exists %}
+                            <p class="pt-2 pb-1 text-xs font-semibold text-white/40 uppercase tracking-wider">{{ item.title }}</p>
+                            {% for child in item.children.all %}
+                                <a href="{{ child.url }}" class="block pl-3 py-1.5 text-sm text-white/70 hover:text-white transition-colors border-l border-white/10">{{ child.title }}</a>
+                            {% endfor %}
+                        {% else %}
+                            <a href="{{ item.url }}" class="block py-2 text-sm text-white/80 hover:text-white transition-colors">{{ item.title }}</a>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
         {% if user.is_authenticated %}
             <div class="pt-3 mt-3 border-t border-white/10 space-y-1">
@@ -413,15 +414,31 @@
                 {% if footer %}
                     <div>
                         <h3 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Quick Links</h3>
-                        <ul class="space-y-2">
+                        <ul class="space-y-1.5">
                             {% for item in footer.items.all %}
                                 {% if not item.parent %}
-                                    <li>
-                                        <a href="{{ item.url }}"
-                                           class="text-sm text-white/50 hover:text-white transition-colors">
-                                            {{ item.title }}
-                                        </a>
-                                    </li>
+                                    {% if item.children.exists %}
+                                        <li>
+                                            <span class="text-xs font-semibold text-white/40 uppercase tracking-wider">{{ item.title }}</span>
+                                            <ul class="mt-1.5 ml-2 space-y-1.5 border-l border-white/10 pl-3">
+                                                {% for child in item.children.all %}
+                                                    <li>
+                                                        <a href="{{ child.url }}"
+                                                           class="text-sm text-white/50 hover:text-white transition-colors">
+                                                            {{ child.title }}
+                                                        </a>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </li>
+                                    {% else %}
+                                        <li>
+                                            <a href="{{ item.url }}"
+                                               class="text-sm text-white/50 hover:text-white transition-colors">
+                                                {{ item.title }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
                                 {% endif %}
                             {% endfor %}
                         </ul>

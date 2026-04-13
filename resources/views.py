@@ -89,7 +89,10 @@ class ResourceListView(ListView):
         if level_id:
             qs = qs.filter(grade__level_id=level_id)
         if q:
-            qs = qs.filter(title__icontains=q)
+            from django.db.models import Q as DQ
+            qs = qs.filter(
+                DQ(title__icontains=q) | DQ(description__icontains=q)
+            )
         if resource_type:
             qs = qs.filter(resource_type=resource_type)
 

@@ -8,7 +8,7 @@
 {% block content %}
 
     {# ═══════════════════ 1. HERO ════════════════════════════════════════════════ #}
-    <section class="relative overflow-hidden">
+    <section class="relative">
         {# Ambient glow #}
         <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
             <div class="absolute -top-60 left-1/2 -translate-x-1/2 w-225 h-125 rounded-full bg-brand-primary/15 blur-3xl"></div>
@@ -47,7 +47,11 @@
                             placeholder="Search resources, e.g. Grade 5 Maths Notes…"
                             autocomplete="off"
                             x-model="query"
-                            @input.debounce.300ms="if(query.length > 1) { open = true; $refs.suggestions.setAttribute('hx-get', '{% url 'resources:list' %}?q=' + encodeURIComponent(query) + '&suggestions=1'); htmx.trigger($refs.suggestions, 'search'); } else { open = false; }"
+                            hx-get="{% url 'resources:list' %}?suggestions=1"
+                            hx-trigger="input changed delay:300ms[this.value.length > 1]"
+                            hx-target="#searchSuggestions"
+                            hx-swap="innerHTML"
+                            @input="open = query.length > 1"
                             @keydown.enter.prevent="window.location.href='{% url 'resources:list' %}?q=' + encodeURIComponent(query)"
                             @keydown.escape="open = false"
                             class="w-full pl-12 pr-32 py-4 rounded-2xl bg-white/8 border border-white/15 text-white placeholder-white/30 text-base focus:outline-none focus:border-brand-primary/60 focus:bg-white/10 focus:ring-2 focus:ring-brand-primary/20 transition-all shadow-xl shadow-black/20"
@@ -62,14 +66,8 @@
                 <div x-show="open" x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 -translate-y-1"
                      x-transition:enter-end="opacity-100 translate-y-0" x-cloak
-                     class="absolute top-full left-0 right-0 mt-2 rounded-2xl bg-[#0d1117] border border-white/10 shadow-2xl overflow-hidden z-50">
-                    <div
-                            hx-get="{% url 'resources:list' %}?suggestions=1"
-                            hx-trigger="search"
-                            hx-swap="innerHTML"
-                            x-ref="suggestions"
-                            id="searchSuggestions">
-                    </div>
+                     class="absolute top-full left-0 right-0 mt-2 rounded-2xl bg-[#0d1117] border border-white/10 shadow-2xl z-50">
+                    <div id="searchSuggestions"></div>
                 </div>
             </div>
 
