@@ -46,7 +46,7 @@ app.conf.beat_schedule = {
 
     "worker-health-check": {
         "task": "website.tasks.celery_worker_health_check",
-        "schedule": crontab(hour="*/2"),
+        "schedule": crontab(minute=0, hour="*/2"),
         "options": {
             "expires": 300,
         },
@@ -54,7 +54,7 @@ app.conf.beat_schedule = {
 
     "detailed-health-check-every-six-hours": {
         "task": "website.tasks.health_check_task",
-        "schedule": crontab(hour="*/6"),
+        "schedule": crontab(minute=0, hour="*/6"),
         "options": {
             "expires": 900,
         },

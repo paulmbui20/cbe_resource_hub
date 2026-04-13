@@ -11,6 +11,7 @@ from django.db import models
 
 from resources.validators import validate_image_file_magic
 
+
 class PublicFilesStorageCallable:
     """
     Callable that returns the appropriate storage backend for files.
@@ -40,6 +41,7 @@ class PublicFilesStorageCallable:
             [],
             {}
         )
+
 
 class SEOModel(models.Model):
     """
@@ -86,7 +88,6 @@ class SEOModel(models.Model):
     def get_meta_keywords(self):
         """Override in child models to provide auto-generated keywords"""
         return self.meta_keywords or ""
-
 
     def optimize_image(self):
         """Generate WebP and resized versions of featured_images"""
@@ -207,7 +208,6 @@ class SEOModel(models.Model):
 
         if self.featured_image and (is_new or old_featured_image != self.featured_image.name):
             self.optimize_image()
-
 
 
 class SlugRedirect(models.Model):

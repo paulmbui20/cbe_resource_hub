@@ -4,14 +4,17 @@ set -o pipefail
 set -o nounset
 
 # Run migrations
-echo "Applying migrations..................."
+echo "Applying migrations............................................."
 python manage.py migrate
 
-# echo "Collecting static files...................."
+# echo "Collecting static files......................................."
 # python manage.py collectstatic --noinput
 
-echo "Populating countries......................."
+echo "Prepopulating Kenyan CBC (CBE) structure........................"
 python manage.py prepopulate_cbe
 
-echo "Starting application..............."
+echo "Prepopulating Primary Header and Footer menus..................."
+python manage.py populate_menus
+
+echo "Starting application............................................"
 exec daphne -b 0.0.0.0 -p 8000 cbe_res_hub.asgi:application

@@ -7,15 +7,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.conf import settings
 from django.contrib import messages
-from django.core.mail import send_mail
+from django.db.models import Sum
+from django.urls import reverse
 from django.views.generic import FormView, TemplateView
 
+from notifications.notifier import notify_contact_form
 from resources.models import EducationLevel, LearningArea, ResourceItem
 from resources.views import RESOURCE_TYPE_INFO
 from website.forms import ContactForm
-from website.models import Partner
+from website.models import Partner, ContactMessage
 
 
 class HomePageView(TemplateView):
@@ -43,11 +44,10 @@ class HomePageView(TemplateView):
         )
 
         # Stats strip
-        from django.db.models import Sum
-        ctx["total_resources"]  = ResourceItem.objects.count()
-        ctx["total_levels"]     = EducationLevel.objects.count()
-        ctx["total_areas"]      = LearningArea.objects.count()
-        ctx["total_downloads"]  = ResourceItem.objects.aggregate(d=Sum("downloads"))["d"] or 0
+        ctx["total_resources"] = ResourceItem.objects.count()
+        ctx["total_levels"] = EducationLevel.objects.count()
+        ctx["total_areas"] = LearningArea.objects.count()
+        ctx["total_downloads"] = ResourceItem.objects.aggregate(d=Sum("downloads"))["d"] or 0
         ctx["education_levels"] = (
             EducationLevel.objects.prefetch_related("grades").order_by("order")
         )
@@ -57,10 +57,10 @@ class HomePageView(TemplateView):
         for key, info in RESOURCE_TYPE_INFO.items():
             count = ResourceItem.objects.filter(resource_type=key, is_free=True).count()
             resource_type_cards.append({
-                "key":   key,
-                "icon":  info["icon"],
+                "key": key,
+                "icon": info["icon"],
                 "label": info["label"],
-                "desc":  info["desc"],
+                "desc": info["desc"],
                 "count": count,
             })
         ctx["resource_type_cards"] = resource_type_cards
@@ -76,15 +76,12 @@ class ContactView(FormView):
     form_class = ContactForm
 
     def get_success_url(self):
-        from django.urls import reverse
         return reverse("contact")
 
     def form_valid(self, form):
         data = form.cleaned_data
-        support_email = getattr(settings, "DEFAULT_FROM_EMAIL")
 
         # Persist to database so admins can read it in the management panel
-        from website.models import ContactMessage
         msg = ContactMessage.objects.create(
             name=data["name"],
             email=data.get("email"),
@@ -94,7 +91,6 @@ class ContactView(FormView):
         )
 
         # Trigger robust async notification
-        from notifications.notifier import notify_contact_form
         notify_contact_form(msg)
 
         messages.success(
@@ -118,7 +114,6 @@ class ContactView(FormView):
             "Partnership & collaboration",
         ]
         return ctx
-
 
 
 class PartnerListView(TemplateView):

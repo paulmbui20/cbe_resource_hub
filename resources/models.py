@@ -169,7 +169,9 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
             ("notes", "Notes"),
             ("exam", "Exam"),
             ("other", "Other"),
-            ("report_card", "Report Card")
+            ("report_card", "Report Card"),
+            ("holiday_assignment", "Holiday Assignment"),
+            ("setbook_guide", "Set Book Guide"),
         ],
         default="other",
         help_text="The type of resource.",
@@ -194,11 +196,11 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
 
     def save(self, *args, **kwargs) -> None:
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = slugify(self.title)[:50]
         if self.title and not self.meta_title:
-            self.meta_title = self.title
+            self.meta_title = self.title[:60]
         if self.description and not self.meta_description:
-            self.meta_description = strip_tags(self.description)
+            self.meta_description = strip_tags(self.description)[:160]
         if self.is_free:
             self.price = 0.00
         super().save(*args, **kwargs)

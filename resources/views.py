@@ -228,13 +228,17 @@ RESOURCE_TYPE_INFO: dict[str, dict] = {
     "textbook": {"icon": "📚", "label": "Textbooks",
                  "desc": "Approved learner study books aligned to the latest CBC/CBE curriculum."},
     "notes": {"icon": "📝", "label": "Notes",
-              "desc": "Concise revision notes and summaries covering key topics in every subject."},
+              "desc": "Concise revision notes and summaries covering key topics in every learning area."},
     "exam": {"icon": "✏️", "label": "Exams & Past Papers",
              "desc": "Past examination papers and mock exams to help learners prepare and practice."},
     "report_card": {"icon": "🗒️", "label": "Report Cards",
                     "desc": "Official learner assessment and progress report card templates."},
     "other": {"icon": "📂", "label": "Other Resources",
               "desc": "Additional CBC-aligned resources that don't fit a specific category above."},
+    "holiday_assignment": {"icon": "📝", "label": "Holiday Assignment",
+              "desc": "Helpful holiday assignments to keep learner engaged even over the holidays"},
+    "setbook_guide": {"icon": "📝", "label": "Set Book Guide",
+              "desc": "Set Book Guide"},
 }
 
 
@@ -281,6 +285,7 @@ class ResourceCreateView(VendorRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.vendor = self.request.user
+        form.instance.is_free = True
         messages.success(self.request, "Resource uploaded successfully!")
         return super().form_valid(form)
 
@@ -301,6 +306,7 @@ class ResourceUpdateView(VendorRequiredMixin, UpdateView):
         return qs.filter(vendor=self.request.user)
 
     def form_valid(self, form):
+        form.instance.is_free = True
         messages.success(self.request, "Resource updated successfully!")
         return super().form_valid(form)
 
