@@ -13,18 +13,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
 from django.http import HttpResponse, JsonResponse
-from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from django.views.decorators.http import require_POST
-from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.contrib import messages
+from django.views.decorators.http import require_POST
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
 
 from .admin_views import VendorRequiredMixin
 from .forms import ResourceItemForm
-
 from .models import EducationLevel, LearningArea, ResourceItem, Grade
 
 if TYPE_CHECKING:

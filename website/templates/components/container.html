@@ -1,0 +1,14 @@
+{% load i18n %}
+<div class="container my-2">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-8 bg-brand-secondary/80">
+        <div class="rounded-2xl bg-white/5 border border-white/10 overflow-hidden shadow-lg">
+            <div class="h-1 bg-linear-to-r from-brand-gold/50 to-brand-gold/75"></div>
+            <div class="p-8">
+                <h1 class="text-2xl font-bold text-white mb-2">{{ heading }}</h1>
+                {% if subheading %}
+                    <div>{{ subheading }}</div>{% endif %}
+                {{ children }}
+            </div>
+        </div>
+    </div>
+</div>

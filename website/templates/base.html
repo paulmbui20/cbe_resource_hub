@@ -30,7 +30,7 @@
             {% block meta_robots %}{% if site_settings.site_indexing == 'false' %}noindex, nofollow{% else %}index, follow{% endif %}{% endblock %}"/>
     <meta name="language" content="English"/>
     <meta name="revisit-after" content="7 days"/>
-    <meta name="theme-color" content="#0d1117"/>
+    <meta name="theme-color" content="#f59e0b"/>
 
     {# ── SEO: Canonical ───────────────────────────────────────────────────── #}
     <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}"/>
@@ -86,7 +86,7 @@
     {# ── Preconnects ──────────────────────────────────────────────────────── #}
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-
+    {% block initial_head %}{% endblock %}
     <!-- Bun / Tailwind v4 generated CSS -->
     <link rel="stylesheet" href="{% static 'css/src/output.css' %}"/>
 
@@ -330,7 +330,7 @@
                     </div>
                 {% else %}
                     <a href="{% url 'account_login' %}"
-                       class="text-sm text-white/70 hover:text-white transition-colors px-4 py-2 rounded-xl outline-1 outline-gray-700 hover:outline-gray-500 shadow-lg shadow-gray-800 hover:shadow-gray-700 hover:scale-105"
+                       class=" text-sm text-white/70 hover:text-white transition-colors px-4 py-2 rounded-xl outline-1 outline-brand-gold/50 hover:outline-brand-gold/75 shadow-md shadow-brand-gold/25 hover:shadow-brand-gold/50 hover:scale-105"
                     >Sign In</a>
                     <a href="{% url 'account_signup' %}"
                        class="px-4 py-2 rounded-xl bg-brand-gold/90 hover:bg-gold text-white text-sm font-semibold transition-all shadow-lg shadow-brand-gold/20 hover:scale-105">

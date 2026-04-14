@@ -161,12 +161,8 @@ TEMPLATES = [
         "DIRS": [
             BASE_DIR / "website/templates",
         ],
-        "APP_DIRS": False,
+        "APP_DIRS": True,
         "OPTIONS": {
-            "loaders": [
-                "django.template.loaders.filesystem.Loader",
-                "django.template.loaders.app_directories.Loader",
-            ],
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
@@ -336,8 +332,11 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"  # we still have the column, just
 # "none"      → skip entirely (fine for dev / social-only flows)
 ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "optional")
 
-ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True  # auto-login after clicking link
+LOGIN_ON_EMAIL_CONFIRMATION = True  # auto-login after clicking link
+LOGIN_ON_PASSWORD_RESET = True  # auto-login after password reset
 ACCOUNT_SESSION_REMEMBER = True  # persistent sessions by default
+
+LOGOUT_ON_GET = True # Logout user immediately after they click/hit the logout endpoint
 
 # Rate limits (per django-allauth v0.60+ format)
 ACCOUNT_RATE_LIMITS = {
