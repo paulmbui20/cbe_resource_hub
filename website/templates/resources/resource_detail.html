@@ -10,7 +10,7 @@
 {% block og_type %}article{% endblock %}
 {% block og_image %}{% if resource.featured_image and resource.featured_image.name %}{{ request.scheme }}://
     {{ request.get_host }}{{ resource.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}
-    {% static 'img/og-default.png' %}{% endif %}{% endblock %}
+    {% static 'images/og-default.png' %}{% endif %}{% endblock %}
 {% block twitter_image %}{% if resource.featured_image and resource.featured_image.name %}{{ request.scheme }}://
     {{ request.get_host }}{{ resource.featured_image.url }}{% endif %}{% endblock %}
 {% block twitter_title %}{{ resource.meta_title|default:resource.title }}{% endblock %}

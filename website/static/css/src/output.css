@@ -768,8 +768,17 @@
   .max-w-35 {
     max-width: calc(var(--spacing) * 35);
   }
+  .max-w-37\.5 {
+    max-width: calc(var(--spacing) * 37.5);
+  }
+  .max-w-45 {
+    max-width: calc(var(--spacing) * 45);
+  }
   .max-w-50 {
     max-width: calc(var(--spacing) * 50);
+  }
+  .max-w-55 {
+    max-width: calc(var(--spacing) * 55);
   }
   .max-w-\[150px\] {
     max-width: 150px;
@@ -3488,6 +3497,16 @@
       }
     }
   }
+  .hover\:bg-white\/4 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(in srgb, #fff 4%, transparent);
+        @supports (color: color-mix(in lab, red, red)) {
+          background-color: color-mix(in oklab, var(--color-white) 4%, transparent);
+        }
+      }
+    }
+  }
   .hover\:bg-white\/5 {
     &:hover {
       @media (hover: hover) {
@@ -4093,6 +4112,11 @@
     @media (width >= 64rem) {
       font-size: var(--text-6xl);
       line-height: var(--tw-leading, var(--text-6xl--line-height));
+    }
+  }
+  .xl\:top-18 {
+    @media (width >= 80rem) {
+      top: calc(var(--spacing) * 18);
     }
   }
   .xl\:top-\[4\.5rem\] {

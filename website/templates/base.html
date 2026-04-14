@@ -404,10 +404,10 @@
             <!-- Brand column -->
             <div>
           <span class="font-bold text-white text-lg">
-            {{ site_settings.site_name|default:'CBE Resource Hub' }}
+            {{ site_settings.site_name|default:'CBE Resources Hub' }}
           </span>
                 <p class="mt-2 text-sm text-white/50 leading-relaxed">
-                    Free, open-source CBE curriculum resources for every Kenyan learner.
+                    {{ site_settings.meta_description|default:'Free, open-source, community powered, CBE curriculum resources for every Kenyan learner' }}
                 </p>
             </div>
 

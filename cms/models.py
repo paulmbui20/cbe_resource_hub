@@ -29,10 +29,10 @@ class SiteSetting(models.Model):
         max_length=50,
         unique=True,
         db_index=True,
-        help_text='Setting identifier (e.g. "site_name", "support_email").',
+        help_text='Setting identifier (e.g. "site_name", "contact_email", "contact_phone", "site_indexing").',
     )
     value: str = models.TextField(
-        help_text="The value for this setting.",
+        help_text="The value for this setting. (e.g. 'CBE Resources Hub', 'info@example.com', '+254712345678', 'true')",
     )
 
     class Meta:

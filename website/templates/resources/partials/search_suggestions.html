@@ -1,7 +1,7 @@
 {# Live search suggestions dropdown — returned when ?q=...&suggestions=1 is hit via HTMX #}
 {% if resources %}
 <ul class="divide-y divide-white/5">
-  {% for r in resources|slice:":6" %}
+  {% for r in resources|slice:":8" %}
   <li>
     <a href="{{ r.get_absolute_url }}"
        class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">

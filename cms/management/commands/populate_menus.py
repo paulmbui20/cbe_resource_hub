@@ -1,5 +1,5 @@
 """
-resources/management/commands/populate_menus.py
+cms/management/commands/populate_menus.py
 
 Idempotent command to seed the Primary Header and Footer menus with:
   - Primary Header:
@@ -7,6 +7,7 @@ Idempotent command to seed the Primary Header and Footer menus with:
   - Footer:
       Quick Links (same top-level items + nested Categories)
       Contact  (from site settings)
+      Partners
 
 Run:  python manage.py populate_menus
 Re-running is safe (uses get_or_create throughout).
@@ -34,7 +35,9 @@ PRIMARY_ITEMS = [
 ]
 
 # Items added only to the footer Quick Links column.
-FOOTER_ONLY_ITEMS: list[tuple[str, str, int]] = []
+FOOTER_ONLY_ITEMS: list[tuple[str, str, int]] = [
+    ("Partners", "/partners/", 31),
+]
 
 
 class Command(BaseCommand):

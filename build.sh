@@ -10,6 +10,9 @@ python manage.py migrate
 # echo "Collecting static files......................................."
 # python manage.py collectstatic --noinput
 
+echo "Populating Site Settings........................................"
+python manage.py populate_site_settings
+
 echo "Prepopulating Kenyan CBC (CBE) structure........................"
 python manage.py prepopulate_cbe
 

@@ -62,7 +62,7 @@ app.conf.beat_schedule = {
 
     "backup-health-check": {
         "task": "website.tasks.backup_health_check",
-        "schedule": crontab(hour="*/12"),
+        "schedule": crontab(minute=0, hour="*/12"),
         "options": {
             "expires": 300,
         },

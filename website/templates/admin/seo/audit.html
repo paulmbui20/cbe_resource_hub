@@ -3,7 +3,7 @@
 {% block title %}SEO Audit Report{% endblock %}
 
 {% block admin_content %}
-<div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
   <!-- Page Header -->
   <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8">
@@ -24,19 +24,19 @@
 
   <!-- Summary Stats -->
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+    <div class="bg-white/3 border border-white/10 rounded-2xl p-5">
       <p class="text-2xl font-bold text-white">{{ pages|length }}</p>
       <p class="text-xs text-white/40 mt-0.5">CMS Pages</p>
     </div>
-    <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+    <div class="bg-white/3 border border-white/10 rounded-2xl p-5">
       <p class="text-2xl font-bold text-white">{{ resources|length }}</p>
       <p class="text-xs text-white/40 mt-0.5">Resources</p>
     </div>
-    <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+    <div class="bg-white/3 border border-white/10 rounded-2xl p-5">
       <p class="text-2xl font-bold {% if page_issues > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">{{ page_issues }}</p>
       <p class="text-xs text-white/40 mt-0.5">Page SEO Issues</p>
     </div>
-    <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+    <div class="bg-white/3 border border-white/10 rounded-2xl p-5">
       <p class="text-2xl font-bold {% if resource_issues > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">{{ resource_issues }}</p>
       <p class="text-xs text-white/40 mt-0.5">Resource SEO Issues</p>
     </div>
@@ -56,7 +56,7 @@
   <!-- SEO Table Macro -->
   {% with items=pages model_name="Pages" edit_url_name="management:page_edit" %}
 
-  <div class="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden mb-8">
+  <div class="bg-white/3 border border-white/10 rounded-2xl overflow-hidden mb-8">
     <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
       <h2 class="font-bold text-white flex items-center gap-2">
         <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -66,7 +66,7 @@
     </div>
     <table id="pagesAuditTable" class="w-full text-sm">
       <thead>
-        <tr class="border-b border-white/10 bg-white/[0.02]">
+        <tr class="border-b border-white/10 bg-white/2">
           <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Title / Slug</th>
           <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden md:table-cell">Meta Title</th>
           <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden lg:table-cell">Meta Description</th>
@@ -77,14 +77,14 @@
       </thead>
       <tbody class="divide-y divide-white/5">
         {% for page in pages %}
-        <tr class="group hover:bg-white/[0.04] transition-colors">
+        <tr class="group hover:bg-white/4 transition-colors">
           <td class="px-6 py-4">
-            <p class="text-white font-medium text-sm truncate max-w-[200px]">{{ page.title }}</p>
+            <p class="text-white font-medium text-sm truncate max-w-50">{{ page.title }}</p>
             <code class="text-[11px] text-white/30 font-mono mt-0.5 block">/{{ page.slug }}/</code>
           </td>
           <td class="px-4 py-4 hidden md:table-cell">
             {% if page.meta_title %}
-              <p class="text-white/70 text-xs truncate max-w-[180px]">{{ page.meta_title }}</p>
+              <p class="text-white/70 text-xs truncate max-w-45">{{ page.meta_title }}</p>
               <span class="text-[11px] mt-0.5 block {% if page.meta_title|length > 60 %}text-red-400{% else %}text-emerald-400/80{% endif %}">{{ page.meta_title|length }}/60 chars</span>
             {% else %}
               <span class="text-xs text-red-400/70 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>Missing</span>
@@ -92,7 +92,7 @@
           </td>
           <td class="px-4 py-4 hidden lg:table-cell">
             {% if page.meta_description %}
-              <p class="text-white/70 text-xs truncate max-w-[220px]">{{ page.meta_description }}</p>
+              <p class="text-white/70 text-xs truncate max-w-55">{{ page.meta_description }}</p>
               <span class="text-[11px] mt-0.5 block {% if page.meta_description|length > 160 %}text-red-400{% else %}text-emerald-400/80{% endif %}">{{ page.meta_description|length }}/160 chars</span>
             {% else %}
               <span class="text-xs text-red-400/70 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>Missing</span>
@@ -133,7 +133,7 @@
   {% endwith %}
 
   <!-- Resources Table -->
-  <div class="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden">
+  <div class="bg-white/3 border border-white/10 rounded-2xl overflow-hidden">
     <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
       <h2 class="font-bold text-white flex items-center gap-2">
         <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
@@ -143,7 +143,7 @@
     </div>
     <table id="resourcesAuditTable" class="w-full text-sm">
       <thead>
-        <tr class="border-b border-white/10 bg-white/[0.02]">
+        <tr class="border-b border-white/10 bg-white/2">
           <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Title / Slug</th>
           <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden md:table-cell">Meta Title</th>
           <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden lg:table-cell">Meta Description</th>
@@ -153,14 +153,14 @@
       </thead>
       <tbody class="divide-y divide-white/5">
         {% for resource in resources %}
-        <tr class="group hover:bg-white/[0.04] transition-colors">
+        <tr class="group hover:bg-white/4 transition-colors">
           <td class="px-6 py-4">
-            <p class="text-white font-medium text-sm truncate max-w-[200px]">{{ resource.title }}</p>
+            <p class="text-white font-medium text-sm truncate max-w-50">{{ resource.title }}</p>
             <code class="text-[11px] text-white/30 font-mono mt-0.5 block">/{{ resource.slug }}/</code>
           </td>
           <td class="px-4 py-4 hidden md:table-cell">
             {% if resource.meta_title %}
-              <p class="text-white/70 text-xs truncate max-w-[180px]">{{ resource.meta_title }}</p>
+              <p class="text-white/70 text-xs truncate max-w-45">{{ resource.meta_title }}</p>
               <span class="text-[11px] mt-0.5 block {% if resource.meta_title|length > 60 %}text-red-400{% else %}text-emerald-400/80{% endif %}">{{ resource.meta_title|length }}/60 chars</span>
             {% else %}
               <span class="text-xs text-red-400/70 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>Missing</span>
@@ -168,7 +168,7 @@
           </td>
           <td class="px-4 py-4 hidden lg:table-cell">
             {% if resource.meta_description %}
-              <p class="text-white/70 text-xs truncate max-w-[220px]">{{ resource.meta_description }}</p>
+              <p class="text-white/70 text-xs truncate max-w-55">{{ resource.meta_description }}</p>
               <span class="text-[11px] mt-0.5 block {% if resource.meta_description|length > 160 %}text-red-400{% else %}text-emerald-400/80{% endif %}">{{ resource.meta_description|length }}/160 chars</span>
             {% else %}
               <span class="text-xs text-red-400/70 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>Missing</span>

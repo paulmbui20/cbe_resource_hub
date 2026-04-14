@@ -356,11 +356,15 @@ SOCIALACCOUNT_ADAPTER = "accounts.adapters.SocialAccountAdapter"
 ALLAUTH_UI_THEME = "dark"
 
 # ── Google OAuth ──────────────────────────────────────────────────────────────
+
+GOOGLE_OAUTH_CLIENT_ID= os.getenv("GOOGLE_OAUTH_CLIENT_ID")
+GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
+
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
-            "client_id": os.getenv("GOOGLE_OAUTH_CLIENT_ID"),
-            "secret": os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
+            "client_id": GOOGLE_OAUTH_CLIENT_ID,
+            "secret": GOOGLE_OAUTH_CLIENT_SECRET,
         },
         "SCOPE": ["profile", "email", "openid"],
         "AUTH_PARAMS": {"access_type": "online"},
@@ -784,6 +788,13 @@ if "pytest" in sys.modules or "test" in sys.argv:
 
 cache_timeout_env_var = os.getenv("CACHE_TIMEOUT")
 CACHE_TIMEOUT: int = int(cache_timeout_env_var) if cache_timeout_env_var else 2419200
+
+contact_email_env_var = os.getenv("CONTACT_EMAIL")
+CONTACT_EMAIL: str = str(contact_email_env_var) if contact_email_env_var else ""
+
+contact_phone_env_var = os.getenv("CONTACT_PHONE")
+CONTACT_PHONE: str = str(contact_phone_env_var) if contact_phone_env_var else ""
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Quick reference
