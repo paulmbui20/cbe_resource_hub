@@ -4,7 +4,7 @@
 <div x-data="{ adminSidebarOpen: false }" class="relative flex w-full">
   
   <!-- Backing mobile mask -->
-  <div x-cloak x-show="adminSidebarOpen" class="fixed inset-0 bg-black/60 z-30 lg:hidden" @click="adminSidebarOpen = false" x-transition.opacity></div>
+  <div x-cloak x-show="adminSidebarOpen" class="fixed inset-0 bg-black/60 z-30 lg:hidden" x-on:click="adminSidebarOpen = false" x-transition.opacity></div>
 
   <!-- Fixed Left Sidebar -->
   <aside 
@@ -15,7 +15,7 @@
     <!-- Sidebar Header (Mobile Close) -->
     <div class="p-5 flex items-center justify-between border-b border-white/10 lg:hidden">
       <span class="text-white font-bold text-lg tracking-wide uppercase">Admin Panel</span>
-      <button @click="adminSidebarOpen = false" class="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/70 transition-colors">
+      <button x-on:click="adminSidebarOpen = false" class="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/70 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </div>
@@ -55,7 +55,7 @@
 
         <!-- Nested Dropdown for Curriculum -->
         <div x-data="{ curriculumOpen: {% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}true{% else %}false{% endif %} }" class="space-y-1">
-          <button @click="curriculumOpen = !curriculumOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium {% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
+          <button x-on:click="curriculumOpen = !curriculumOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium {% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
             <div class="flex items-center gap-3">
               <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
               Curriculum
@@ -79,7 +79,7 @@
 
         <!-- Nested Dropdown for Menus -->
         <div x-data="{ menuOpen: {% if 'menu' in request.resolver_match.url_name %}true{% else %}false{% endif %} }" class="space-y-1">
-          <button @click="menuOpen = !menuOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium {% if 'menu' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
+          <button x-on:click="menuOpen = !menuOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium {% if 'menu' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
             <div class="flex items-center gap-3">
               <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
               Menu Management
@@ -157,7 +157,7 @@
     <!-- Hamburger Trigger + Page Title -->
     <div class="lg:hidden flex items-center justify-between p-4 border-b border-white/10 sticky top-5 bg-brand-secondary z-30">
       <h2 class="text-white font-bold tracking-tight">Admin Console</h2>
-      <button @click="adminSidebarOpen = true" class="p-2 -mr-2 bg-white/5 rounded-lg text-white hover:bg-white/10 transition">
+      <button x-on:click="adminSidebarOpen = true" class="p-2 -mr-2 bg-white/5 rounded-lg text-white hover:bg-white/10 transition">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
       </button>
     </div>

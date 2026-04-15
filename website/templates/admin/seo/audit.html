@@ -68,10 +68,10 @@
       <thead>
         <tr class="border-b border-white/10 bg-white/2">
           <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Title / Slug</th>
-          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden md:table-cell">Meta Title</th>
-          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden lg:table-cell">Meta Description</th>
-          <th class="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden sm:table-cell">Score</th>
-          <th class="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden md:table-cell">Status</th>
+          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Meta Title</th>
+          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Meta Description</th>
+          <th class="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Score</th>
+          <th class="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Status</th>
           <th class="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Actions</th>
         </tr>
       </thead>
@@ -82,7 +82,7 @@
             <p class="text-white font-medium text-sm truncate max-w-50">{{ page.title }}</p>
             <code class="text-[11px] text-white/30 font-mono mt-0.5 block">/{{ page.slug }}/</code>
           </td>
-          <td class="px-4 py-4 hidden md:table-cell">
+          <td class="px-4 py-4 ">
             {% if page.meta_title %}
               <p class="text-white/70 text-xs truncate max-w-45">{{ page.meta_title }}</p>
               <span class="text-[11px] mt-0.5 block {% if page.meta_title|length > 60 %}text-red-400{% else %}text-emerald-400/80{% endif %}">{{ page.meta_title|length }}/60 chars</span>
@@ -90,7 +90,7 @@
               <span class="text-xs text-red-400/70 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>Missing</span>
             {% endif %}
           </td>
-          <td class="px-4 py-4 hidden lg:table-cell">
+          <td class="px-4 py-4 ">
             {% if page.meta_description %}
               <p class="text-white/70 text-xs truncate max-w-55">{{ page.meta_description }}</p>
               <span class="text-[11px] mt-0.5 block {% if page.meta_description|length > 160 %}text-red-400{% else %}text-emerald-400/80{% endif %}">{{ page.meta_description|length }}/160 chars</span>
@@ -98,7 +98,7 @@
               <span class="text-xs text-red-400/70 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>Missing</span>
             {% endif %}
           </td>
-          <td class="px-4 py-4 hidden sm:table-cell text-center">
+          <td class="px-4 py-4 text-center">
             {% if page.meta_title and page.meta_description %}
               <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>Good</span>
             {% elif page.meta_title or page.meta_description %}
@@ -107,7 +107,7 @@
               <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>Missing</span>
             {% endif %}
           </td>
-          <td class="px-4 py-4 hidden md:table-cell text-center">
+          <td class="px-4 py-4 text-center">
             {% if page.is_published %}
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-green-500/10 text-green-400 text-xs font-medium border border-green-500/20">
                 <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>Published
@@ -145,9 +145,9 @@
       <thead>
         <tr class="border-b border-white/10 bg-white/2">
           <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Title / Slug</th>
-          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden md:table-cell">Meta Title</th>
-          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden lg:table-cell">Meta Description</th>
-          <th class="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden sm:table-cell">Score</th>
+          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Meta Title</th>
+          <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Meta Description</th>
+          <th class="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Score</th>
           <th class="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white/40">Actions</th>
         </tr>
       </thead>
@@ -158,7 +158,7 @@
             <p class="text-white font-medium text-sm truncate max-w-50">{{ resource.title }}</p>
             <code class="text-[11px] text-white/30 font-mono mt-0.5 block">/{{ resource.slug }}/</code>
           </td>
-          <td class="px-4 py-4 hidden md:table-cell">
+          <td class="px-4 py-4 ">
             {% if resource.meta_title %}
               <p class="text-white/70 text-xs truncate max-w-45">{{ resource.meta_title }}</p>
               <span class="text-[11px] mt-0.5 block {% if resource.meta_title|length > 60 %}text-red-400{% else %}text-emerald-400/80{% endif %}">{{ resource.meta_title|length }}/60 chars</span>
@@ -166,7 +166,7 @@
               <span class="text-xs text-red-400/70 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>Missing</span>
             {% endif %}
           </td>
-          <td class="px-4 py-4 hidden lg:table-cell">
+          <td class="px-4 py-4 ">
             {% if resource.meta_description %}
               <p class="text-white/70 text-xs truncate max-w-55">{{ resource.meta_description }}</p>
               <span class="text-[11px] mt-0.5 block {% if resource.meta_description|length > 160 %}text-red-400{% else %}text-emerald-400/80{% endif %}">{{ resource.meta_description|length }}/160 chars</span>
@@ -174,7 +174,7 @@
               <span class="text-xs text-red-400/70 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>Missing</span>
             {% endif %}
           </td>
-          <td class="px-4 py-4 hidden sm:table-cell text-center">
+          <td class="px-4 py-4 text-center">
             {% if resource.meta_title and resource.meta_description %}
               <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>Good</span>
             {% elif resource.meta_title or resource.meta_description %}

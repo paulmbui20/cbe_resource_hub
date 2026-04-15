@@ -21,14 +21,14 @@
     </div>
   </div>
 
-  <div class="rounded-2xl border border-white/8 overflow-hidden bg-white/5 pb-2">
+  <div class="rounded-2xl border border-white/8 overflow-x-auto bg-white/5 pb-2">
     <table class="w-full text-sm" {% if contact_messages %}id="dataTable"{% endif %}>
       <thead>
         <tr class="border-b border-white/8 bg-white/3">
           <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Contact Name</th>
-          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">Subject</th>
-          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden md:table-cell">Phone</th>
-          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden md:table-cell">Received</th>
+          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Subject</th>
+          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Phone</th>
+          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Received</th>
           <th class="px-5 py-3 text-center text-xs text-white/40 font-medium uppercase tracking-wider w-20">Status</th>
           <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">Actions</th>
         </tr>
@@ -43,9 +43,9 @@
             </div>
             <div class="text-xs text-white/40 mt-0.5">{{ msg.email }}</div>
           </td>
-          <td class="px-5 py-3 text-white/70 hidden sm:table-cell max-w-xs truncate">{{ msg.subject }}</td>
-          <td class="px-5 py-3 text-white/50 hidden md:table-cell">{{ msg.phone|default:"—" }}</td>
-          <td class="px-5 py-3 text-white/40 hidden md:table-cell">{{ msg.created_at|date:"M d, Y H:i" }}</td>
+          <td class="px-5 py-3 text-white/70 max-w-xs truncate">{{ msg.subject }}</td>
+          <td class="px-5 py-3 text-white/50 ">{{ msg.phone|default:"—" }}</td>
+          <td class="px-5 py-3 text-white/40 ">{{ msg.created_at|date:"M d, Y H:i" }}</td>
           <td class="px-5 py-3 text-center">
             {% if msg.is_read %}
             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-green-400">Read</span>
@@ -58,7 +58,7 @@
               <a href="{% url 'management:contact_detail' msg.pk %}" class="p-2 text-brand-accent hover:bg-brand-accent/10 rounded-lg transition-colors tooltip" title="View Message">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
               </a>
-              <button type="button" @click.prevent="$dispatch('open-delete-modal', { url: '{% url 'management:contact_delete' msg.pk %}', name: '{{ msg.name|escapejs }} — {{ msg.subject|escapejs }}' })" class="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors tooltip" title="Delete">
+              <button type="button" x-on:click.prevent="$dispatch('open-delete-modal', { url: '{% url 'management:contact_delete' msg.pk %}', name: '{{ msg.name|escapejs }} — {{ msg.subject|escapejs }}' })" class="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors tooltip" title="Delete">
                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
               </button>
             </div>

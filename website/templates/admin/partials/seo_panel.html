@@ -148,7 +148,7 @@
     </div>
     {% endif %}
     <div class="border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:border-violet-500/40 transition-colors cursor-pointer"
-         @click="$refs.featuredImageInput.click()"
+         x-on:click="$refs.featuredImageInput.click()"
          @dragover.prevent
          @drop.prevent="handleImageDrop($event)">
       <div x-show="!imagePreview">

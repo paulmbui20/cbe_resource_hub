@@ -635,6 +635,7 @@ TINYMCE_DEFAULT_CONFIG = {
     "theme": "silver",
     "height": 800,
     "width": "100%",
+    "min_width": 800,
     "menubar": "file edit view insert format tools table help",
     "plugins": (
         "accordion autosave autoresize advlist autolink lists link image charmap "

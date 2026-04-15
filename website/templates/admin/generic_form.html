@@ -82,11 +82,13 @@
                 {% endfor %}
                 <div x-show="mode === 'custom'" class="flex items-center gap-2" x-cloak>
                     {% render_field field x-ref="input" class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary" %}
-                    <button type="button" @click="mode = 'select'; $refs.input.value = ''; $refs.select.value = ''; $refs.input.dispatchEvent(new Event('input'))" class="px-4 py-2 text-sm bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors whitespace-nowrap">Cancel</button>
+                    <button type="button" x-on:click="mode = 'select'; $refs.input.value = ''; $refs.select.value = ''; $refs.input.dispatchEvent(new Event('input'))" class="px-4 py-2 text-sm bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors whitespace-nowrap">Cancel</button>
                 </div>
               </div>
             {% else %}
-              {% render_field field class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary" %}
+              <div class="overflow-x-auto w-full pb-2">
+                {% render_field field class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-primary" data-tiny="true" %}
+              </div>
             {% endif %}
             
             {% if field.help_text %}

@@ -23,15 +23,15 @@
   </div>
 
   <!-- Partners Table -->
-  <div class="bg-white/3 border border-white/10 rounded-2xl overflow-hidden">
+  <div class="bg-white/3 border border-white/10 rounded-2xl overflow-x-auto">
     <table id="partnersTable" class="w-full text-sm">
       <thead>
         <tr class="border-b border-white/10 bg-white/2">
           <th class="text-left px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">Partner</th>
-          <th class="text-left px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden sm:table-cell">Website</th>
-          <th class="text-center px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden md:table-cell">Banner</th>
-          <th class="text-center px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden lg:table-cell">CTA</th>
-          <th class="text-left px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 hidden xl:table-cell">Added</th>
+          <th class="text-left px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Website</th>
+          <th class="text-center px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Banner</th>
+          <th class="text-center px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 ">CTA</th>
+          <th class="text-left px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 ">Added</th>
           <th class="text-right px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">Actions</th>
         </tr>
       </thead>
@@ -57,7 +57,7 @@
               </div>
             </div>
           </td>
-          <td class="px-4 py-4 hidden sm:table-cell">
+          <td class="px-4 py-4 ">
             {% if partner.link %}
               <a href="{{ partner.link }}" target="_blank" rel="noopener" class="text-xs text-brand-primary/70 hover:text-brand-primary flex items-center gap-1 transition-colors">
                 <span class="truncate max-w-37.5">{{ partner.link }}</span>
@@ -67,7 +67,7 @@
               <span class="text-white/20 text-xs">—</span>
             {% endif %}
           </td>
-          <td class="px-4 py-4 hidden md:table-cell text-center">
+          <td class="px-4 py-4 text-center">
             {% if partner.show_as_banner %}
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 text-xs font-bold border border-amber-500/20">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>Live
@@ -76,14 +76,14 @@
               <span class="inline-flex px-2.5 py-1 rounded-lg bg-white/5 text-white/30 text-xs border border-white/10">Off</span>
             {% endif %}
           </td>
-          <td class="px-4 py-4 hidden lg:table-cell text-center">
+          <td class="px-4 py-4 text-center">
             {% if partner.show_as_banner %}
               <span class="text-xs text-white/50 bg-white/5 px-2 py-1 rounded-lg">{{ partner.banner_cta|default:"Learn More" }}</span>
             {% else %}
               <span class="text-white/20 text-xs">—</span>
             {% endif %}
           </td>
-          <td class="px-4 py-4 hidden xl:table-cell">
+          <td class="px-4 py-4 ">
             <span class="text-xs text-white/40">{{ partner.created_at|date:"M j, Y" }}</span>
           </td>
           <td class="px-6 py-4">
@@ -92,7 +92,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
               </a>
               <button type="button"
-                @click="$dispatch('open-delete-modal', { url: '{% url 'management:partner_delete' partner.pk %}', name: '{{ partner.name|escapejs }}' })"
+                x-on:click="$dispatch('open-delete-modal', { url: '{% url 'management:partner_delete' partner.pk %}', name: '{{ partner.name|escapejs }}' })"
                 class="p-1.5 bg-red-500/5 hover:bg-red-500/10 rounded-lg text-red-400/50 hover:text-red-400 transition-colors" title="Delete">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
               </button>

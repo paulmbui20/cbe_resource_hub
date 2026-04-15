@@ -62,33 +62,33 @@
              x-show="selected.length > 0" x-cloak>
             <div class="text-sm font-medium text-white/80"><span x-text="selected.length"></span> users selected</div>
             <div class="flex space-x-2 mt-3 sm:mt-0">
-                <button @click="submitBulk('enable')" type="button"
+                <button x-on:click="submitBulk('enable')" type="button"
                         class="px-4 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 text-sm font-semibold transition-colors">
                     Enable Selected
                 </button>
-                <button @click="submitBulk('disable')" type="button"
+                <button x-on:click="submitBulk('disable')" type="button"
                         class="px-4 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-sm font-semibold transition-colors">
                     Disable Selected
                 </button>
             </div>
         </div>
 
-        <div class="rounded-2xl border border-white/8 overflow-hidden bg-white/5 pb-2">
+        <div class="rounded-2xl border border-white/8 overflow-x-auto bg-white/5 pb-2">
             <table class="w-full text-sm" {% if users %}id="dataTable"{% endif %}>
                 <thead>
                 <tr class="border-b border-white/8 bg-white/3">
                     <th class="px-5 py-3 text-left w-12">
-                        <input type="checkbox" @click="toggleAll()"
+                        <input type="checkbox" x-on:click="toggleAll()"
                                class="w-4 h-4 rounded border-white/20 bg-white/5 text-brand-primary focus:ring-brand-primary">
                     </th>
                     <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">User</th>
-                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">
                         Role
                     </th>
-                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">
                         Status
                     </th>
-                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider hidden md:table-cell">
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">
                         Joined
                     </th>
                     <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">
@@ -117,7 +117,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-5 py-4 hidden sm:table-cell">
+                        <td class="px-5 py-4 ">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border
                               {% if u.role == 'admin' %}bg-purple-500/10 text-purple-400 border-purple-500/20
                               {% elif u.role == 'vendor' %}bg-blue-500/10 text-blue-400 border-blue-500/20
@@ -132,20 +132,20 @@
                               {{ u.get_role_display|default:"Learner" }}
                             </span>
                         </td>
-                        <td class="px-5 py-4 hidden sm:table-cell">
+                        <td class="px-5 py-4 ">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border
                               {% if u.is_active %}bg-green-500/10 text-green-400 border-green-500/20{% else %}bg-red-500/10 text-red-400 border-red-500/20{% endif %}">
                               <span class="w-1.5 h-1.5 rounded-full {% if u.is_active %}bg-green-400{% else %}bg-red-400{% endif %}"></span>
                               {% if u.is_active %}Active{% else %}Disabled{% endif %}
                             </span>
                         </td>
-                        <td class="px-5 py-4 text-white/50 text-sm hidden md:table-cell">{{ u.date_joined|date:"M d, Y" }}</td>
+                        <td class="px-5 py-4 text-white/50 text-sm ">{{ u.date_joined|date:"M d, Y" }}</td>
                         <td class="px-5 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{% url 'management:user_edit' u.pk %}" class="p-2 text-brand-accent hover:bg-brand-accent/10 rounded-lg transition-colors tooltip" title="Edit User">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </a>
-                                <button type="button" @click.prevent="$dispatch('open-delete-modal', { url: '{% url 'management:user_delete' u.pk %}', name: '{{ u.email|escapejs }}' })" class="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors tooltip" title="Delete User">
+                                <button type="button" x-on:click.prevent="$dispatch('open-delete-modal', { url: '{% url 'management:user_delete' u.pk %}', name: '{{ u.email|escapejs }}' })" class="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors tooltip" title="Delete User">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </div>

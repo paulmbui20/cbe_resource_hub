@@ -11,7 +11,7 @@
        x-transition:leave="transition ease-in duration-200"
        x-transition:leave-start="opacity-100"
        x-transition:leave-end="opacity-0"
-       @click="show = false"
+       x-on:click="show = false"
        class="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm"></div>
 
   <!-- Modal Panel - slides up from bottom on mobile, scales in from center on desktop -->
@@ -54,7 +54,7 @@
 
       <!-- Actions -->
       <div class="px-6 py-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-        <button @click="show = false" type="button"
+        <button x-on:click="show = false" type="button"
                 class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/8 hover:bg-white/12 border border-white/10 text-white text-sm font-semibold transition-colors">
           Cancel
         </button>

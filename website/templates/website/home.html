@@ -202,11 +202,11 @@
                     <p class="text-sm text-white/40 mt-0.5">Handpicked for Kenyan learners</p>
                 </div>
                 <div class="inline-flex bg-white/4 border border-white/8 rounded-xl p-0.5">
-                    <button @click="tab='recent'"
+                    <button x-on:click="tab='recent'"
                             :class="tab==='recent' ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white'"
                             class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all">Recent
                     </button>
-                    <button @click="tab='popular'"
+                    <button x-on:click="tab='popular'"
                             :class="tab==='popular' ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white'"
                             class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all">Popular
                     </button>
