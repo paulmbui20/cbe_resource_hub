@@ -10,8 +10,8 @@
 
 ## ✨ Features
 
-- **Multi-vendor Marketplace** — Educators can register as Content Creators and upload resources
-- **CBC Curriculum Aligned** — Pre-Primary through Senior School (Grade 12), all standard learning areas
+- **Multivendor Marketplace** — Educators can register as Content Creators and upload resources
+- **CBC Curriculum Aligned** — From Pre-Primary level through Senior School (Grade 12) level, all standard learning areas
 - **Custom Admin Panel** — Fully branded management UI (no Django Admin dependency)
 - **Rich Text Editing** — TinyMCE (served locally, no CDN) for page and resource descriptions
 - **Secure Auth** — email-only login via `django-allauth` with Google OAuth support
@@ -38,27 +38,292 @@
 ## 🗂 Project Structure
 
 ```
-cbe_resource_hub/
-├── accounts/           # Custom user model, adapters, signals
-├── cms/                # Pages, Menus, SiteSettings models
-├── resources/          # EducationLevel, Grade, LearningArea, ResourceItem
-│   └── management/
-│       └── commands/
-│           └── prepopulate_cbe.py   # Seed Kenyan CBC curriculum
-├── website/            # Public views, admin views, admin URLs
-│   ├── admin_views.py
-│   ├── admin_dependency_views.py
-│   └── templates/
-│       ├── base.html
-│       ├── admin/          # Custom management panel templates
-│       └── resources/      # Public-facing resource templates
-├── cbe_res_hub/        # Project settings, URLs, middleware, WSGI/ASGI
+.
+├── accounts                   # accounts app
+│   ├── __init__.py           
+│   ├── adapters.py            # adapters to work with allauth
+│   ├── admin.py               # admin registration of models
+│   ├── admin_urls.py          # custom admin urls
+│   ├── admin_views.py         # custom admin views
+│   ├── apps.py
+│   ├── migrations/           # folder with accounts app migration files
+│   ├── models.py             # accounts models for users 
+│   ├── signals.py            # signals 
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── build.sh
+├── cbe_res_hub
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── celery.py
+│   ├── middleware.py
 │   ├── settings.py
-│   ├── middleware.py   # ForcePasswordChangeMiddleware
-│   └── urls.py
-├── .env                # Secret keys and credentials (NOT committed)
+│   ├── urls.py
+│   └── wsgi.py
+├── cms
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── admin_urls.py
+│   ├── admin_views.py
+│   ├── apps.py
+│   ├── context_processors.py
+│   ├── forms.py
+│   ├── management
+│   │   ├── __init__.py
+│   │   └── commands
+│   │       ├── __init__.py
+│   │       ├── populate_menus.py
+│   │       └── populate_site_settings.py
+│   ├── migrations/
+│   ├── models.py
+│   ├── signals.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── compose.yaml
+├── conftest.py
+├── docker-health-check.py
+├── Dockerfile
+├── docs
+│   ├── HOMEPAGE.md
+│   ├── MENUS.md
+│   ├── NOTIFICATIONS.md
+│   └── ROADMAP.md
+├── files
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── admin_urls.py
+│   ├── admin_views.py
+│   ├── apps.py
+│   ├── management
+│   │   ├── __init__.py
+│   │   └── commands
+│   │       ├── __init__.py
+│   │       ├── calculate_file_hashes.py
+│   │       ├── check_orphaned_files.py
+│   │       └── regenerate_metadata.py
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_alter_file_file.py
+│   │   ├── 0003_alter_file_file.py
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── signals.py
+│   ├── tests
+│   │   ├── __init__.py
+│   │   ├── fixtures.py
+│   │   ├── README.md
+│   │   ├── test_admin.py
+│   │   ├── test_integration.py
+│   │   ├── test_management_commands.py
+│   │   ├── test_models.py
+│   │   ├── test_performance.py
+│   │   └── test_validators.py
+│   ├── urls.py
+│   └── views.py
+├── helpers
+│   ├── __init__.py
+│   ├── cloudflare
+│   │   ├── __init__.py
+│   │   ├── settings.py
+│   │   └── storages.py
+│   └── storages
+│       ├── __init__.py
+│       └── mixins.py
+├── LICENSE
 ├── manage.py
-└── pyproject.toml      # Dependencies managed by uv
+├── notifications
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── admin_views.py
+│   ├── apps.py
+│   ├── migrations/
+│   ├── models.py
+│   ├── notifier.py
+│   ├── signals.py
+│   ├── tasks.py
+│   ├── templates
+│   │   └── notifications
+│   │       ├── admin
+│   │       │   └── notification_list.html
+│   │       ├── contact_form.html
+│   │       ├── contact_form.txt
+│   │       ├── email_base.html
+│   │       ├── generic_message.html
+│   │       ├── generic_message.txt
+│   │       ├── resource_upload.html
+│   │       ├── resource_upload.txt
+│   │       ├── security_alert.html
+│   │       ├── security_alert.txt
+│   │       ├── signup_admin.html
+│   │       └── signup_admin.txt
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── pyproject.toml
+├── README.md
+├── requirements.txt
+├── resources
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── admin_dependency_views.py
+│   ├── admin_urls.py
+│   ├── admin_views.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── management
+│   │   ├── __init__.py
+│   │   └── commands
+│   │       ├── __init__.py
+│   │       └── prepopulate_cbe.py
+│   ├── migrations/
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── validators.py
+│   └── views.py
+├── seo
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── admin_views.py
+│   ├── apps.py
+│   ├── management
+│   │   ├── __init__.py
+│   │   └── commands
+│   │       ├── __init__.py
+│   │       ├── clean_slug_redirects.py
+│   │       └── fix_circular_redirects.py
+│   ├── middleware.py
+│   ├── migrations/
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── static
+│   │   └── admin
+│   │       ├── css
+│   │       │   └── seo-admin.css
+│   │       └── js
+│   │           └── seo-counter.js
+│   ├── tests.py
+│   ├── urls.py
+│   ├── utils.py
+│   └── views.py
+├── test
+│   ├── compose.yaml
+│   ├── Dockerfile
+│   └── test.sh
+├── uv.lock
+└── website
+    ├── __init__.py
+    ├── admin.py
+    ├── admin_views.py
+    ├── apps.py
+    ├── bun.lock
+    ├── context_processors.py
+    ├── forms
+    │   ├── __init__.py
+    │   └── contact.py
+    ├── health_checks.py
+    ├── management
+    │   ├── __init__.py
+    │   └── commands
+    │       ├── __init__.py
+    │       ├── check_health.py
+    │       ├── clear_all_cache.py
+    │       ├── debug_backup_storage.py
+    │       ├── manual_backup.py
+    │       └── restore_backup.py
+    ├── migrations/
+    ├── models.py
+    ├── package.json
+    ├── sitemaps.py
+    ├── static
+    │   ├── css
+    │   │   ├── simple-datatables.min.css
+    │   │   └── src
+    │   │       ├── input.css
+    │   │       └── output.css
+    │   ├── images
+    │   │   ├── logo.svg
+    │   │   └── og-default.png
+    │   └── js
+    │       ├── alpine-collapse.min.js
+    │       ├── alpine-intersect.min.js
+    │       ├── alpine.min.js
+    │       ├── htmx.min.js
+    │       └── simple-datatables.min.js
+    ├── tasks.py
+    ├── templates
+    │   ├── accounts
+    │   │   ├── dashboard.html
+    │   │   └── profile.html
+    │   ├── admin
+    │   │   ├── base_admin.html
+    │   │   ├── basic_list.html
+    │   │   ├── contact_message_detail.html
+    │   │   ├── contact_message_list.html
+    │   │   ├── dashboard.html
+    │   │   ├── files
+    │   │   │   ├── file_list.html
+    │   │   │   └── partials
+    │   │   │       └── grid.html
+    │   │   ├── generic_form.html
+    │   │   ├── menu_list.html
+    │   │   ├── page_list.html
+    │   │   ├── partials
+    │   │   │   ├── _delete_modal.html
+    │   │   │   └── seo_panel.html
+    │   │   ├── partner_list.html
+    │   │   ├── resource_list.html
+    │   │   ├── seo
+    │   │   │   ├── audit.html
+    │   │   │   ├── redirect_form.html
+    │   │   │   └── redirect_list.html
+    │   │   ├── seo_form.html
+    │   │   ├── settings_list.html
+    │   │   └── user_list.html
+    │   ├── allauth
+    │   │   └── layouts
+    │   │       ├── base.html
+    │   │       └── entrance.html
+    │   ├── axes
+    │   │   └── lockout.html
+    │   ├── base.html
+    │   ├── cms
+    │   │   └── page_detail.html
+    │   ├── components
+    │   │   ├── container.html
+    │   │   └── form.html
+    │   ├── partials
+    │   │   ├── _notifications.html
+    │   │   └── partner_banners.html
+    │   ├── resources
+    │   │   ├── partials
+    │   │   │   ├── basic_resource_card.html
+    │   │   │   ├── favorite_button.html
+    │   │   │   ├── resource_cards.html
+    │   │   │   └── search_suggestions.html
+    │   │   ├── resource_confirm_delete.html
+    │   │   ├── resource_detail.html
+    │   │   ├── resource_form.html
+    │   │   ├── resource_list.html
+    │   │   └── resource_type_detail.html
+    │   ├── robots.txt
+    │   ├── socialaccount
+    │   │   └── snippets
+    │   │       └── provider_list.html
+    │   └── website
+    │       ├── contact.html
+    │       ├── home.html
+    │       └── partners.html
+    ├── templatetags
+    │   ├── __init__.py
+    │   └── model_tags.py
+    ├── tests.py
+    ├── urls
+    │   ├── admin_urls.py
+    │   └── website_urls.py
+    └── views.py
 ```
 
 ---
@@ -69,8 +334,8 @@ cbe_resource_hub/
 
 - **Python 3.12+**
 - **[uv](https://docs.astral.sh/uv/)** — fast Python package manager
-- **PostgreSQL** (recommended) or SQLite for development
-- **Redis** (optional, for Celery task queue)
+- **PostgreSQL** default db
+- **Redis** required for cache, and celery broker and task queue
 
 ### 1. Clone the repository
 
@@ -91,36 +356,32 @@ uv sync
 
 ### 3. Configure environment variables
 
-Copy the example env file and fill in your values:
+Create the env file on the project root directory and fill in your values:
 
 ```bash
-cp .env.example .env
+touch .env && nano .env
 ```
 
 Edit `.env`:
 
-```ini
+```.dotenv
 # ── Django Core ──────────────────────────────────────────────
 SECRET_KEY=your-very-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
+CSRF_ORIGINS=http://localhost:8000,http://127.0.0.1:8000,http://cberesources.localhost,
 
-# ── Database ─────────────────────────────────────────────────
-# SQLite (development — default if DATABASE_URL not set)
-# DATABASE_URL=sqlite:///db.sqlite3
-
-# PostgreSQL (recommended for production)
-DATABASE_URL=postgres://user:password@localhost:5432/cbe_resource_hub
+ENVIRONMENT=development
 
 # ── Email ─────────────────────────────────────────────────────
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-# For production:
-# EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-# EMAIL_HOST=smtp.gmail.com
-# EMAIL_PORT=587
-# EMAIL_USE_TLS=True
-# EMAIL_HOST_USER=your@email.com
-# EMAIL_HOST_PASSWORD=your-app-password
+# For production / or dev (in dev i use mailpit):
+EMAIL_HOST=localhost
+EMAIL_PORT=1025
+EMAIL_USE_TLS=False
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+DEFAULT_FROM_EMAIL=admin@localhost
+
 
 # ── Google OAuth (django-allauth) ─────────────────────────────
 GOOGLE_CLIENT_ID=your-google-oauth-client-id
@@ -138,9 +399,37 @@ CLOUDFLARE_R2_PUBLIC_BUCKET_ENDPOINT=
 CLOUDFLARE_R2_PUBLIC_ACCESS_KEY=
 CLOUDFLARE_R2_PUBLIC_SECRET_KEY=
 
-# ── Redis / Celery (optional) ─────────────────────────────────
-REDIS_URL=redis://localhost:6379/0
-CELERY_BROKER_URL=redis://localhost:6379/0
+# ── Redis ─────────────────────────────────────────────────────────────────────
+REDIS_URL=redis://localhost:6379
+REDIS_HOST=localhost
+REDIS_PASSWORD=
+
+# ACCOUNT_EMAIL_VERIFICATION: "none" | "optional" | "mandatory"
+ACCOUNT_EMAIL_VERIFICATION=optional
+
+# ── Site Identity ─────────────────────────────────────────────────────────────
+SITE_ID=1
+SITE_URL=http://localhost:8000
+SITE_NAME='CBE Resource Hub'
+ADMIN_NAME=admin
+ADMIN_EMAIL=admin@localhost
+
+# ── PostgreSQL ────────────────────────────────────────────────────────────────
+# Local  (used when ENVIRONMENT != production)
+DATABASE_URL_LOCAL=postgresql://user:pass@host:port/db
+# Production (used when ENVIRONMENT=production)
+DATABASE_URL=postgresql://user:pass@host:port/db
+
+# ── Sentry ────────────────────────────────────────────────────────────────────
+SENTRY_DSN=
+
+# ── Cache Timeout ─────────────────────────────────────────────────────────────
+CACHE_TIMEOUT=2419200
+
+# ── Contact Details ─────────────────────────────────────────────────────────────
+CONTACT_EMAIL=info@localhost
+CONTACT_PHONE=+254712345678
+
 ```
 
 ### 4. Apply migrations
@@ -148,8 +437,20 @@ CELERY_BROKER_URL=redis://localhost:6379/0
 ```bash
 uv run python manage.py migrate
 ```
+### 5. Prepopulate some important default settings
 
-### 5. Seed the Kenyan CBC curriculum
+```bash
+uv run python manage.py populate_site_settings
+
+```
+This seeds settings idempotently like: site_name, contact_phone, contact_email, google_oauth_client_id, site_indexing, meta_description.
+Some of these need to come from the .env variables set above
+
+### 6. Prepopulate Primary Header and Footer Menus and their menu items
+```bash
+uv run python manage.py populate_menus
+```
+### 7. Seed the Kenyan CBC curriculum
 
 This is a one-time idempotent command. Safe to run multiple times.
 
@@ -162,7 +463,7 @@ This seeds:
 - **14 Grades**: PP1–PP2, Grade 1–12
 - **30+ Learning Areas**: aligned to each education level per CBC 2026 framework
 
-### 6. Create a superuser (Admin)
+### 8. Create a superuser (Admin)
 
 ```bash
 uv run python manage.py createsuperuser
@@ -295,6 +596,30 @@ Set up R2 in the Cloudflare dashboard:
 3. For the public bucket, enable "Public Access" in R2 settings
 4. Fill in all `CLOUDFLARE_R2_*` variables in `.env`
 
+### Mock R2/S3 compatible storage in dev with Minio
+It's possible to use r2/s3 compatible storage in development by installing Minio with docker and creating the buckets
+
+to run minio locally run the following command
+
+```bash
+docker run -d \
+--name minio \
+-p 9000:9000 \
+-p 9001:9001 \
+-v minio_data:/data \
+-e MINIO_ROOT_USER=minio \
+-e MINIO_ROOT_PASSWORD=minio123 \
+quay.io/minio/minio server /data --console-address ":9001"
+```
+
+> visit minio webaddress on browser at http://localhost:9001
+
+Create the three buckets, by default they are all private to change one to public that exec into minio
+container and use `mc` to adjust policy 
+
+### Run an email server smtp on localhost to test email sending
+To test email sending locally and offline with an smpt server use mailpit
+
 ---
 
 ## 🎨 Frontend Stack
@@ -312,6 +637,9 @@ Set up R2 in the Cloudflare dashboard:
 ## ⚙️ Management Commands
 
 ```bash
+# Seed important site settings
+uv run python manage.py python manage.py populate_site_settings
+
 # Seed Kenyan CBC curriculum (idempotent)
 uv run python manage.py prepopulate_cbe
 
@@ -327,8 +655,6 @@ uv run python manage.py collectstatic
 # Run tests with pytest (recommended)
 uv run pytest
 
-# Run tests with coverage
-uv run pytest --cov=. --cov-report=html
 
 # Legacy test runner (also works)
 uv run python manage.py test
