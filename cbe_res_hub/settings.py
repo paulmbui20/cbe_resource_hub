@@ -368,19 +368,14 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 SOCIALACCOUNT_LOGIN_ON_GET = True  # allow GET-based OAuth callback
 
-
 # ──────────────────────────────────────────────────────────────────────────────
 # 10. INTERNATIONALISATION
 # ──────────────────────────────────────────────────────────────────────────────
 
-def gettext_noop(s):
-    return s
-
-
 LANGUAGE_CODE = "en-us"
 LANGUAGES = [
-    ("en", gettext_noop("English")),
-    ("sw", gettext_noop("Swahili")),
+    ("en", "English"),
+    ("sw", "Swahili"),
 ]
 LANGUAGES_BIDI = []  # should remain empty since both English and Swahili don't need rtl
 
