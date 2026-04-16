@@ -10,14 +10,24 @@ base_url = "http://localhost:8000"
 target_endpoints = [
     '/',
     '/resources',
+    '/resources/sitemap.xml',
     '/resources/type/exam',
     '/resources/type/schemes_of_work',
+    '/resources/type/sitemap.xml',
+    '/resources/learning-areas',
+    '/resources/learning-areas/creative-arts',
+    '/resources/learning-areas/sitemap.xml',
+    '/resources/grades',
+    '/resources/grades/grade-8',
+    '/resources/grades/sitemap.xml',
+    '/resources/education-levels',
+    '/resources/education-levels/junior-school',
+    '/resources/education-levels/sitemap.xml',
     '/accounts/login',
     '/accounts/signup',
     '/accounts/password/reset',
     '/contact',
     '/partners',
-
 ]
 
 

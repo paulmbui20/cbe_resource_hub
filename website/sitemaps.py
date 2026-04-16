@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib.sitemaps import Sitemap
-from django.db.models import QuerySet, Max
+from django.db.models import Max
 from django.urls import reverse
 
 from cms.models import Page
