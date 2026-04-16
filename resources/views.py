@@ -238,9 +238,9 @@ RESOURCE_TYPE_INFO: dict[str, dict] = {
     "other": {"icon": "📂", "label": "Other Resources",
               "desc": "Additional CBC-aligned resources that don't fit a specific category above."},
     "holiday_assignment": {"icon": "📝", "label": "Holiday Assignment",
-              "desc": "Helpful holiday assignments to keep learner engaged even over the holidays"},
+                           "desc": "Helpful holiday assignments to keep learner engaged even over the holidays"},
     "setbook_guide": {"icon": "📝", "label": "Set Book Guide",
-              "desc": "Set Book Guide"},
+                      "desc": "Set Book Guide"},
 }
 
 
@@ -277,15 +277,6 @@ class ResourceTypeDetailView(ListView):
         ctx["all_resource_types"] = RESOURCE_TYPE_INFO
         return ctx
 
-def slug_to_title(slug: str) -> str:
-    slug = slug
-    if "-" in slug:
-        slug = slug.replace("-", " ")
-    if "_" in slug:
-        slug = slug.replace("_", " ")
-    slug = slug.title()
-    return slug
-
 
 class EducationLevelDetailsView(ListView):
     """
@@ -303,24 +294,44 @@ class EducationLevelDetailsView(ListView):
         self.education_level = self.kwargs["education_level"]
         return (
             ResourceItem.objects.filter(grade__level__slug=self.education_level)
-            .select_related("grade", "grade__level", "learning_area")
+            .select_related("grade", "grade__level",)
         )
 
     def get_context_data(
-        self, **kwargs: Any
+            self, **kwargs: Any
     ) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["education_level"] = get_object_or_404(EducationLevel, slug=self.education_level)
+        context["all_education_levels"] = EducationLevel.objects.all()
+        return context
 
-        context["education_level_count"] = self.get_queryset().count()
-        context["all_education_levels"] = EducationLevel.objects.prefetch_related("grades")
+
+class GradeDetailsView(ListView):
+    """
+    SEO-optimized landing page for a specific Grade.
+    URL: /resources/grades/<grade>/
+    """
+    model = Grade
+    template_name = "resources/grade_details.html"
+    context_object_name = "resources"
+    paginate_by = 12
+
+    def get_queryset(self) -> QuerySet[ResourceItem]:
+        self.grade = self.kwargs["grade"]
+        return (
+            ResourceItem.objects.filter(grade__slug=self.grade)
+            .select_related("grade",)
+        )
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["grade"] = get_object_or_404(Grade, slug=self.grade)
+        context["all_grades"] = Grade.objects.all()
 
         return context
 
 
-
 # user/vendor resource crud views
-
 class ResourceCreateView(VendorRequiredMixin, CreateView):
     model = ResourceItem
     form_class = ResourceItemForm

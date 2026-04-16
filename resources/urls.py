@@ -23,7 +23,10 @@ urlpatterns = [
     path("type/sitemap.xml", sitemap, {'sitemaps': resources_types_sitemaps}, name="type_sitemaps"),
     re_path(r'^type(?:/(?P<resource_type>[-\w]+))?/$', views.ResourceTypeDetailView.as_view(), name="type_detail"),
 
-    re_path(r'^education-levels(?:/(?P<education_level>[-\w]+))?/$', views.EducationLevelDetailsView.as_view(), name="education_level_details"),
+    re_path(r'^education-levels(?:/(?P<education_level>[-\w]+))?/$', views.EducationLevelDetailsView.as_view(),
+            name="education_level_details"),
+
+    re_path(r'^grades(?:/(?P<grade>[-\w]+))?/$', views.GradeDetailsView.as_view(), name="grade_details"),
 
     path("<slug:slug>/favorite/", views.ToggleFavoriteView.as_view(), name="toggle_favorite"),
 

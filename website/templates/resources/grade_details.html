@@ -1,40 +1,41 @@
 {% extends 'resources/resource_filter_base.html' %}
 
-{% block title %}{{ education_level.name }} Resources — Free Kenya CBC Resources{% endblock %}
-{% block meta_title_value %}{{ education_level.meta_title }} Resources  | CBE Resource Hub Kenya{% endblock %}
-{% block meta_description_value %}Download free {{ education_level.name|lower }} aligned to the Kenya CBC/CBE
-    curriculum. {{ education_level.meta_description }} {{ resources|length }} resource{{ resources|length|pluralize }}
+{% block title %}{{ grade.name }} Resources — Free Kenya CBC Resources{% endblock %}
+{% block meta_title_value %}{{ grade.meta_title }} Resources  | CBE Resource Hub Kenya{% endblock %}
+{% block meta_description_value %}Download free {{ grade.name|lower }} aligned to the Kenya CBC/CBE
+    curriculum. {{ grade.meta_description }} {{ resources|length }} resource
+    {{ resources|length|pluralize }}
     available.{% endblock %}
-{% block og_title %}{{ education_level.name }} — CBE Resource Hub Kenya{% endblock %}
-{% block og_description %}{{ education_level.meta_description }} Browse {{ resources|length }} free
-    {{ education_level.name|lower }} resources for Kenyan learners.{% endblock %}
+{% block og_title %}{{ grade.name }} — CBE Resource Hub Kenya{% endblock %}
+{% block og_description %}{{ grade.meta_description }} Browse {{ resources|length }} free
+    {{ grade.name|lower }} resources for Kenyan learners.{% endblock %}
 
 {% block structured_data %}
     <script type="application/ld+json">
         {
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          "name": "{{ education_level.name }} Resources — CBE Resource Hub",
-  "description": "{{ education_level.meta_description }}",
+          "name": "{{ grade.name }} Resources — CBE Resource Hub",
+  "description": "{{ grade_desc }}",
   "url": "{{ request.build_absolute_uri }}",
   "numberOfItems": {{ resources|length }}
         }
     </script>
 {% endblock %}
-{% block filter_label %}{{ education_level.name }} Resources{% endblock %}
-{% block filter_title %}{{ education_level.name }} Resources{% endblock %}
-{% block filter_meta_description_value %}{{ education_level.meta_description }}{% endblock %}
+{% block filter_label %}{{ grade.name }} Resources{% endblock %}
+{% block filter_title %}{{ grade.name }} Resources{% endblock %}
+{% block filter_meta_description_value %}{{ grade_desc }}{% endblock %}
 {% block filter_count %}{{ resources|length }}{% endblock %}
 
 {% block other_filters %}
     <h2 class="text-xs font-bold uppercase tracking-wider text-white/30 mb-4">Other Education Levels</h2>
 
     <ul class="space-y-1.5">
-        {% for level in all_education_levels %}
-            {% if level.slug != education_level.slug %}
+        {% for level in all_grades %}
+            {% if level.slug != grade.slug %}
 
                 <li>
-                    <a href="{% url 'resources:education_level_details' level.slug %}"
+                    <a href="{% url 'resources:grade_details' level.slug %}"
                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/3 border border-white/5 hover:bg-white/8 hover:border-white/10 transition-all text-sm text-white/60 hover:text-white group">
                         <svg class="w-4 h-4 text-white/20 group-hover:text-brand-gold transition-colors shrink-0"
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
