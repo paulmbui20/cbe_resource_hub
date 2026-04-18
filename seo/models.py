@@ -9,6 +9,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import storages
 from django.db import models
 
+from core.models import TimeStampedModel
 from resources.validators import validate_image_file_magic
 
 
@@ -43,7 +44,7 @@ class PublicFilesStorageCallable:
         )
 
 
-class SEOModel(models.Model):
+class SEOModel(TimeStampedModel, models.Model):
     """
     Abstract base model for SEO fields.
     Inherit this to add SEO capabilities to any model.
@@ -77,8 +78,6 @@ class SEOModel(models.Model):
         blank=True,
         help_text="Comma-separated keywords for SEO"
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True  # This ensures no database table is created

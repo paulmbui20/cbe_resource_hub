@@ -9,13 +9,13 @@ from typing import Any
 
 from django.contrib import messages
 from django.db.models import Sum
+from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import FormView, TemplateView
 
 from notifications.notifier import notify_contact_form
 from resources.models import EducationLevel, LearningArea, ResourceItem
-
-from website.forms import ContactForm
+from website.forms import ContactForm, EmailSubscriptionForm
 from website.models import Partner, ContactMessage
 
 
@@ -114,6 +114,48 @@ class ContactView(FormView):
             "Partnership & collaboration",
         ]
         return ctx
+
+
+def email_subscription(request):
+    template_partial = "partials/htmx_notification.html"
+    original_form_partial_template = "partials/email_subscription_form.html"
+    form = EmailSubscriptionForm(request.POST)
+    if request.POST:
+        if form.is_valid():
+            try:
+                form.save()
+                context = {
+                    "success": True,
+                    "message": "Email has been sent successfully!",
+                }
+                return render(request, template_partial, context=context)
+
+            except Exception as e:
+                context = {
+                    "success": False,
+                    "message": f"Error! {str(e)}",
+                }
+                return render(request, original_form_partial_template, context=context)
+
+        else:
+            context = {}
+            # Handle form validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    context = {
+                        "success": False,
+                        "message": f"Error on form! : {field.replace('_', ' ').title()}: {error}",
+                        "form": form,
+                    }
+
+            return render(request, original_form_partial_template, context=context)
+    else:
+        context = {
+            "success": False,
+            "message": "Http method not supported.",
+        }
+
+        return render(request, original_form_partial_template, context=context)
 
 
 class PartnerListView(TemplateView):

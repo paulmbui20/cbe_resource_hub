@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ContactMessage, Partner
+from .models import ContactMessage, Partner, EmailSubscriber
 
 
 @admin.register(ContactMessage)
@@ -17,3 +17,10 @@ class PartnerAdmin(admin.ModelAdmin):
     search_fields = ('name', 'link')
     list_filter = ('created_at', 'updated_at')
     prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(EmailSubscriber)
+class EmailSubscriberAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'email', 'opted_out', 'created_at', 'updated_at')
+    search_fields = ('full_name', 'email',)
+    list_filter = ('opted_out', 'created_at', 'updated_at')

@@ -121,6 +121,7 @@ MY_APPS: list[str] = [
     "files.apps.FilesConfig",
     "seo.apps.SeoConfig",
     "notifications.apps.NotificationsConfig",
+    'core.apps.CoreConfig',
 ]
 
 INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + MY_APPS
@@ -512,7 +513,7 @@ LOGGING = {
         },
         "mail_admins": {
             "level": "ERROR",
-            "filters": ["require_debug_false"] if _prod else ["require_debug_true"],
+            "filters": ["require_debug_false"],
             "class": "django.utils.log.AdminEmailHandler",
         }
     },

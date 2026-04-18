@@ -13,6 +13,7 @@ from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
 from tinymce.models import HTMLField
 
+from core.models import TimeStampedModel
 from seo.models import SEOModel, SlugRedirectMixin
 
 
@@ -102,3 +103,19 @@ class Partner(SEOModel, SlugRedirectMixin, models.Model):
                 condition=models.Q(link__isnull=False)
             ),
         ]
+
+
+class EmailSubscriber(TimeStampedModel, models.Model):
+    full_name = models.CharField(max_length=255, blank=True, default='')
+    email = models.EmailField(unique=True)
+    opted_out = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.email
+
+    class Meta:
+        verbose_name = "Email Subscriber"
+        verbose_name_plural = "Email Subscribers"
+        ordering = ["-created_at"]
+
+

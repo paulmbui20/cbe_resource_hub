@@ -101,6 +101,10 @@ class CustomUser(AbstractUser):
         default=False,
         help_text="If True, the user is forced to change their password on the next login.",
     )
+    disable_email_notification: bool = models.BooleanField(
+        default=False,
+        help_text="If True, the user will not be sent marketing email notifications, however transactional emails will be sent.",
+    )
 
     # ── User Preferences ──────────────────────────────────────────────────────
     favorites = models.ManyToManyField(

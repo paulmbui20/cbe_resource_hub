@@ -1,3 +1,7 @@
 from .contact import ContactForm
+from .email import EmailSubscriptionForm
 
-__all__ = ["ContactForm"]
+__all__ = [
+    "ContactForm",
+    "EmailSubscriptionForm",
+]
