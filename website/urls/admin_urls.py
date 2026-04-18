@@ -31,6 +31,13 @@ urlpatterns = [
     path("contacts/<int:pk>/", views.AdminContactMessageDetailView.as_view(), name="contact_detail"),
     path("contacts/<int:pk>/delete/", views.AdminContactMessageDeleteView.as_view(), name="contact_delete"),
 
+    # Email Subscribers
+    path('email-subscribers/', views.AdminEmailSubscribersListView.as_view(), name='email_subscribers'),
+    path('email-subscribers/add/', views.AdminEmailSubscribersCreateView.as_view(), name='email_subscriber_add'),
+    path('email-subscribers/<int:pk>/update', views.AdminEmailSubscriberEdit.as_view(), name='email_subscriber_edit'),
+    path('email-subscribers/<int:pk>/delete/', views.AdminEmailSubscriberDeleteView.as_view(),
+         name='email_subscribers_delete'),
+
     # Partners
     path("partners/", views.AdminPartnerListView.as_view(), name="partner_list"),
     path("partners/add/", views.AdminPartnerCreateView.as_view(), name="partner_add"),

@@ -29,7 +29,8 @@
                 <span class="bg-linear-to-r from-brand-gold to-brand-gold bg-clip-text text-transparent">Resources Hub</span>
             </h1>
             <p class="max-w-xl mx-auto text-base text-white/55 leading-relaxed mb-8">
-                Up-to-date notes, schemes of works, lesson plans, past papers, exams, holiday assignments, setbook guides and more, from
+                Up-to-date notes, schemes of works, lesson plans, past papers, exams, holiday assignments, setbook
+                guides and more, from
                 Pre-Primary to Senior Secondary Level.
             </p>
 
@@ -470,31 +471,5 @@
             </div>
         </section>
     {% endif %}
-
-
-    {# ═══════════════════ SCROLL-TO-TOP FAB ══════════════════════════════════════ #}
-    <button id="scrollTopBtn"
-            onclick="window.scrollTo({top:0,behavior:'smooth'})"
-            aria-label="Scroll to top"
-            class="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-brand-gold/90 hover:bg-brand-gold text-white shadow-lg shadow-brand-gold/30 hover:shadow-brand-gold/50 flex items-center justify-center transition-all duration-300 hover:scale-110 opacity-0 pointer-events-none"
-            style="opacity:0;pointer-events:none;">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path>
-        </svg>
-    </button>
-
-    <script>
-        (function () {
-            const btn = document.getElementById('scrollTopBtn');
-            if (!btn) return;
-            const toggle = () => {
-                const show = window.scrollY > 200;
-                btn.style.opacity = show ? '1' : '0';
-                btn.style.pointerEvents = show ? 'auto' : 'none';
-            };
-            window.addEventListener('scroll', toggle, {passive: true});
-            toggle();
-        })();
-    </script>
 
 {% endblock %}

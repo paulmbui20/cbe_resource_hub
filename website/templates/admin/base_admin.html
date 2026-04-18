@@ -129,6 +129,11 @@
           Contacts
         </a>
 
+        <a href="{% url 'management:email_subscribers' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'notification' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
+          <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+          Email Subscribers
+        </a>
+
         <a href="{% url 'management:notification_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'notification' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
           <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
           Notifications

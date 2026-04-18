@@ -15,12 +15,16 @@
         <meta name="title" content="
 
 
+
+
                 {% block meta_title_value %}{{ site_settings.site_name|default:'CBE Resource Hub' }} — Kenya CBC Learning Resources{% endblock %}"/>
     {% endblock %}
 
     {# ── SEO: Description ─────────────────────────────────────────────────── #}
     {% block seo_description_block %}
         <meta name="description" content="
+
+
 
 
                 {% block meta_description_value %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners. Download Grade 1–9 notes, past papers, lesson plans, and more.' }}{% endblock %}"/>
@@ -31,6 +35,8 @@
           content="{% block meta_keywords_value %}CBC Kenya, Grade resources, curriculum, KICD, free learning materials, CBC notes, exam papers{% endblock %}"/>
     <meta name="author" content="CBE Resource Hub"/>
     <meta name="robots" content="
+
+
 
 
             {% block meta_robots %}{% if site_settings.site_indexing == 'false' %}noindex, nofollow{% else %}index, follow{% endif %}{% endblock %}"/>
@@ -49,12 +55,18 @@
     <meta property="og:title" content="
 
 
+
+
             {% block og_title %}{{ site_settings.site_name|default:'CBE Resource Hub' }} — Kenya CBC Learning Resources{% endblock %}"/>
     <meta property="og:description" content="
 
 
+
+
             {% block og_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}"/>
     <meta property="og:image" content="
+
+
 
 
             {% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endblock %}"/>
@@ -70,8 +82,12 @@
     <meta name="twitter:description" content="
 
 
+
+
             {% block twitter_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}"/>
     <meta name="twitter:image" content="
+
+
 
 
             {% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endblock %}"/>
@@ -424,6 +440,19 @@
     {% block content %}{% endblock %}
 </main>
 
+
+{# ═══════════════════ SCROLL-TO-TOP FAB ══════════════════════════════════════ #}
+<button id="scrollTopBtn"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})"
+        aria-label="Scroll to top"
+        class="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-brand-gold/90 hover:bg-brand-gold text-white shadow-lg shadow-brand-gold/30 hover:shadow-brand-gold/50 flex items-center justify-center transition-all duration-300 hover:scale-110 opacity-0 pointer-events-none"
+        style="opacity:0;pointer-events:none;">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path>
+    </svg>
+</button>
+
+
 <!-- ═══════════════════════════════════════════════════ FOOTER ════ -->
 <footer class="border-t border-white/10 mt-auto">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -521,6 +550,19 @@
                 perPageSelect: [15, 30, 50, 100],
             });
         }
+
+        (function () {
+            const btn = document.getElementById('scrollTopBtn');
+            if (!btn) return;
+            const toggle = () => {
+                const show = window.scrollY > 200;
+                btn.style.opacity = show ? '1' : '0';
+                btn.style.pointerEvents = show ? 'auto' : 'none';
+            };
+            window.addEventListener('scroll', toggle, {passive: true});
+            toggle();
+        })();
+
     });
 </script>
 

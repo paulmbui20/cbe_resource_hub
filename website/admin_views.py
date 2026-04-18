@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db.models import Q
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, UpdateView, CreateView, DeleteView, DetailView
 
@@ -6,7 +7,7 @@ from accounts.admin_views import IsAdminMixin
 from accounts.models import CustomUser
 from cms.models import Page
 from resources.models import ResourceItem
-from website.models import ContactMessage, Partner
+from website.models import ContactMessage, Partner, EmailSubscriber
 
 
 # ── Dashboard ────────────────────────────────────────────────────────────────
@@ -23,17 +24,16 @@ class AdminDashboardView(IsAdminMixin, TemplateView):
 
         ctx["recent_users"] = CustomUser.objects.order_by("-date_joined")[:5]
         ctx["recent_resources"] = ResourceItem.objects.select_related("vendor").order_by("-created_at")[:5]
+        ctx["total_email_subscribers"] = EmailSubscriber.objects.filter(opted_out=False).count()
         return ctx
 
 
 # ── Contact Messages ─────────────────────────────────────────────────────────
-
 class AdminContactMessageListView(IsAdminMixin, ListView):
     model = ContactMessage
     template_name = "admin/contact_message_list.html"
     context_object_name = "contact_messages"
     paginate_by = 20
-    ordering = ["-created_at"]
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -71,7 +71,6 @@ class AdminPartnerListView(IsAdminMixin, ListView):
     template_name = "admin/partner_list.html"
     context_object_name = "partners"
     paginate_by = 30
-    ordering = ["name"]
 
 
 class AdminPartnerCreateView(IsAdminMixin, CreateView):
@@ -118,4 +117,79 @@ class AdminPartnerDeleteView(IsAdminMixin, DeleteView):
 
     def form_valid(self, form):
         messages.success(self.request, "Partner deleted.")
+        return super().form_valid(form)
+
+
+# Email Subscribers
+class AdminEmailSubscribersListView(IsAdminMixin, ListView):
+    template_name = "admin/email_subscribers_list.html"
+    context_object_name = "email_subscribers"
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = EmailSubscriber.objects.all()
+
+        q = self.request.GET.get("q")
+        q = str(q) if q else ""
+        if q:
+            qs = qs.filter(
+                Q(email__icontains=q) | Q(full_name__icontains=q)
+            )
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["opted_out_count"] = EmailSubscriber.objects.filter(opted_out=True).count()
+        context["search_query"] = self.request.GET.get("q")
+
+        return context
+
+
+class AdminEmailSubscribersCreateView(IsAdminMixin, CreateView):
+    model = EmailSubscriber
+    template_name = "admin/generic_form.html"
+    fields = [
+        "full_name", "email", "opted_out",
+    ]
+    success_url = reverse_lazy("management:email_subscribers")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Add an Email Subscriber"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Email Subscribers"
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Email subscriber {form.instance.email} created successfully.")
+        return super().form_valid(form)
+
+
+class AdminEmailSubscriberEdit(IsAdminMixin, UpdateView):
+    model = EmailSubscriber
+    template_name = "admin/generic_form.html"
+    fields = [
+        "full_name", "email", "opted_out"
+    ]
+    success_url = reverse_lazy("management:email_subscribers")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Edit Email Subscriber: {self.object.email}"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Email Subscribers"
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Email subscriber {form.instance.email} updated.")
+        return super().form_valid(form)
+
+
+class AdminEmailSubscriberDeleteView(IsAdminMixin, DeleteView):
+    model = EmailSubscriber
+    success_url = reverse_lazy("management:email_subscribers")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Email subscriber deleted.")
         return super().form_valid(form)

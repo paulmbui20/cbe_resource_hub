@@ -90,6 +90,7 @@ class Partner(SEOModel, SlugRedirectMixin, models.Model):
         return f"{self.name} Partner on URL {self.link} added on {self.created_at}" if self.link else f"{self.name} Partner"
 
     class Meta:
+        ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
                 Lower("name"),
