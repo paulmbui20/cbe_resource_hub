@@ -222,6 +222,7 @@ class AdminSiteSettingsCreateView(IsAdminMixin, CreateView):
                 {"value": "social_instagram", "label": "Instagram profile URL"},
                 {"value": "google_oauth_client_id", "label": "Google OAuth Client ID for login"},
                 {"value": "site_indexing", "label": "Toggle search engine indexing (true/false)"},
+                {"value": "site_logo_url", "label": "Enter the full url of the site logo"},
             ]
         }
         return ctx
