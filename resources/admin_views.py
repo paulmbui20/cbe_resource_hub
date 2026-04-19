@@ -4,7 +4,6 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 
 from accounts.admin_views import IsAdminMixin
-from resources.forms import ResourceItemForm
 from resources.models import ResourceItem
 
 
@@ -75,4 +74,3 @@ class AdminResourceDeleteView(IsAdminMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, "Resource permanently deleted.")
         return super().form_valid(form)
-

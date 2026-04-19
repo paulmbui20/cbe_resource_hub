@@ -45,12 +45,19 @@ urlpatterns = [
 if settings.DEBUG and not ("pytest" in sys.modules or "test" in sys.argv):
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+    ENABLE_DEBUG_TOOLBAR = getattr(settings, "ENABLE_DEBUG_TOOLBAR")
+    ENABLE_SILK = getattr(settings, "ENABLE_SILK")
     import debug_toolbar  # noqa: PLC0415
 
-    urlpatterns += [
-        # ── Django Debug Toolbar ───────────────────────────────────────────────
-        path("__debug__/", include(debug_toolbar.urls)),
-        # ── Silk profiler ──────────────────────────────────────────────────────
-        path("silk/", include("silk.urls", namespace="silk")),
+    if ENABLE_DEBUG_TOOLBAR:
+        urlpatterns += [
+            # ── Django Debug Toolbar ───────────────────────────────────────────────
+            path("__debug__/", include(debug_toolbar.urls)),
+        ]
 
-    ]
+    if ENABLE_SILK:
+        urlpatterns += [
+            # ── Silk profiler ──────────────────────────────────────────────────────
+            path("silk/", include("silk.urls", namespace="silk")),
+
+        ]

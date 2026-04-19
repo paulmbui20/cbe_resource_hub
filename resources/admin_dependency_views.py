@@ -6,6 +6,7 @@ from resources.models import EducationLevel, Grade, LearningArea
 from cms.models import MenuItem
 from cms.forms import MenuItemForm
 
+
 # ── Education Levels ────────────────────────────────────────────────────────
 class AdminEducationLevelListView(IsAdminMixin, ListView):
     model = EducationLevel
@@ -19,6 +20,7 @@ class AdminEducationLevelListView(IsAdminMixin, ListView):
         "columns": [("Name", "name"), ("Slug", "slug"), ("Order", "order")]
     }
 
+
 class AdminEducationLevelCreateView(IsAdminMixin, CreateView):
     model = EducationLevel
     template_name = "admin/generic_form.html"
@@ -29,6 +31,7 @@ class AdminEducationLevelCreateView(IsAdminMixin, CreateView):
     def form_valid(self, form):
         messages.success(self.request, "Education Level created.")
         return super().form_valid(form)
+
 
 class AdminEducationLevelUpdateView(IsAdminMixin, UpdateView):
     model = EducationLevel
@@ -41,12 +44,15 @@ class AdminEducationLevelUpdateView(IsAdminMixin, UpdateView):
         messages.success(self.request, "Education Level updated.")
         return super().form_valid(form)
 
+
 class AdminEducationLevelDeleteView(IsAdminMixin, DeleteView):
     model = EducationLevel
     success_url = reverse_lazy("management:level_list")
+
     def form_valid(self, form):
         messages.success(self.request, "Deleted Education Level.")
         return super().form_valid(form)
+
 
 # ── Grades ──────────────────────────────────────────────────────────────────
 class AdminGradeListView(IsAdminMixin, ListView):
@@ -61,6 +67,7 @@ class AdminGradeListView(IsAdminMixin, ListView):
         "columns": [("Name", "name"), ("Level", "level"), ("Order", "order")]
     }
 
+
 class AdminGradeCreateView(IsAdminMixin, CreateView):
     model = Grade
     template_name = "admin/generic_form.html"
@@ -71,6 +78,7 @@ class AdminGradeCreateView(IsAdminMixin, CreateView):
     def form_valid(self, form):
         messages.success(self.request, "Grade created.")
         return super().form_valid(form)
+
 
 class AdminGradeUpdateView(IsAdminMixin, UpdateView):
     model = Grade
@@ -83,12 +91,15 @@ class AdminGradeUpdateView(IsAdminMixin, UpdateView):
         messages.success(self.request, "Grade updated.")
         return super().form_valid(form)
 
+
 class AdminGradeDeleteView(IsAdminMixin, DeleteView):
     model = Grade
     success_url = reverse_lazy("management:grade_list")
+
     def form_valid(self, form):
         messages.success(self.request, "Deleted Grade.")
         return super().form_valid(form)
+
 
 # ── Learning Areas ──────────────────────────────────────────────────────────
 class AdminLearningAreaListView(IsAdminMixin, ListView):
@@ -103,6 +114,7 @@ class AdminLearningAreaListView(IsAdminMixin, ListView):
         "columns": [("Name", "name"), ("Slug", "slug")]
     }
 
+
 class AdminLearningAreaCreateView(IsAdminMixin, CreateView):
     model = LearningArea
     template_name = "admin/generic_form.html"
@@ -113,6 +125,7 @@ class AdminLearningAreaCreateView(IsAdminMixin, CreateView):
     def form_valid(self, form):
         messages.success(self.request, "Learning Area created.")
         return super().form_valid(form)
+
 
 class AdminLearningAreaUpdateView(IsAdminMixin, UpdateView):
     model = LearningArea
@@ -125,10 +138,11 @@ class AdminLearningAreaUpdateView(IsAdminMixin, UpdateView):
         messages.success(self.request, "Learning Area updated.")
         return super().form_valid(form)
 
+
 class AdminLearningAreaDeleteView(IsAdminMixin, DeleteView):
     model = LearningArea
     success_url = reverse_lazy("management:learningarea_list")
+
     def form_valid(self, form):
         messages.success(self.request, "Deleted Learning Area.")
         return super().form_valid(form)
-

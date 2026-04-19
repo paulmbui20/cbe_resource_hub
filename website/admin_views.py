@@ -23,7 +23,7 @@ class AdminDashboardView(IsAdminMixin, TemplateView):
         ctx["unread_messages"] = ContactMessage.objects.filter(is_read=False).count()
 
         ctx["recent_users"] = CustomUser.objects.order_by("-date_joined")[:5]
-        ctx["recent_resources"] = ResourceItem.objects.select_related("vendor").order_by("-created_at")[:5]
+        ctx["recent_resources"] = ResourceItem.objects.all()[:5]
         ctx["total_email_subscribers"] = EmailSubscriber.objects.filter(opted_out=False).count()
         return ctx
 

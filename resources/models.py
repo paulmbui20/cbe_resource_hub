@@ -62,6 +62,13 @@ class EducationLevel(SEOModel, models.Model):
         super().save(*args, **kwargs)
 
 
+class GradeManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super().get_queryset().select_related("level", )
+        )
+
+
 class Grade(SEOModel, models.Model):
     """
     A specific grade/class within an EducationLevel.
@@ -77,6 +84,8 @@ class Grade(SEOModel, models.Model):
     name: str = models.CharField(max_length=50)
     order: int = models.PositiveIntegerField(default=0)
     slug: str = models.SlugField(max_length=60, unique=True, db_index=True)
+
+    objects = GradeManager()
 
     def get_absolute_url(self) -> str:
         return reverse("resources:grade_details", kwargs={"grade": self.slug})
@@ -139,6 +148,15 @@ class ResourcesPublicFilesStorageCallable(PublicFilesStorageCallable):
             'resources.models.ResourcesPublicFilesStorageCallable',
             [],
             {}
+        )
+
+
+class ResourceItemManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super().get_queryset().select_related(
+                "grade", "grade__level", "vendor", "learning_area",
+            )
         )
 
 
@@ -225,6 +243,8 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
         default=0,
         help_text="Cumulative download count.",
     )
+
+    objects = ResourceItemManager()
 
     class Meta:
         verbose_name = "Resource Item"

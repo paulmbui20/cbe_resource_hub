@@ -25,12 +25,8 @@ class MenuItemInline(admin.TabularInline):
 
 @admin.register(Menu)
 class MenuAdmin(admin.ModelAdmin):
-    list_display = ("name", "item_count")
+    list_display = ("name",)
     inlines = [MenuItemInline]
-
-    @admin.display(description="# Items")
-    def item_count(self, obj: Menu) -> int:
-        return obj.items.count()
 
 
 @admin.register(MenuItem)

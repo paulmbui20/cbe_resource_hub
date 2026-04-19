@@ -2,7 +2,7 @@
 cms/context_processors.py
 
 Injects global CMS data (site settings + navigation menus) into every
-template context. Values are cached for 1 hour (3600 seconds) to avoid
+template context. Values are cached for a ttl specified in `CACHE_TIMEOUT` in settings.py to avoid
 hammering the database on every page load.
 
 Register in settings.py → TEMPLATES[0]['OPTIONS']['context_processors']:
@@ -10,20 +10,18 @@ Register in settings.py → TEMPLATES[0]['OPTIONS']['context_processors']:
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from django.conf import settings
 from django.core.cache import cache
-
-if TYPE_CHECKING:
-    from django.http import HttpRequest
 
 # Cache keys
 _SETTINGS_CACHE_KEY = "cms:site_settings"
 _MENUS_CACHE_KEY = "cms:menus"
-_CACHE_TIMEOUT = 60 * 60  # 1 hour
+_CACHE_TIMEOUT = getattr(settings, "CACHE_TIMEOUT")
 
 
-def global_settings(request: "HttpRequest") -> dict[str, Any]:
+def global_settings(request) -> dict[str, Any]:
     """
     Context processor that makes the following available in all templates:
 

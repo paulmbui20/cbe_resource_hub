@@ -11,8 +11,6 @@ Key optimizations:
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
-
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet, Q
@@ -27,22 +25,10 @@ from .admin_views import VendorRequiredMixin
 from .forms import ResourceItemForm
 from .models import EducationLevel, LearningArea, ResourceItem, Grade
 
-if TYPE_CHECKING:
-    from django.http import HttpRequest
-
 
 class ResourceListView(ListView):
     """
     Paginated list of ResourceItems with HTMX infinite-scroll support.
-
-    HTMX Usage (in the template):
-        <div id="resource-list"
-             hx-get="{% url 'resources:list' %}?page={{ page_obj.next_page_number }}"
-             hx-trigger="revealed"
-             hx-swap="afterend"
-             hx-target="#resource-list">
-        </div>
-
     Returns:
         - Full page template ``resources/resource_list.html`` for normal requests
         - Partial template ``resources/partials/resource_cards.html`` for HTMX requests
@@ -63,13 +49,7 @@ class ResourceListView(ListView):
         resource.grade.name, resource.grade.level.name, resource.learning_area.name.
         """
         qs: QuerySet[ResourceItem] = (
-            ResourceItem.objects.select_related(
-                "grade",
-                "grade__level",
-                "learning_area",
-                "vendor",
-            )
-            .filter(is_free=True)  # default: show free resources; extend for marketplace
+            ResourceItem.objects.filter(is_free=True)  # default: show free resources; extend for marketplace
         )
 
         # --- Optional filtering via GET params ---
@@ -96,11 +76,11 @@ class ResourceListView(ListView):
 
         return qs
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["education_levels"] = EducationLevel.objects.prefetch_related("grades").order_by("order")
-        context["grades"] = Grade.objects.select_related("level")
-        context["learning_areas"] = LearningArea.objects.order_by("name")
+        context["education_levels"] = EducationLevel.objects.prefetch_related("grades")
+        context["grades"] = Grade.objects.all()
+        context["learning_areas"] = LearningArea.objects.all()
         context["resource_types"] = dict(ResourceItem._meta.get_field("resource_type").choices)
         context["current_grade"] = self.request.GET.get("grade", "")
         context["current_area"] = self.request.GET.get("area", "")
@@ -117,9 +97,7 @@ class ResourceListView(ListView):
 
         return context
 
-    def render_to_response(
-            self, context: dict[str, Any], **response_kwargs: Any
-    ) -> HttpResponse:
+    def render_to_response(self, context, **response_kwargs):
         """
         Return a partial HTML snippet for HTMX requests; full page otherwise.
 
@@ -136,27 +114,11 @@ class ResourceListView(ListView):
 class ResourceDetailView(DetailView):
     """
     Single resource detail page.
-
-    Atomically increments the download counter on GET so the stat
-    reflects page views (for actual file download, wire up a separate
-    download endpoint that increments on file serve).
     """
 
     model = ResourceItem
     template_name = "resources/resource_detail.html"
     context_object_name = "resource"
-
-    def get_queryset(self) -> QuerySet[ResourceItem]:
-        return ResourceItem.objects.select_related(
-            "grade",
-            "grade__level",
-            "learning_area",
-            "vendor",
-        )
-
-    def get_object(self, queryset: QuerySet[ResourceItem] | None = None) -> ResourceItem:
-        obj: ResourceItem = super().get_object(queryset)
-        return obj
 
 
 @require_POST
@@ -186,7 +148,7 @@ class ToggleFavoriteView(LoginRequiredMixin, DetailView):
     """
     model = ResourceItem
 
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+    def post(self, request, *args, **kwargs):
         resource = self.get_object()
         user = request.user
 
@@ -259,9 +221,8 @@ class ResourceTypeDetailView(ListView):
         self.resource_type = self.kwargs["resource_type"]
 
         qs: QuerySet[ResourceItem] = (
-            ResourceItem.objects.select_related("grade", "grade__level", "learning_area")
+            ResourceItem.objects
             .filter(resource_type=self.resource_type, is_free=True)
-            .order_by("-created_at")
         )
 
         q = self.request.GET.get("q")
@@ -288,7 +249,7 @@ class ResourceTypeDetailView(ListView):
 
         return qs
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         info = RESOURCE_TYPE_INFO.get(self.resource_type,
                                       {"icon": "📂", "label": self.resource_type.replace("_", " ").title(), "desc": ""})
@@ -296,23 +257,20 @@ class ResourceTypeDetailView(ListView):
         ctx["resource_type_label"] = info["label"]
         ctx["resource_type_icon"] = info["icon"]
         ctx["resource_type_desc"] = info["desc"]
-        ctx["resource_type_count"] = self.get_queryset().count()
         # For related types sidebar / cross-links
         ctx["all_resource_types"] = RESOURCE_TYPE_INFO
         ctx['current_learning_area'] = self.request.GET.get("learning_area", '')
         ctx['current_education_level'] = self.request.GET.get("education_level", '')
         ctx['current_grade'] = self.request.GET.get("grade", '')
         ctx['search_query'] = self.request.GET.get("q", '')
-        ctx["education_levels"] = EducationLevel.objects.prefetch_related("grades").order_by("order")
-        ctx["grades"] = Grade.objects.select_related("level")
-        ctx["learning_areas"] = LearningArea.objects.order_by("name")
+        ctx["education_levels"] = EducationLevel.objects.prefetch_related("grades")
+        ctx["grades"] = Grade.objects.all()
+        ctx["learning_areas"] = LearningArea.objects.all()
         ctx["resource_types"] = dict(ResourceItem._meta.get_field("resource_type").choices)
 
         return ctx
 
-    def render_to_response(
-            self, context: dict[str, Any], **response_kwargs: Any
-    ) -> HttpResponse:
+    def render_to_response(self, context, **response_kwargs):
         """
         Return a partial HTML snippet for HTMX requests; full page otherwise.
         """
@@ -337,7 +295,6 @@ class EducationLevelDetailsView(ListView):
         self.education_level = self.kwargs["education_level"]
         qs: QuerySet[ResourceItem] = (
             ResourceItem.objects.filter(grade__level__slug=self.education_level)
-            .select_related("grade", "grade__level", )
         )
 
         q = self.request.GET.get("q")
@@ -369,14 +326,12 @@ class EducationLevelDetailsView(ListView):
 
         return qs
 
-    def get_context_data(
-            self, **kwargs: Any
-    ) -> dict[str, Any]:
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["education_level"] = get_object_or_404(EducationLevel, slug=self.education_level)
         context["all_education_levels"] = EducationLevel.objects.all()
-        context["grades"] = Grade.objects.select_related("level")
-        context["learning_areas"] = LearningArea.objects.order_by("name")
+        context["grades"] = Grade.objects.all()
+        context["learning_areas"] = LearningArea.objects.all()
         context["resource_types"] = dict(ResourceItem._meta.get_field("resource_type").choices)
 
         context['current_learning_area'] = self.request.GET.get("learning_area", '')
@@ -386,9 +341,7 @@ class EducationLevelDetailsView(ListView):
 
         return context
 
-    def render_to_response(
-            self, context: dict[str, Any], **response_kwargs: Any
-    ) -> HttpResponse:
+    def render_to_response(self, context, **response_kwargs):
         """
         Return a partial HTML snippet for HTMX requests; full page otherwise.
         """
@@ -411,10 +364,9 @@ class LearningAreaDetailsView(ListView):
         self.learning_area = self.kwargs["learning_area"]
         return (
             ResourceItem.objects.filter(learning_area__slug=self.learning_area)
-            .select_related("learning_area", )
         )
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["learning_area"] = get_object_or_404(LearningArea, slug=self.learning_area)
         context["all_learning_areas"] = LearningArea.objects.all()
@@ -436,10 +388,9 @@ class GradeDetailsView(ListView):
         self.grade = self.kwargs["grade"]
         return (
             ResourceItem.objects.filter(grade__slug=self.grade)
-            .select_related("grade", "grade__level")
         )
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["grade"] = get_object_or_404(Grade, slug=self.grade)
         context["all_grades"] = Grade.objects.all()
@@ -481,15 +432,13 @@ class LearningAreaListView(ListView):
 
         return qs
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["search_query"] = self.request.GET.get("q")
 
         return context
 
-    def render_to_response(
-            self, context: dict[str, Any], **response_kwargs: Any
-    ) -> HttpResponse:
+    def render_to_response(self, context, **response_kwargs):
         """
         Return a partial HTML snippet for HTMX requests; full page otherwise.
         """
@@ -534,15 +483,13 @@ class GradeListView(ListView):
 
         return qs
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["search_query"] = self.request.GET.get("q")
 
         return context
 
-    def render_to_response(
-            self, context: dict[str, Any], **response_kwargs: Any
-    ) -> HttpResponse:
+    def render_to_response(self, context, **response_kwargs):
         """
         Return a partial HTML snippet for HTMX requests; full page otherwise.
         """

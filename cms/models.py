@@ -8,6 +8,7 @@ WordPress-like dynamic CMS functionality:
 """
 from __future__ import annotations
 
+from django.db.models.manager import BaseManager, Manager
 from django.utils.html import strip_tags
 from django.db import models
 from django.utils.text import slugify
@@ -44,6 +45,15 @@ class SiteSetting(models.Model):
         return f"{self.key} = {self.value[:60]}"
 
 
+class MenuManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super().get_queryset().prefetch_related(
+                "items", "items__parent", "items__children", "items__parent__parent",
+            )
+        )
+
+
 class Menu(models.Model):
     """
     A named navigation menu container (e.g. "Primary Header", "Footer").
@@ -55,6 +65,8 @@ class Menu(models.Model):
         help_text='Human-readable menu name (e.g. "Primary Header", "Footer").',
     )
 
+    objects = MenuManager()
+
     class Meta:
         verbose_name = "Menu"
         verbose_name_plural = "Menus"
@@ -62,6 +74,15 @@ class Menu(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class MenuItemsManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super().get_queryset().select_related(
+                "menu", "parent", "parent__parent", "parent__menu", "parent__parent__parent",
+            )
+        )
 
 
 class MenuItem(models.Model):
@@ -94,6 +115,8 @@ class MenuItem(models.Model):
         default=0,
         help_text="Display order within the same level (lower = earlier).",
     )
+
+    objects = MenuItemsManager()
 
     class Meta:
         verbose_name = "Menu Item"

@@ -107,12 +107,6 @@ THIRD_PARTY_APPS: list[str] = [
     "dbbackup",
 ]
 
-LOCAL_APPS: list[str] = [
-    # Silk profiler (dev)
-    "silk",
-    "debug_toolbar",
-]
-
 MY_APPS: list[str] = [
     "accounts.apps.AccountsConfig",
     "cms.apps.CmsConfig",
@@ -145,11 +139,6 @@ MAIN_MIDDLEWARE: list[str] = [
     "seo.middleware.SlugRedirectMiddleware",
 ]
 
-LOCAL_MIDDLEWARE: list[str] = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
-    "silk.middleware.SilkyMiddleware",
-]
-
 ROOT_URLCONF = "cbe_res_hub.urls"
 WSGI_APPLICATION = "cbe_res_hub.wsgi.application"
 
@@ -171,8 +160,6 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 # Injects site_settings + menus into every template
                 "cms.context_processors.global_settings",
-                # Injects partner_banners (show_as_banner=True) into every template
-                "website.context_processors.partner_banners",
             ],
         },
     },
@@ -728,9 +715,6 @@ else:
     if DEBUG:
         LOGGING["loggers"][""]["level"] = "DEBUG"
 
-    # Silk profiler — only in dev
-    SILKY_PYTHON_PROFILER = True
-
     # ── Local filesystem (development default) ────────────────────────────────
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
@@ -742,6 +726,24 @@ else:
             "OPTIONS": _cf_settings.CLOUDFLARE_R2_BACKUP_CONFIG_OPTIONS,
         },
     }
+
+    LOCAL_APPS: list[str] = []
+    LOCAL_MIDDLEWARE: list[str] = []
+    enable_debug_toolbar = os.getenv("ENABLE_DEBUG_TOOLBAR", "True")
+    ENABLE_DEBUG_TOOLBAR = ast.literal_eval(enable_debug_toolbar) if enable_debug_toolbar and DEBUG else False
+
+    if ENABLE_DEBUG_TOOLBAR:
+        LOCAL_APPS.append("debug_toolbar")
+        LOCAL_MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+
+    enable_silk = os.getenv("ENABLE_SILK", "True")
+    ENABLE_SILK = ast.literal_eval(enable_silk) if enable_silk and DEBUG else False
+
+    if ENABLE_SILK:
+        LOCAL_APPS.append("silk")
+        LOCAL_MIDDLEWARE.append("silk.middleware.SilkyMiddleware")
+        # Silk profiler — only in dev
+        SILKY_PYTHON_PROFILER = True
 
     INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + MY_APPS + LOCAL_APPS
     MAIN_MIDDLEWARE.insert(0, "cbe_res_hub.middleware.DisableBrowserCacheMiddleware")
