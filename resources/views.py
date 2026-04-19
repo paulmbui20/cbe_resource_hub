@@ -34,7 +34,6 @@ class ResourceListView(ListView):
         - Partial template ``resources/partials/resource_cards.html`` for HTMX requests
     """
 
-    model = ResourceItem
     paginate_by = 12
     template_name = "resources/resource_list.html"
     partial_template_name = "resources/partials/resource_cards.html"
@@ -210,8 +209,6 @@ class ResourceTypeDetailView(ListView):
 
     URL: /resources/type/<resource_type>/
     """
-
-    model = ResourceItem
     template_name = "resources/resource_type_detail.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
@@ -355,7 +352,6 @@ class LearningAreaDetailsView(ListView):
     SEO-optimized landing page for a specific Learning Area.
     URL: /resources/learning-areas/<learning_area>/
     """
-    model = LearningArea
     template_name = "resources/learning_area_details.html"
     context_object_name = "resources"
     paginate_by = 12
@@ -379,7 +375,6 @@ class GradeDetailsView(ListView):
     SEO-optimized landing page for a specific Grade.
     URL: /resources/grades/<grade>/
     """
-    model = Grade
     template_name = "resources/grade_details.html"
     context_object_name = "resources"
     paginate_by = 12
@@ -408,7 +403,6 @@ class LearningAreaListView(ListView):
         - Partial template ``resources/partials/filter_cards.html`` for HTMX requests
     """
 
-    model = LearningArea
     paginate_by = 12
     template_name = "resources/learning_areas_list.html"
     partial_template_name = "resources/partials/filter_cards.html"
@@ -459,7 +453,6 @@ class GradeListView(ListView):
         - Partial template ``resources/partials/filter_cards.html`` for HTMX requests
     """
 
-    model = Grade
     page_size = 12
     template_name = "resources/grade_list.html"
     partial_template_name = "resources/partials/filter_cards.html"
