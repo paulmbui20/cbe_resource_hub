@@ -13,15 +13,7 @@
       <!-- Header -->
       <div class="flex justify-between items-start gap-2">
         <div class="flex flex-wrap items-center gap-2">
-            {% if resource.is_free %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                  Free
-                </span>
-            {% else %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-gold/20 text-brand-gold">
-                  KES {{ resource.price }}
-                </span>
-            {% endif %}
+
         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-primary/20 text-brand-accent">
           {{ resource.learning_area.name }}
         </span>
@@ -54,7 +46,7 @@
 
       <!-- Description -->
       <article class="text-xs text-white/50 leading-relaxed line-clamp-2 flex-1">
-        {{ resource.description|safe }}
+        {{ resource.description|safe|truncatewords:10 }}
       </article>
 
       <!-- Footer meta -->
@@ -64,9 +56,17 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
           </svg>
-          {{ resource.downloads }} downloads
+          {{ resource.downloads }}
         </span>
-        <span>{{ resource.grade.level.name }}</span>
+        {% if resource.is_free %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                  Free
+                </span>
+            {% else %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-gold/20 text-brand-gold">
+                  KES {{ resource.price }}
+                </span>
+            {% endif %}
       </div>
     </div>
   </article>

@@ -1,12 +1,12 @@
 {% extends 'resources/resource_filter_base.html' %}
 
-{% block title %}{{ learning_area.name  }} Resources — Free Kenya CBC Resources{% endblock %}
+{% block title %}{{ learning_area.name }} Resources — Free Kenya CBC Resources{% endblock %}
 {% block meta_title_value %}{{ learning_area.meta_title }} Resources  | CBE Resource Hub Kenya{% endblock %}
 {% block meta_description_value %}Download free {{ learning_area.name |lower }} aligned to the Kenya CBC/CBE
     curriculum. {{ learning_area.meta_description }} {{ resources|length }} resource
     {{ resources|length|pluralize }}
     available.{% endblock %}
-{% block og_title %}{{ learning_area.name  }} — CBE Resource Hub Kenya{% endblock %}
+{% block og_title %}{{ learning_area.name }} — CBE Resource Hub Kenya{% endblock %}
 {% block og_description %}{{ learning_area.meta_description }} Browse {{ resources|length }} free
     {{ learning_area.name |lower }} resources for Kenyan learners.{% endblock %}
 
@@ -15,14 +15,14 @@
         {
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          "name": "{{ learning_area.name  }} Resources — CBE Resource Hub",
+          "name": "{{ learning_area.name }} Resources — CBE Resource Hub",
   "description": "{{ learning_area.meta_description }}",
   "url": "{{ request.build_absolute_uri }}",
   "numberOfItems": {{ resources|length }}
         }
     </script>
 {% endblock %}
-{% block filter_label %}{{ learning_area.name  }} Resources{% endblock %}
+{% block filter_label %}{{ learning_area.name }} Resources{% endblock %}
 {% block filter_title %}{{ learning_area.name }} Resources{% endblock %}
 {% block filter_meta_description_value %}{{ learning_area.meta_description }}{% endblock %}
 {% block filter_count %}{{ resources|length }}{% endblock %}
@@ -34,10 +34,94 @@
     </svg>
 {% endblock filter_parent %}
 
-{% block other_filters %}
-    <h2 class="text-xs font-bold uppercase tracking-wider text-white/30 mb-4">Other Education Levels</h2>
+{% block filter_bar %}
 
-    <ul class="space-y-1.5">
+    <!-- ─── Filter bar ──────────────────────────────────────────────── -->
+    <form method="get" action="{% url 'resources:learning_area_details' learning_area.slug %}"
+          hx-get="{% url 'resources:learning_area_details' learning_area.slug %}"
+          hx-push-url="true"
+          hx-target="#resource-grid"
+          hx-swap="innerHTML"
+          class="mb-4 grid grid-cols-2 md:grid-cols-5 gap-2 items-end justify-between">
+
+        <!-- Search -->
+        <div class="">
+            <label for="id_q" class="block text-xs text-white/50 mb-1">Search</label>
+            <input id="id_q" type="search" name="q" value="{{ search_query }}"
+                   placeholder="e.g. Integrated Science Notes…"
+                   class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-gold transition"/>
+        </div>
+
+        <!-- Resource Type -->
+        <div class="">
+            <label for="id_resource_type" class="block text-xs text-white/50 mb-1">Resource Type</label>
+            <select id="id_resource_type" name="resource_type"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Types</option>
+                {% for resource_type in resource_types %}
+                    <option value="{{ resource_type }}"
+                            {% if current_resource_type == resource_type|stringformat:"s" %}selected{% endif %}>
+                        {{ resource_type }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Grade -->
+        <div class="">
+            <label for="id_grade" class="block text-xs text-white/50 mb-1">Grade</label>
+            <select id="id_grade" name="grade"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Grades</option>
+                {% for grade in grades %}
+                    <option value="{{ grade.pk }}"
+                            {% if current_grade == grade.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ grade.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Education Level -->
+        <div class="">
+            <label for="id_level" class="block text-xs text-white/50 mb-1">Level</label>
+            <select id="id_level" name="education_level"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Levels</option>
+                {% for level in education_levels %}
+                    <option value="{{ level.pk }}"
+                            {% if current_education_level == level.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ level.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+        <div class="flex w-full gap-2 items-center">
+            <button type="submit"
+                    class="w-full px-4 py-2 rounded-lg bg-brand-gold/90 hover:bg-brand-gold text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-gold/20 hover:cursor-pointer">
+                Filter
+            </button>
+            <button type="button"
+                    hx-get="{% url 'resources:learning_area_details' learning_area.slug %}"
+                    hx-push-url="true"
+                    hx-target="#resource-grid"
+                    hx-swap="innerHTML"
+                    class="w-full px-4 py-2 rounded-lg bg-brand-primary hover:bg-brand-accent text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-accent/20 hover:cursor-pointer">
+                Clear
+            </button>
+        </div>
+
+    </form>
+
+{% endblock filter_bar %}
+
+
+{% block other_filters %}
+    <h2 class="text-xs font-bold uppercase tracking-wider text-white/30 mb-2">Other Education Levels</h2>
+
+    <ul class="space-y-1.5 grid grid-cols-2 gap-2">
         {% for level in all_learning_areas %}
             {% if level.slug != learning_area.slug %}
 
