@@ -215,6 +215,7 @@ class AdminSiteSettingsCreateView(IsAdminMixin, CreateView):
             "setting_keys_list": [
                 {"value": "site_name", "label": "Appears in title bar and headers"},
                 {"value": "meta_description", "label": "Default fallback meta description for SEO"},
+                {"value": "meta_keywords", "label": "Main Meta keywords for SEO on public facing routes"},
                 {"value": "contact_email", "label": "Public support email address"},
                 {"value": "contact_phone", "label": "Public contact phone number"},
                 {"value": "social_facebook", "label": "Facebook page URL"},
@@ -246,6 +247,7 @@ class AdminSiteSettingsUpdateView(IsAdminMixin, UpdateView):
             "setting_keys_list": [
                 {"value": "site_name", "label": "Appears in title bar and headers"},
                 {"value": "meta_description", "label": "Default fallback meta description for SEO"},
+                {"value": "meta_keywords", "label": "Main Meta keywords for SEO on public facing routes"},
                 {"value": "contact_email", "label": "Public support email address"},
                 {"value": "contact_phone", "label": "Public contact phone number"},
                 {"value": "social_facebook", "label": "Facebook page URL"},

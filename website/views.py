@@ -3,10 +3,6 @@ website/views.py
 
 Public-facing homepage and contact page views.
 """
-from __future__ import annotations
-
-from pprint import pprint
-from typing import Any
 
 from django.contrib import messages
 from django.db.models import Sum
@@ -16,7 +12,7 @@ from django.views.generic import FormView, TemplateView
 
 from notifications.notifier import notify_contact_form
 from resources.cache import get_education_levels, get_learning_areas
-from resources.models import EducationLevel, LearningArea, ResourceItem
+from resources.models import ResourceItem
 from website.forms import ContactForm, EmailSubscriptionForm
 from website.models import Partner, ContactMessage
 
@@ -24,11 +20,11 @@ from website.models import Partner, ContactMessage
 class HomePageView(TemplateView):
     template_name = "website/home.html"
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        ctx = super().get_context_data(**kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
         # Latest 8 free resources for hero cards
-        ctx["featured_resources"] = (
+        context["featured_resources"] = (
             ResourceItem.objects.select_related(
                 "grade", "grade__level", "learning_area"
             )
@@ -36,7 +32,7 @@ class HomePageView(TemplateView):
         )
 
         # Top 8 popular resources by downloads
-        ctx["popular_resources"] = (
+        context["popular_resources"] = (
             ResourceItem.objects.select_related(
                 "grade", "grade__level", "learning_area"
             )
@@ -45,12 +41,11 @@ class HomePageView(TemplateView):
         )
 
         # Stats strip
-        ctx["total_resources"] = ResourceItem.objects.count()
-        ctx["total_levels"] = get_education_levels().count()
-        # pprint(ctx["total_levels"])
-        ctx["total_areas"] = get_learning_areas().count()
-        ctx["total_downloads"] = ResourceItem.objects.aggregate(d=Sum("downloads"))["d"] or 0
-        ctx["education_levels"] = get_education_levels()
+        context["total_resources"] = ResourceItem.objects.count()
+        context["total_levels"] = get_education_levels().count()
+        context["total_areas"] = get_learning_areas().count()
+        context["total_downloads"] = ResourceItem.objects.aggregate(d=Sum("downloads"))["d"] or 0
+        context["education_levels"] = get_education_levels()
 
         # Resource type cards with icon, label, desc, count
         resource_type_cards = []
@@ -64,9 +59,9 @@ class HomePageView(TemplateView):
                 "desc": info["desc"],
                 "count": count,
             })
-        ctx["resource_type_cards"] = resource_type_cards
+        context["resource_type_cards"] = resource_type_cards
 
-        return ctx
+        return context
 
 
 class ContactView(FormView):
@@ -102,8 +97,8 @@ class ContactView(FormView):
         return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["default_topics"] = [
+        context = super().get_context_data(**kwargs)
+        context["default_topics"] = [
             "Resource upload & sharing guidelines",
             "Becoming a verified content creator",
             "Curriculum alignment questions",
@@ -111,7 +106,7 @@ class ContactView(FormView):
             "Technical issues or bugs",
             "Partnership & collaboration",
         ]
-        return ctx
+        return context
 
 
 def email_subscription(request):
@@ -160,7 +155,7 @@ class PartnerListView(TemplateView):
     """Public page listing all partners."""
     template_name = "website/partners.html"
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        ctx = super().get_context_data(**kwargs)
-        ctx["partners"] = Partner.objects.all().order_by("name")
-        return ctx
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["partners"] = Partner.objects.all().order_by("name")
+        return context

@@ -9,7 +9,6 @@ Key optimizations:
       for HTMX requests (infinite scroll / "Load more" pattern)
     - Atomic download counter increment via F() expressions
 """
-from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -248,25 +247,25 @@ class ResourceTypeDetailView(ListView):
         return qs
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         info = RESOURCE_TYPE_INFO.get(self.resource_type,
                                       {"icon": "📂", "label": self.resource_type.replace("_", " ").title(), "desc": ""})
-        ctx["resource_type_key"] = self.resource_type
-        ctx["resource_type_label"] = info["label"]
-        ctx["resource_type_icon"] = info["icon"]
-        ctx["resource_type_desc"] = info["desc"]
+        context["resource_type_key"] = self.resource_type
+        context["resource_type_label"] = info["label"]
+        context["resource_type_icon"] = info["icon"]
+        context["resource_type_desc"] = info["desc"]
         # For related types sidebar / cross-links
-        ctx["all_resource_types"] = RESOURCE_TYPE_INFO
-        ctx['current_learning_area'] = self.request.GET.get("learning_area", '')
-        ctx['current_education_level'] = self.request.GET.get("education_level", '')
-        ctx['current_grade'] = self.request.GET.get("grade", '')
-        ctx['search_query'] = self.request.GET.get("q", '')
-        ctx["education_levels"] = get_education_levels()
-        ctx["grades"] = get_grades()
-        ctx["learning_areas"] = get_learning_areas()
-        ctx["resource_types"] = get_resource_types()
+        context["all_resource_types"] = RESOURCE_TYPE_INFO
+        context['current_learning_area'] = self.request.GET.get("learning_area", '')
+        context['current_education_level'] = self.request.GET.get("education_level", '')
+        context['current_grade'] = self.request.GET.get("grade", '')
+        context['search_query'] = self.request.GET.get("q", '')
+        context["education_levels"] = get_education_levels()
+        context["grades"] = get_grades()
+        context["learning_areas"] = get_learning_areas()
+        context["resource_types"] = get_resource_types()
 
-        return ctx
+        return context
 
     def render_to_response(self, context, **response_kwargs):
         """

@@ -12,6 +12,7 @@ Idempotent command to seed some important SiteSetting:
           ("google_oauth_client_id", f"{settings.GOOGLE_OAUTH_CLIENT_ID}"),
           ("site_indexing", "true"),
           ("meta_description", "................"),
+          ("meta_keywords", "................"),
       ]
 
 Run:  `python manage.py populate_site_settings`
@@ -33,6 +34,7 @@ SITE_SETTINGS_LIST: list[tuple[str, str]] = [
     ("meta_description",
      "A free platform to access CBC / CBE resources that are up-to-date like notes, schemes of work, lesson plans, past papers, exams, holiday assignments, setbook guides and more, for all learning areas across all levels from pre-primary to senior secondary school."
      ),
+    ("meta_keywords", "CBE Resources Kenya, CBE Resources Kenya, free CBC learning materials, Free CBE learning materials,")
 ]
 
 

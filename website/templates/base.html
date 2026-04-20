@@ -22,7 +22,7 @@
 
     {# ── SEO: Keywords / Author / Robots ──────────────────────────────────── #}
     <meta name="keywords"
-          content="{% block meta_keywords_value %}CBC Kenya, Grade resources, curriculum, KICD, free learning materials, CBC notes, exam papers{% endblock %}"/>
+          content="{% block meta_keywords_value %} {{ site_settings.meta_keywords }} {% endblock %}"/>
     <meta name="author" content="CBE Resource Hub"/>
     <meta name="robots" content="{% block meta_robots %}{% if site_settings.site_indexing == 'false' %}noindex, nofollow{% else %}index, follow{% endif %}{% endblock %}"/>
     <meta name="language" content="English"/>
@@ -46,7 +46,7 @@
 
     {# ── SEO: Twitter Card ────────────────────────────────────────────────── #}
     <meta name="twitter:card" content="summary_large_image"/>
-    <meta name="twitter:site" content="@cbekenya"/>
+    <meta name="twitter:site" content="@cberesourceskenya"/>
     <meta name="twitter:title"
           content="{% block twitter_title %}{{ site_settings.site_name|default:'CBE Resource Hub' }}{% endblock %}"/>
     <meta name="twitter:description" content="{% block twitter_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}"/>
