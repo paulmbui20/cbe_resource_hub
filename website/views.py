@@ -5,6 +5,7 @@ Public-facing homepage and contact page views.
 """
 from __future__ import annotations
 
+from pprint import pprint
 from typing import Any
 
 from django.contrib import messages
@@ -14,6 +15,7 @@ from django.urls import reverse
 from django.views.generic import FormView, TemplateView
 
 from notifications.notifier import notify_contact_form
+from resources.cache import get_education_levels, get_learning_areas
 from resources.models import EducationLevel, LearningArea, ResourceItem
 from website.forms import ContactForm, EmailSubscriptionForm
 from website.models import Partner, ContactMessage
@@ -44,12 +46,11 @@ class HomePageView(TemplateView):
 
         # Stats strip
         ctx["total_resources"] = ResourceItem.objects.count()
-        ctx["total_levels"] = EducationLevel.objects.count()
-        ctx["total_areas"] = LearningArea.objects.count()
+        ctx["total_levels"] = get_education_levels().count()
+        # pprint(ctx["total_levels"])
+        ctx["total_areas"] = get_learning_areas().count()
         ctx["total_downloads"] = ResourceItem.objects.aggregate(d=Sum("downloads"))["d"] or 0
-        ctx["education_levels"] = (
-            EducationLevel.objects.prefetch_related("grades").order_by("order")
-        )
+        ctx["education_levels"] = get_education_levels()
 
         # Resource type cards with icon, label, desc, count
         resource_type_cards = []
@@ -64,9 +65,6 @@ class HomePageView(TemplateView):
                 "count": count,
             })
         ctx["resource_type_cards"] = resource_type_cards
-
-        # Partners for homepage section (show_as_banner=True ones)
-        ctx["homepage_partners"] = Partner.objects.filter(show_as_banner=True).order_by("name")
 
         return ctx
 

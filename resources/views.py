@@ -15,13 +15,14 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet, Q
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
 
 from .admin_views import VendorRequiredMixin
+from .cache import get_learning_areas, get_grades, get_resource_types, get_education_levels, \
+    get_slug_based_object_or_404_with_cache
 from .forms import ResourceItemForm
 from .models import EducationLevel, LearningArea, ResourceItem, Grade
 
@@ -77,10 +78,10 @@ class ResourceListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["education_levels"] = EducationLevel.objects.prefetch_related("grades")
-        context["grades"] = Grade.objects.all()
-        context["learning_areas"] = LearningArea.objects.all()
-        context["resource_types"] = dict(ResourceItem._meta.get_field("resource_type").choices)
+        context["education_levels"] = get_education_levels()
+        context["grades"] = get_grades()
+        context["learning_areas"] = get_learning_areas()
+        context["resource_types"] = get_resource_types()
         context["current_grade"] = self.request.GET.get("grade", "")
         context["current_area"] = self.request.GET.get("area", "")
         context["current_level"] = self.request.GET.get("level", "")
@@ -260,10 +261,10 @@ class ResourceTypeDetailView(ListView):
         ctx['current_education_level'] = self.request.GET.get("education_level", '')
         ctx['current_grade'] = self.request.GET.get("grade", '')
         ctx['search_query'] = self.request.GET.get("q", '')
-        ctx["education_levels"] = EducationLevel.objects.prefetch_related("grades")
-        ctx["grades"] = Grade.objects.all()
-        ctx["learning_areas"] = LearningArea.objects.all()
-        ctx["resource_types"] = dict(ResourceItem._meta.get_field("resource_type").choices)
+        ctx["education_levels"] = get_education_levels()
+        ctx["grades"] = get_grades()
+        ctx["learning_areas"] = get_learning_areas()
+        ctx["resource_types"] = get_resource_types()
 
         return ctx
 
@@ -325,11 +326,11 @@ class EducationLevelDetailsView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["education_level"] = get_object_or_404(EducationLevel, slug=self.education_level)
-        context["all_education_levels"] = EducationLevel.objects.all()
-        context["grades"] = Grade.objects.all()
-        context["learning_areas"] = LearningArea.objects.all()
-        context["resource_types"] = dict(ResourceItem._meta.get_field("resource_type").choices)
+        context["education_level"] = get_slug_based_object_or_404_with_cache(EducationLevel, self.education_level)
+        context["all_education_levels"] = get_education_levels()
+        context["grades"] = get_grades()
+        context["learning_areas"] = get_learning_areas()
+        context["resource_types"] = get_resource_types()
 
         context['current_learning_area'] = self.request.GET.get("learning_area", '')
         context['current_resource_type'] = self.request.GET.get("resource_type", '')
@@ -365,9 +366,6 @@ class LearningAreaDetailsView(ListView):
 
         q = self.request.GET.get("q")
         q = q.strip() if q else ''
-
-        learning_area_id = self.request.GET.get("learning_area")
-        learning_area_id = int(learning_area_id) if learning_area_id else None
         resource_type = self.request.GET.get("resource_type")
         resource_type = str(resource_type) if resource_type else None
         education_level_id = self.request.GET.get("education_level")
@@ -377,8 +375,6 @@ class LearningAreaDetailsView(ListView):
             qs = qs.filter(
                 Q(title__icontains=q) | Q(description__icontains=q)
             )
-        if learning_area_id:
-            qs = qs.filter(learning_area_id=learning_area_id)
         if resource_type:
             qs = qs.filter(resource_type=resource_type)
         if education_level_id:
@@ -388,13 +384,12 @@ class LearningAreaDetailsView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["learning_area"] = get_object_or_404(LearningArea, slug=self.learning_area)
-        context["all_learning_areas"] = LearningArea.objects.all()
+        context["learning_area"] = get_slug_based_object_or_404_with_cache(LearningArea, self.learning_area)
 
-        context["education_levels"] = EducationLevel.objects.all()
-        context["grades"] = Grade.objects.all()
-        context["learning_areas"] = LearningArea.objects.all()
-        context["resource_types"] = dict(ResourceItem._meta.get_field("resource_type").choices)
+        context["education_levels"] = get_education_levels()
+        context["grades"] = get_grades()
+        context["learning_areas"] = get_learning_areas()
+        context["resource_types"] = get_resource_types()
 
         context['current_education_level'] = self.request.GET.get("education_level", '')
         context['current_resource_type'] = self.request.GET.get("resource_type", '')
@@ -449,10 +444,10 @@ class GradeDetailsView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["grade"] = get_object_or_404(Grade, slug=self.grade)
-        context["all_grades"] = Grade.objects.all()
-        context["learning_areas"] = LearningArea.objects.all()
-        context["resource_types"] = dict(ResourceItem._meta.get_field("resource_type").choices)
+        context["grade"] = get_slug_based_object_or_404_with_cache(Grade, self.grade)
+        context["all_grades"] = get_grades()
+        context["learning_areas"] = get_learning_areas()
+        context["resource_types"] = get_resource_types()
 
         context['current_learning_area'] = self.request.GET.get("learning_area", '')
         context['current_resource_type'] = self.request.GET.get("resource_type", '')
@@ -489,10 +484,7 @@ class LearningAreaListView(ListView):
         Return all Learning Areas with infinite scrolling.
         """
 
-        qs: QuerySet[LearningArea] = (
-            LearningArea.objects.all()
-            .prefetch_related("resources")
-        )
+        qs: QuerySet[LearningArea] = get_learning_areas()
 
         q = self.request.GET.get("q")
         q = q.strip() if q else None
@@ -539,10 +531,7 @@ class GradeListView(ListView):
         Return all Grades with infinite scrolling.
         """
 
-        qs: QuerySet[Grade] = (
-            Grade.objects.all()
-            .prefetch_related("resources")
-        )
+        qs: QuerySet[Grade] = get_grades()
 
         q = self.request.GET.get("q")
         q = q.strip() if q else None
