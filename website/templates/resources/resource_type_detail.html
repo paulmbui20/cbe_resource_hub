@@ -4,10 +4,10 @@
 {% block title %}{{ resource_type_label }} — Free Kenya CBC Resources{% endblock %}
 {% block meta_title_value %}{{ resource_type_label }} | CBE Resource Hub Kenya{% endblock %}
 {% block meta_description_value %}Download free {{ resource_type_label|lower }} aligned to the Kenya CBC/CBE curriculum.
-    {{ resource_type_desc }} {{ resources|length }} resource{{ resources|length|pluralize }}
+    {{ resource_type_desc }} {{ paginator.count }} resource{{ paginator.count|pluralize }}
     available.{% endblock %}
 {% block og_title %}{{ resource_type_label }} — CBE Resource Hub Kenya{% endblock %}
-{% block og_description %}{{ resource_type_desc }} Browse {{ resources|length }} free {{ resource_type_label|lower }}
+{% block og_description %}{{ resource_type_desc }} Browse {{ paginator.count }} free {{ resource_type_label|lower }}
     for Kenyan learners.{% endblock %}
 
 {% block structured_data %}
@@ -18,14 +18,14 @@
           "name": "{{ resource_type_label }} — CBE Resource Hub",
   "description": "{{ resource_type_desc }}",
   "url": "{{ request.build_absolute_uri }}",
-  "numberOfItems": {{ resources|length }}
+  "numberOfItems": {{ paginator.count }}
         }
     </script>
 {% endblock %}
 {% block filter_label %}{{ resource_type_label }} Resources{% endblock %}
 {% block filter_title %}{{ resource_type_label }} Resources{% endblock %}
 {% block filter_meta_description_value %}{{ resource_type_desc }}{% endblock %}
-{% block filter_count %}{{ resources|length }}{% endblock %}
+{% block filter_count %}{{ paginator.count }}{% endblock %}
 
 {% block filter_bar %}
 

@@ -35,7 +35,7 @@ class ResourceListView(ListView):
         - Partial template ``resources/partials/resource_cards.html`` for HTMX requests
     """
 
-    paginate_by = 12
+    paginate_by = 24
     template_name = "resources/resource_list.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
@@ -213,7 +213,7 @@ class ResourceTypeDetailView(ListView):
     template_name = "resources/resource_type_detail.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
-    paginate_by = 12
+    paginate_by = 24
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
         self.resource_type = self.kwargs["resource_type"]
@@ -287,7 +287,7 @@ class EducationLevelDetailsView(ListView):
     template_name = "resources/education_level_details.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
-    paginate_by = 12
+    paginate_by = 24
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
         self.education_level = self.kwargs["education_level"]
@@ -356,7 +356,7 @@ class LearningAreaDetailsView(ListView):
     template_name = "resources/learning_area_details.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
-    paginate_by = 12
+    paginate_by = 24
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
         self.learning_area = self.kwargs["learning_area"]
@@ -415,7 +415,7 @@ class GradeDetailsView(ListView):
     template_name = "resources/grade_details.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
-    paginate_by = 12
+    paginate_by = 24
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
         self.grade = self.kwargs["grade"]
@@ -474,7 +474,7 @@ class LearningAreaListView(ListView):
         - Partial template ``resources/partials/filter_cards.html`` for HTMX requests
     """
 
-    paginate_by = 12
+    paginate_by = 24
     template_name = "resources/learning_areas_list.html"
     partial_template_name = "resources/partials/filter_cards.html"
     context_object_name = "filters"
@@ -521,7 +521,7 @@ class GradeListView(ListView):
         - Partial template ``resources/partials/filter_cards.html`` for HTMX requests
     """
 
-    page_size = 12
+    page_size = 24
     template_name = "resources/grade_list.html"
     partial_template_name = "resources/partials/filter_cards.html"
     context_object_name = "filters"

@@ -3,11 +3,11 @@
 {% block title %}{{ learning_area.name }} Resources — Free Kenya CBC Resources{% endblock %}
 {% block meta_title_value %}{{ learning_area.meta_title }} Resources  | CBE Resource Hub Kenya{% endblock %}
 {% block meta_description_value %}Download free {{ learning_area.name |lower }} aligned to the Kenya CBC/CBE
-    curriculum. {{ learning_area.meta_description }} {{ resources|length }} resource
-    {{ resources|length|pluralize }}
+    curriculum. {{ learning_area.meta_description }} {{ paginator.count }} resource
+    {{ paginator.count|pluralize }}
     available.{% endblock %}
 {% block og_title %}{{ learning_area.name }} — CBE Resource Hub Kenya{% endblock %}
-{% block og_description %}{{ learning_area.meta_description }} Browse {{ resources|length }} free
+{% block og_description %}{{ learning_area.meta_description }} Browse {{ paginator.count }} free
     {{ learning_area.name |lower }} resources for Kenyan learners.{% endblock %}
 
 {% block structured_data %}
@@ -18,14 +18,14 @@
           "name": "{{ learning_area.name }} Resources — CBE Resource Hub",
   "description": "{{ learning_area.meta_description }}",
   "url": "{{ request.build_absolute_uri }}",
-  "numberOfItems": {{ resources|length }}
+  "numberOfItems": {{ paginator.count }}
         }
     </script>
 {% endblock %}
 {% block filter_label %}{{ learning_area.name }} Resources{% endblock %}
 {% block filter_title %}{{ learning_area.name }} Resources{% endblock %}
 {% block filter_meta_description_value %}{{ learning_area.meta_description }}{% endblock %}
-{% block filter_count %}{{ resources|length }}{% endblock %}
+{% block filter_count %}{{ paginator.count }}{% endblock %}
 {% block filter_parent %}
     <a href="{% url 'resources:learning_areas_list' %}" class="hover:text-white transition-colors">
         Learning Areas</a>

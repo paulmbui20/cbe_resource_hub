@@ -3,11 +3,11 @@
 {% block title %}{{ grade.name }} Resources — Free Kenya CBC Resources{% endblock %}
 {% block meta_title_value %}{{ grade.meta_title }} Resources  | CBE Resource Hub Kenya{% endblock %}
 {% block meta_description_value %}Download free {{ grade.name|lower }} aligned to the Kenya CBC/CBE
-    curriculum. {{ grade.meta_description }} {{ resources|length }} resource
-    {{ resources|length|pluralize }}
+    curriculum. {{ grade.meta_description }} {{ paginator.count }} resource
+    {{ paginator.count|pluralize }}
     available.{% endblock %}
 {% block og_title %}{{ grade.name }} — CBE Resource Hub Kenya{% endblock %}
-{% block og_description %}{{ grade.meta_description }} Browse {{ resources|length }} free
+{% block og_description %}{{ grade.meta_description }} Browse {{ paginator.count }} free
     {{ grade.name|lower }} resources for Kenyan learners.{% endblock %}
 
 {% block structured_data %}
@@ -18,14 +18,14 @@
           "name": "{{ grade.name }} Resources — CBE Resource Hub",
   "description": "{{ grade_desc }}",
   "url": "{{ request.build_absolute_uri }}",
-  "numberOfItems": {{ resources|length }}
+  "numberOfItems": {{ paginator.count }}
         }
     </script>
 {% endblock %}
 {% block filter_label %}{{ grade.name }} Resources{% endblock %}
 {% block filter_title %}{{ grade.name }} Resources{% endblock %}
 {% block filter_meta_description_value %}{{ grade_desc }}{% endblock %}
-{% block filter_count %}{{ resources|length }}{% endblock %}
+{% block filter_count %}{{ paginator.count }}{% endblock %}
 {% block filter_parent %}
     <a href="{% url 'resources:education_level_details' grade.level.slug %}" class="hover:text-white transition-colors">
         {{ grade.level }}</a>
