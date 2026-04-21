@@ -8,6 +8,7 @@ import resources.validators
 import seo.models
 from django.db import migrations, models
 
+
 def _generate_unique_slugs(apps, schema_editor):
     """
     Generate unique slugs for Grade model .
@@ -21,12 +22,11 @@ def _generate_unique_slugs(apps, schema_editor):
 
         for grade in grades:
             grade.slug = slugify(grade.name)
-            grade.save()
+
+        Grade.objects.bulk_update(grades, ['slug'])
 
 
 class Migration(migrations.Migration):
-
-
     dependencies = [
         ('resources', '0007_resourceitem_resources_r_updated_6b95ec_idx_and_more'),
     ]
@@ -34,7 +34,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='educationlevel',
-            options={'ordering': ['order', 'slug'], 'verbose_name': 'Education Level', 'verbose_name_plural': 'Education Levels'},
+            options={'ordering': ['order', 'slug'], 'verbose_name': 'Education Level',
+                     'verbose_name_plural': 'Education Levels'},
         ),
         migrations.AlterModelOptions(
             name='learningarea',
@@ -53,12 +54,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='educationlevel',
             name='featured_image',
-            field=models.ImageField(blank=True, help_text='Featured image for this page', null=True, storage=seo.models.PublicFilesStorageCallable(), upload_to='featured_images/%Y/%m/', validators=[resources.validators.validate_image_file_magic]),
+            field=models.ImageField(blank=True, help_text='Featured image for this page', null=True,
+                                    storage=seo.models.PublicFilesStorageCallable(), upload_to='featured_images/%Y/%m/',
+                                    validators=[resources.validators.validate_image_file_magic]),
         ),
         migrations.AddField(
             model_name='educationlevel',
             name='meta_description',
-            field=models.CharField(blank=True, help_text='SEO description (160 chars max). Leave blank to auto-generate.', max_length=160),
+            field=models.CharField(blank=True,
+                                   help_text='SEO description (160 chars max). Leave blank to auto-generate.',
+                                   max_length=160),
         ),
         migrations.AddField(
             model_name='educationlevel',
@@ -68,7 +73,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='educationlevel',
             name='meta_title',
-            field=models.CharField(blank=True, help_text='SEO title (60 chars max). Leave blank to auto-generate.', max_length=60),
+            field=models.CharField(blank=True, help_text='SEO title (60 chars max). Leave blank to auto-generate.',
+                                   max_length=60),
         ),
         migrations.AddField(
             model_name='educationlevel',
@@ -84,12 +90,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='grade',
             name='featured_image',
-            field=models.ImageField(blank=True, help_text='Featured image for this page', null=True, storage=seo.models.PublicFilesStorageCallable(), upload_to='featured_images/%Y/%m/', validators=[resources.validators.validate_image_file_magic]),
+            field=models.ImageField(blank=True, help_text='Featured image for this page', null=True,
+                                    storage=seo.models.PublicFilesStorageCallable(), upload_to='featured_images/%Y/%m/',
+                                    validators=[resources.validators.validate_image_file_magic]),
         ),
         migrations.AddField(
             model_name='grade',
             name='meta_description',
-            field=models.CharField(blank=True, help_text='SEO description (160 chars max). Leave blank to auto-generate.', max_length=160),
+            field=models.CharField(blank=True,
+                                   help_text='SEO description (160 chars max). Leave blank to auto-generate.',
+                                   max_length=160),
         ),
         migrations.AddField(
             model_name='grade',
@@ -99,7 +109,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='grade',
             name='meta_title',
-            field=models.CharField(blank=True, help_text='SEO title (60 chars max). Leave blank to auto-generate.', max_length=60),
+            field=models.CharField(blank=True, help_text='SEO title (60 chars max). Leave blank to auto-generate.',
+                                   max_length=60),
         ),
         migrations.AddField(
             model_name='grade',
@@ -121,12 +132,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='learningarea',
             name='featured_image',
-            field=models.ImageField(blank=True, help_text='Featured image for this page', null=True, storage=seo.models.PublicFilesStorageCallable(), upload_to='featured_images/%Y/%m/', validators=[resources.validators.validate_image_file_magic]),
+            field=models.ImageField(blank=True, help_text='Featured image for this page', null=True,
+                                    storage=seo.models.PublicFilesStorageCallable(), upload_to='featured_images/%Y/%m/',
+                                    validators=[resources.validators.validate_image_file_magic]),
         ),
         migrations.AddField(
             model_name='learningarea',
             name='meta_description',
-            field=models.CharField(blank=True, help_text='SEO description (160 chars max). Leave blank to auto-generate.', max_length=160),
+            field=models.CharField(blank=True,
+                                   help_text='SEO description (160 chars max). Leave blank to auto-generate.',
+                                   max_length=160),
         ),
         migrations.AddField(
             model_name='learningarea',
@@ -136,7 +151,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='learningarea',
             name='meta_title',
-            field=models.CharField(blank=True, help_text='SEO title (60 chars max). Leave blank to auto-generate.', max_length=60),
+            field=models.CharField(blank=True, help_text='SEO title (60 chars max). Leave blank to auto-generate.',
+                                   max_length=60),
         ),
         migrations.AddField(
             model_name='learningarea',
@@ -170,7 +186,9 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='educationlevel',
-            constraint=models.UniqueConstraint(django.db.models.functions.text.Lower('name'), name='unique_education_level_name', violation_error_message='Education level name must be unique'),
+            constraint=models.UniqueConstraint(django.db.models.functions.text.Lower('name'),
+                                               name='unique_education_level_name',
+                                               violation_error_message='Education level name must be unique'),
         ),
 
         migrations.RunPython(_generate_unique_slugs),
