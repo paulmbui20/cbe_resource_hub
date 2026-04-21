@@ -111,19 +111,13 @@
 {% block other_filters %}
     <h2 class="text-xs font-bold uppercase tracking-wider text-white/30 mb-4">Other Education Levels</h2>
 
-    <ul class="space-y-1.5">
+    <ul class="grid grid-cols-2 gap-2">
         {% for level in all_education_levels %}
             {% if level.slug != education_level.slug %}
-
                 <li>
                     <a href="{% url 'resources:education_level_details' level.slug %}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/3 border border-white/5 hover:bg-white/8 hover:border-white/10 transition-all text-sm text-white/60 hover:text-white group">
-                        <svg class="w-4 h-4 text-white/20 group-hover:text-brand-gold transition-colors shrink-0"
-                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                        </svg>
-                        <span class="font-medium truncate">{{ level.name }}</span>
+                       class="flex items-center  p-2 rounded-xl bg-white/3 border border-white/5 hover:bg-white/8 hover:border-white/10 transition-all text-sm text-white/60 hover:text-white group">
+                        <span class="font-medium text-xs">{{ level.name }}</span>
                     </a>
                 </li>
             {% endif %}
