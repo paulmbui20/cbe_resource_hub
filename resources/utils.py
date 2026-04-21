@@ -1,6 +1,7 @@
+import sys
 from uuid import uuid4
 
-from django.core.files.storage import storages
+from django.core.files.storage import storages, FileSystemStorage
 from django.utils.text import slugify
 
 
@@ -37,6 +38,11 @@ def file_upload_path(instance, filename):
 class PublicFilesStorageCallable:
 
     def __call__(self):
+
+        # In tests, always use FileSystemStorage
+        if "pytest" in sys.modules or "test" in sys.argv:
+            return FileSystemStorage()
+
         try:
             return storages['public_files']
         except:

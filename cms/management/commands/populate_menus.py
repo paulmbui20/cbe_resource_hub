@@ -90,7 +90,7 @@ class Command(BaseCommand):
         )
         if EDUCATION_LEVELS.exists():
             for order, education_level in enumerate(EDUCATION_LEVELS):
-                url = reverse("resources:education_level_details", kwargs={"education_level": education_level.slug})
+                url = reverse("resources:education_level_details", kwargs={"slug": education_level.slug})
                 MenuItem.objects.get_or_create(
                     menu=header_menu,
                     parent=education_levels_header,

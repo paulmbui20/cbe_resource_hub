@@ -749,6 +749,16 @@ else:
     MAIN_MIDDLEWARE.insert(0, "cbe_res_hub.middleware.DisableBrowserCacheMiddleware")
     MIDDLEWARE: list[str] = MAIN_MIDDLEWARE + LOCAL_MIDDLEWARE
 
+    use_sqlite_env_var = os.getenv("USE_SQLITE", "False")
+    USE_SQLITE = ast.literal_eval(use_sqlite_env_var) if use_sqlite_env_var else False
+    if USE_SQLITE:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 22. TEST OVERRIDES
 # ──────────────────────────────────────────────────────────────────────────────

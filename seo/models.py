@@ -1,4 +1,5 @@
 import os
+import sys
 from io import BytesIO
 
 from PIL import Image
@@ -6,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.files.base import ContentFile
-from django.core.files.storage import storages
+from django.core.files.storage import storages, FileSystemStorage
 from django.db import models
 
 from core.models import TimeStampedModel
@@ -20,11 +21,9 @@ class PublicFilesStorageCallable:
     """
 
     def __call__(self):
-        from django.conf import settings
-        from django.core.files.storage import FileSystemStorage
 
         # In tests, always use FileSystemStorage
-        if 'test' in settings.DATABASES['default']['NAME']:
+        if "pytest" in sys.modules or "test" in sys.argv:
             return FileSystemStorage()
 
         try:

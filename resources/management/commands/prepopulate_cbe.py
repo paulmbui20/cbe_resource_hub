@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **kwargs):
-        self.stdout.write(self.style.NOTICE("📚 Populating CBE Curriculum (Kenya as at 2026)..."))
+        self.stdout.write(self.style.MIGRATE_HEADING("📚 Populating CBE Curriculum (Kenya as at 2026)..."))
 
         # --------------------------------------------------
         # 1. EDUCATION LEVELS + GRADES (CBC STRUCTURE)

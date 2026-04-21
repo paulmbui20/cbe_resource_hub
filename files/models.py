@@ -2,6 +2,7 @@ import hashlib
 import logging
 import mimetypes
 import os
+import sys
 from io import BytesIO
 from uuid import uuid4
 
@@ -44,11 +45,10 @@ class PublicFilesStorageCallable:
     """
 
     def __call__(self):
-        from django.conf import settings
         from django.core.files.storage import FileSystemStorage
 
         # In tests, always use FileSystemStorage
-        if 'test' in settings.DATABASES['default']['NAME']:
+        if "pytest" in sys.modules or "test" in sys.argv:
             return FileSystemStorage()
 
         try:
