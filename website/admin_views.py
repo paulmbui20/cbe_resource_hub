@@ -15,17 +15,17 @@ class AdminDashboardView(IsAdminMixin, TemplateView):
     template_name = "admin/dashboard.html"
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["total_users"] = CustomUser.objects.count()
-        ctx["total_vendors"] = CustomUser.objects.filter(role=CustomUser.Role.VENDOR).count()
-        ctx["total_resources"] = ResourceItem.objects.count()
-        ctx["total_pages"] = Page.objects.count()
-        ctx["unread_messages"] = ContactMessage.objects.filter(is_read=False).count()
+        context = super().get_context_data(**kwargs)
+        context["total_users"] = CustomUser.objects.count()
+        context["total_vendors"] = CustomUser.objects.filter(role=CustomUser.Role.VENDOR).count()
+        context["total_resources"] = ResourceItem.objects.count()
+        context["total_pages"] = Page.objects.count()
+        context["unread_messages"] = ContactMessage.objects.filter(is_read=False).count()
 
-        ctx["recent_users"] = CustomUser.objects.order_by("-date_joined")[:5]
-        ctx["recent_resources"] = ResourceItem.objects.all()[:5]
-        ctx["total_email_subscribers"] = EmailSubscriber.objects.filter(opted_out=False).count()
-        return ctx
+        context["recent_users"] = CustomUser.objects.order_by("-date_joined")[:5]
+        context["recent_resources"] = ResourceItem.objects.all()[:5]
+        context["total_email_subscribers"] = EmailSubscriber.objects.filter(opted_out=False).count()
+        return context
 
 
 # ── Contact Messages ─────────────────────────────────────────────────────────
@@ -36,9 +36,9 @@ class AdminContactMessageListView(IsAdminMixin, ListView):
     paginate_by = 20
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["unread_count"] = ContactMessage.objects.filter(is_read=False).count()
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context["unread_count"] = ContactMessage.objects.filter(is_read=False).count()
+        return context
 
 
 class AdminContactMessageDetailView(IsAdminMixin, DetailView):
@@ -81,11 +81,11 @@ class AdminPartnerCreateView(IsAdminMixin, CreateView):
     success_url = reverse_lazy("management:partner_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "Add New Partner"
-        ctx["cancel_url"] = self.success_url
-        ctx["parent_title"] = "Partners"
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Add New Partner"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Partners"
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, f"Partner '{form.instance.name}' added successfully.")
@@ -100,11 +100,11 @@ class AdminPartnerUpdateView(IsAdminMixin, UpdateView):
     success_url = reverse_lazy("management:partner_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = f"Edit Partner: {self.object.name}"
-        ctx["cancel_url"] = self.success_url
-        ctx["parent_title"] = "Partners"
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Edit Partner: {self.object.name}"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Partners"
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Partner updated successfully.")

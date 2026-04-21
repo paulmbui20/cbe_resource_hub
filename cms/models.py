@@ -6,13 +6,13 @@ WordPress-like dynamic CMS functionality:
 - Menu & MenuItem: navigation structure with self-referential hierarchy
 - Page: static CMS pages with slug-based routing
 """
-from __future__ import annotations
 
-from django.db.models.manager import BaseManager, Manager
-from django.utils.html import strip_tags
 from django.db import models
+from django.urls import reverse
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 from tinymce.models import HTMLField
+
 from seo.models import SlugRedirectMixin, SEOModel
 
 
@@ -98,7 +98,7 @@ class MenuItem(models.Model):
         on_delete=models.CASCADE,
         related_name="items",
     )
-    parent: MenuItem | None = models.ForeignKey(
+    parent = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
         null=True,
@@ -171,5 +171,4 @@ class Page(SEOModel, SlugRedirectMixin, models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self) -> str:
-        from django.urls import reverse
         return reverse("cms:page_detail", kwargs={"slug": self.slug})

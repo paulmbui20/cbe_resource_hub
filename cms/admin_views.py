@@ -12,6 +12,7 @@ class AdminPageListView(IsAdminMixin, ListView):
     model = Page
     template_name = "admin/page_list.html"
     context_object_name = "pages"
+    paginate_by = 12
 
 
 class AdminPageCreateView(IsAdminMixin, CreateView):
@@ -22,11 +23,11 @@ class AdminPageCreateView(IsAdminMixin, CreateView):
     success_url = reverse_lazy("management:page_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "Create New Page"
-        ctx["cancel_url"] = self.success_url
-        ctx["parent_title"] = "Pages"
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Create New Page"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Pages"
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Page created successfully.")
@@ -41,11 +42,11 @@ class AdminPageUpdateView(IsAdminMixin, UpdateView):
     success_url = reverse_lazy("management:page_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = f"Edit Page: {self.object.title}"
-        ctx["cancel_url"] = self.success_url
-        ctx["parent_title"] = "Pages"
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Edit Page: {self.object.title}"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Pages"
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Page updated successfully.")
@@ -75,16 +76,16 @@ class AdminMenuCreateView(IsAdminMixin, CreateView):
     success_url = reverse_lazy("management:menu_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "Create New Menu"
-        ctx["cancel_url"] = self.success_url
-        ctx["datalists"] = {
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Create New Menu"
+        context["cancel_url"] = self.success_url
+        context["datalists"] = {
             "menu_names_list": [
                 {"value": "primary_header", "label": "Main navigation at the top"},
                 {"value": "footer", "label": "Quick links in the footer"},
             ]
         }
-        return ctx
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Menu created.")
@@ -98,16 +99,16 @@ class AdminMenuUpdateView(IsAdminMixin, UpdateView):
     success_url = reverse_lazy("management:menu_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = f"Edit Menu: {self.object.name}"
-        ctx["cancel_url"] = self.success_url
-        ctx["datalists"] = {
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Edit Menu: {self.object.name}"
+        context["cancel_url"] = self.success_url
+        context["datalists"] = {
             "menu_names_list": [
                 {"value": "primary_header", "label": "Main navigation at the top"},
                 {"value": "footer", "label": "Quick links in the footer"},
             ]
         }
-        return ctx
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Menu updated.")
@@ -144,9 +145,9 @@ class AdminMenuItemCreateView(IsAdminMixin, CreateView):
     success_url = reverse_lazy("management:menuitem_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "Add Menu Item"
-        ctx["datalists"] = {
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Add Menu Item"
+        context["datalists"] = {
             "menuitem_urls_list": [
                 {"value": "/", "label": "Homepage"},
                 {"value": "/resources/", "label": "All Resources"},
@@ -154,7 +155,7 @@ class AdminMenuItemCreateView(IsAdminMixin, CreateView):
                 {"value": "/partners/", "label": "Partners"},
             ]
         }
-        return ctx
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Menu Item created.")
@@ -168,9 +169,9 @@ class AdminMenuItemUpdateView(IsAdminMixin, UpdateView):
     success_url = reverse_lazy("management:menuitem_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "Edit Menu Item"
-        ctx["datalists"] = {
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Edit Menu Item"
+        context["datalists"] = {
             "menuitem_urls_list": [
                 {"value": "/", "label": "Homepage"},
                 {"value": "/resources/", "label": "All Resources"},
@@ -178,7 +179,7 @@ class AdminMenuItemUpdateView(IsAdminMixin, UpdateView):
                 {"value": "/partners/", "label": "Partners"},
             ]
         }
-        return ctx
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Menu Item updated.")
@@ -208,10 +209,10 @@ class AdminSiteSettingsCreateView(IsAdminMixin, CreateView):
     success_url = reverse_lazy("management:settings_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "Create New Setting"
-        ctx["cancel_url"] = self.success_url
-        ctx["datalists"] = {
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Create New Setting"
+        context["cancel_url"] = self.success_url
+        context["datalists"] = {
             "setting_keys_list": [
                 {"value": "site_name", "label": "Appears in title bar and headers"},
                 {"value": "meta_description", "label": "Default fallback meta description for SEO"},
@@ -226,7 +227,7 @@ class AdminSiteSettingsCreateView(IsAdminMixin, CreateView):
                 {"value": "site_logo_url", "label": "Enter the full url of the site logo"},
             ]
         }
-        return ctx
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Setting created.")
@@ -240,10 +241,10 @@ class AdminSiteSettingsUpdateView(IsAdminMixin, UpdateView):
     success_url = reverse_lazy("management:settings_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = f"Edit Setting: {self.object.key}"
-        ctx["cancel_url"] = self.success_url
-        ctx["datalists"] = {
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Edit Setting: {self.object.key}"
+        context["cancel_url"] = self.success_url
+        context["datalists"] = {
             "setting_keys_list": [
                 {"value": "site_name", "label": "Appears in title bar and headers"},
                 {"value": "meta_description", "label": "Default fallback meta description for SEO"},
@@ -257,7 +258,7 @@ class AdminSiteSettingsUpdateView(IsAdminMixin, UpdateView):
                 {"value": "site_indexing", "label": "Toggle search engine indexing (true/false)"},
             ]
         }
-        return ctx
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Site setting updated.")

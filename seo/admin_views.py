@@ -1,36 +1,17 @@
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
-from django.urls import reverse_lazy
-from django import forms
 from django.contrib import messages
+from django.db.models import Q
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
+from cms.models import Page
+from resources.models import ResourceItem
+from seo.forms import SlugRedirectForm
 from seo.models import SlugRedirect
 from website.admin_views import IsAdminMixin
 
 
-# ── SlugRedirect Form ────────────────────────────────────────────────────────
-class SlugRedirectForm(forms.ModelForm):
-    class Meta:
-        model = SlugRedirect
-        fields = ['old_slug', 'new_slug']
-        widgets = {
-            'old_slug': forms.TextInput(attrs={
-                'class': 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary transition-all',
-                'placeholder': 'e.g. old-page-name',
-            }),
-            'new_slug': forms.TextInput(attrs={
-                'class': 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary transition-all',
-                'placeholder': 'e.g. new-page-name',
-            }),
-        }
-        help_texts = {
-            'old_slug': 'The old URL slug that should be redirected (e.g. my-old-post)',
-            'new_slug': 'The new URL slug to redirect traffic to (e.g. my-new-post)',
-        }
-
-
 # ── SlugRedirect Views ───────────────────────────────────────────────────────
 class AdminSlugRedirectListView(IsAdminMixin, ListView):
-    model = SlugRedirect
     template_name = 'admin/seo/redirect_list.html'
     context_object_name = 'redirects'
     paginate_by = 30
@@ -40,15 +21,15 @@ class AdminSlugRedirectListView(IsAdminMixin, ListView):
         q = self.request.GET.get('q', '')
         if q:
             qs = qs.filter(old_slug__icontains=q) | qs.filter(new_slug__icontains=q)
-            qs = qs.filter(old_slug__icontains=q) | SlugRedirect.objects.filter(new_slug__icontains=q).select_related('content_type')
+            qs = qs.filter(old_slug__icontains=q) | SlugRedirect.objects.filter(new_slug__icontains=q).select_related(
+                'content_type')
         return qs
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['q'] = self.request.GET.get('q', '')
-        ctx['total_redirects'] = SlugRedirect.objects.count()
-        ctx['total_hits'] = sum(SlugRedirect.objects.values_list('hit_count', flat=True))
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['total_hits'] = sum(SlugRedirect.objects.values_list('hit_count', flat=True))
+        return context
 
 
 class AdminSlugRedirectCreateView(IsAdminMixin, CreateView):
@@ -58,14 +39,15 @@ class AdminSlugRedirectCreateView(IsAdminMixin, CreateView):
     success_url = reverse_lazy('management:seo_redirect_list')
 
     def form_valid(self, form):
-        messages.success(self.request, f"Redirect from  /{form.instance.old_slug}/  →  /{form.instance.new_slug}/  created successfully.")
+        messages.success(self.request,
+                         f"Redirect from  /{form.instance.old_slug}/  →  /{form.instance.new_slug}/  created successfully.")
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['page_title'] = 'Create Slug Redirect'
-        ctx['action_label'] = 'Create Redirect'
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Create Slug Redirect'
+        context['action_label'] = 'Create Redirect'
+        return context
 
 
 class AdminSlugRedirectUpdateView(IsAdminMixin, UpdateView):
@@ -79,15 +61,14 @@ class AdminSlugRedirectUpdateView(IsAdminMixin, UpdateView):
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['page_title'] = 'Edit Slug Redirect'
-        ctx['action_label'] = 'Save Changes'
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Edit Slug Redirect'
+        context['action_label'] = 'Save Changes'
+        return context
 
 
 class AdminSlugRedirectDeleteView(IsAdminMixin, DeleteView):
     model = SlugRedirect
-    template_name = 'admin/seo/redirect_confirm_delete.html'
     success_url = reverse_lazy('management:seo_redirect_list')
 
     def form_valid(self, form):
@@ -95,26 +76,39 @@ class AdminSlugRedirectDeleteView(IsAdminMixin, DeleteView):
         return super().form_valid(form)
 
 
-# ── SEO Audit View ───────────────────────────────────────────────────────────
-class AdminSEOAuditView(IsAdminMixin, TemplateView):
-    template_name = 'admin/seo/audit.html'
+class AdminPagesSEOAuditView(IsAdminMixin, ListView):
+    template_name = 'admin/seo/pages_seo_audit.html'
+    paginate_by = 12
+    context_object_name = "pages"
+
+    def get_queryset(self):
+        qs = Page.objects.only(
+            'title', 'slug', 'meta_title', 'meta_description',
+            'meta_keywords', 'is_published', 'meta_keywords'
+        ).filter(
+            Q(meta_title__isnull=True) | Q(meta_title='') |
+            Q(meta_description__isnull=True) | Q(meta_description='') |
+            Q(meta_keywords__isnull=True) | Q(meta_keywords='')
+        )
+
+        return qs
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        from cms.models import Page
-        from resources.models import ResourceItem
+        context = super().get_context_data(**kwargs)
+        return context
 
-        # Both Page and ResourceItem now extend SEOModel
-        pages = Page.objects.only(
-            'title', 'slug', 'meta_title', 'meta_description', 'meta_keywords', 'is_published'
-        ).order_by('title')
 
-        resources = ResourceItem.objects.select_related('vendor').only(
-            'title', 'slug', 'meta_title', 'meta_description', 'meta_keywords', 'vendor'
-        ).order_by('title')
+# ── SEO Audit View ───────────────────────────────────────────────────────────
+class AdminResourcesSEOAuditView(IsAdminMixin, ListView):
+    template_name = 'admin/seo/resources_seo_audit.html'
+    paginate_by = 12
+    context_object_name = "resources"
 
-        ctx['pages'] = pages
-        ctx['resources'] = resources
-        ctx['page_issues'] = sum(1 for p in pages if not p.meta_title or not p.meta_description)
-        ctx['resource_issues'] = sum(1 for r in resources if not r.meta_title or not r.meta_description)
-        return ctx
+    def get_queryset(self):
+        resources = ResourceItem.objects.filter(
+            Q(meta_description__isnull=True) | Q(meta_description='') |
+            Q(meta_title__isnull=True) | Q(meta_title='') |
+            Q(meta_keywords__isnull=True) | Q(meta_keywords='')
+        )
+
+        return resources

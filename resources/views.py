@@ -289,7 +289,7 @@ class EducationLevelDetailsView(ListView):
     paginate_by = 24
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
-        self.education_level = self.kwargs["education_level"]
+        self.education_level = self.kwargs["slug"]
         qs: QuerySet[ResourceItem] = (
             ResourceItem.objects.filter(grade__level__slug=self.education_level)
         )
@@ -358,7 +358,7 @@ class LearningAreaDetailsView(ListView):
     paginate_by = 24
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
-        self.learning_area = self.kwargs["learning_area"]
+        self.learning_area = self.kwargs["slug"]
         qs = (
             ResourceItem.objects.filter(learning_area__slug=self.learning_area)
         )
@@ -417,7 +417,7 @@ class GradeDetailsView(ListView):
     paginate_by = 24
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
-        self.grade = self.kwargs["grade"]
+        self.grade = self.kwargs["slug"]
         qs = (
             ResourceItem.objects.filter(grade__slug=self.grade)
         )

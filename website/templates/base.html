@@ -10,9 +10,9 @@
     <link rel="shortcut icon" href="{% static 'images/logo.svg' %}"/>
 
     {% block seo_title_block %}
-        <title>{% block title %}{{ site_settings.site_name|default:'CBE Resource Hub' }}{% endblock %} — Kenya CBC
+        <title>{% block title %}{% endblock %} - {{ site_settings.site_name|default:'CBE Resource Hub' }} - Kenya CBC
             Learning Resources</title>
-        <meta name="title" content="{% block meta_title_value %}{{ site_settings.site_name|default:'CBE Resource Hub' }} — Kenya CBC Learning Resources{% endblock %}"/>
+        <meta name="title" content="{% block meta_title_value %}{{ site_settings.site_name|default:'CBE Resource Hub' }} - Kenya CBC Learning Resources{% endblock %}"/>
     {% endblock %}
 
     {# ── SEO: Description ─────────────────────────────────────────────────── #}
@@ -37,12 +37,12 @@
     <meta property="og:site_name" content="{{ site_settings.site_name|default:'CBE Resource Hub' }}"/>
     <meta property="og:locale" content="en_KE"/>
     <meta property="og:url" content="{{ request.build_absolute_uri }}"/>
-    <meta property="og:title" content="{% block og_title %}{{ site_settings.site_name|default:'CBE Resource Hub' }} — Kenya CBC Learning Resources{% endblock %}"/>
+    <meta property="og:title" content="{% block og_title %}{{ site_settings.site_name|default:'CBE Resource Hub' }} - Kenya CBC Learning Resources Hub{% endblock %}"/>
     <meta property="og:description" content="{% block og_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}"/>
     <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endblock %}"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
-    <meta property="og:image:alt" content="CBE Resource Hub — Free CBC Resources for Kenyan Learners"/>
+    <meta property="og:image:alt" content="CBE Resource Hub - Free CBC Resources for Kenyan Learners"/>
 
     {# ── SEO: Twitter Card ────────────────────────────────────────────────── #}
     <meta name="twitter:card" content="summary_large_image"/>
@@ -82,17 +82,17 @@
     <!-- Bun / Tailwind v4 generated CSS -->
     <link rel="stylesheet" href="{% static 'css/src/output.css' %}"/>
 
-    <!-- HTMX — local asset, loaded with defer -->
+    <!-- HTMX - local asset, loaded with defer -->
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
 
-    <!-- Alpine.js Intersect plugin (required for x-intersect) — loaded before Alpine -->
+    <!-- Alpine.js Intersect plugin (required for x-intersect) - loaded before Alpine -->
     <script src="{% static 'js/alpine-intersect.min.js' %}" defer></script>
 
-    <!-- Alpine.js Collapse plugin (required for x-collapse) — loaded before Alpine -->
+    <!-- Alpine.js Collapse plugin (required for x-collapse) - loaded before Alpine -->
     <script src="{% static 'js/alpine-collapse.min.js' %}" defer></script>
 
 
-    <!-- Alpine.js — local asset, loaded with defer -->
+    <!-- Alpine.js - local asset, loaded with defer -->
     <script src="{% static 'js/alpine.min.js' %}" defer></script>
 
     <!-- HTMX ↔ Django CSRF strategy: attach the CSRF token to every mutating request -->

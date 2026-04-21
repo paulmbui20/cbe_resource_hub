@@ -1,12 +1,13 @@
 # seo/middleware.py
 
+import logging
+
+from django.core.cache import cache
 from django.http import HttpResponsePermanentRedirect
 from django.urls import resolve, Resolver404
-from django.core.cache import cache
 
 from cbe_res_hub.settings import CACHE_TIMEOUT
 from seo.models import SlugRedirect
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,11 @@ class SlugRedirectMiddleware:
 
     # Views that use slug-based URLs
     SLUG_VIEWS = {
-        'resource_detail',
+        'resources:resource_detail',
+        'resources:learning_area_details',
+        'resources:grade_details',
+        'resources:education_level_details',
+        'cms:page_detail',
 
     }
 

@@ -215,7 +215,7 @@ class SEOModel(TimeStampedModel, models.Model):
             self.optimize_image()
 
 
-class SlugRedirect(models.Model):
+class SlugRedirect(TimeStampedModel, models.Model):
     """
     Stores previous slugs for permanent redirects.
     Indexed for blazingly fast lookups with zero latency impact.
@@ -240,8 +240,6 @@ class SlugRedirect(models.Model):
         help_text="Current slug to redirect to"
     )
 
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    updated_at = models.DateTimeField(auto_now=True)
     hit_count = models.PositiveIntegerField(
         default=0,
         help_text="Track redirect usage for analytics"
@@ -374,7 +372,7 @@ class SlugRedirectMixin(models.Model):
         # Check if this is an update and slug has changed
         if self.pk:
             try:
-                old_instance = self.__class__.objects.only('slug').get(pk=self.pk)
+                old_instance = self.__class__.objects.get(pk=self.pk)
                 old_slug = old_instance.slug
                 new_slug = self.slug
 
@@ -411,14 +409,14 @@ class SlugRedirectMixin(models.Model):
         """
         from django_redis import get_redis_connection
 
-        # Get model name for cache keys
-        model_name = self.__class__.__name__.lower()
+        # Get model name and app label for cache keys
+        model_name = self._meta.model_name
+        app_label = self._meta.app_label
 
         # Clear specific cache keys
         cache_keys = [
             f'slug_redirect_{slug}',  # CRITICAL: Clear redirect cache
-            f'{slug}_{model_name}_cache',
-            f'{model_name}_escorts_{slug}_list',
+            f"{app_label}:{model_name}:{slug}",
         ]
         cache.delete_many(cache_keys)
 
@@ -449,15 +447,14 @@ class SlugRedirectMixin(models.Model):
         Clear cache entries for this slug.
         Override this method in your model for custom cache clearing.
         """
-        # Get model name for cache key
-        model_name = self.__class__.__name__.lower()
+        # Get model name and app label for cache keys
+        model_name = self._meta.model_name
+        app_label = self._meta.app_label
 
-        # Clear common cache patterns
+        # Clear specific cache keys
         cache_keys = [
-            f"{model_name}_detail_{slug}",
-            f"{slug}_{model_name}_cache",
-            f"{model_name}_escorts_{slug}_list",
-            f'slug_redirect_{slug}',  # Always clear redirect cache
+            f'slug_redirect_{slug}',  # CRITICAL: Clear redirect cache
+            f"{app_label}:{model_name}:{slug}",
         ]
 
         cache.delete_many(cache_keys)

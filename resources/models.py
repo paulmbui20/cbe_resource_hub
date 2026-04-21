@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db import models
+from django.db.models import F
 from django.db.models.functions import Lower
 from django.urls import reverse
 from django.utils.html import strip_tags
@@ -88,7 +89,7 @@ class Grade(SEOModel, models.Model):
     objects = GradeManager()
 
     def get_absolute_url(self) -> str:
-        return reverse("resources:grade_details", kwargs={"grade": self.slug})
+        return reverse("resources:grade_details", kwargs={"slug": self.slug})
 
     def save(self, *args, **kwargs):
         if self.name and not self.slug:
@@ -120,7 +121,7 @@ class LearningArea(SEOModel, models.Model):
     slug: str = models.SlugField(max_length=110, unique=True, db_index=True)
 
     def get_absolute_url(self) -> str:
-        return reverse("resources:learning_area_details", kwargs={"learning_area": self.slug})
+        return reverse("resources:learning_area_details", kwargs={"slug": self.slug})
 
     class Meta:
         verbose_name = "Learning Area"
@@ -261,9 +262,8 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
         return self.title
 
     def save(self, *args, **kwargs) -> None:
-        if not self.slug:
-            self.slug = slugify(self.title)[:265]
-        if self.title and not self.meta_title:
+        if self.title:
+            self.slug = slugify(self.title[:265])
             self.meta_title = self.title[:60]
         if self.description and not self.meta_description:
             self.meta_description = strip_tags(self.description)[:160]
@@ -284,6 +284,5 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
         Atomically increment the download counter.
         Use F() to avoid race conditions under concurrent requests.
         """
-        from django.db.models import F
         ResourceItem.objects.filter(pk=self.pk).update(downloads=F("downloads") + 1)
         self.refresh_from_db(fields=["downloads"])

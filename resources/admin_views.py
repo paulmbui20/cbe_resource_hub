@@ -4,6 +4,7 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 
 from accounts.admin_views import IsAdminMixin
+from resources.forms import ResourceItemForm
 from resources.models import ResourceItem
 
 
@@ -30,17 +31,15 @@ class AdminResourceListView(IsAdminMixin, ListView):
 class AdminResourceCreateView(IsAdminMixin, CreateView):
     model = ResourceItem
     template_name = "admin/seo_form.html"
-    fields = ["title", "slug", "resource_type", "description", "grade", "learning_area", "file", "is_free", "price",
-              "vendor",
-              "meta_title", "meta_description", "meta_keywords", "featured_image"]
+    form_class = ResourceItemForm
     success_url = reverse_lazy("management:resource_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "Create New Resource"
-        ctx["cancel_url"] = self.success_url
-        ctx["parent_title"] = "Resources"
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Create New Resource"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Resources"
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Resource created successfully.")
@@ -50,17 +49,15 @@ class AdminResourceCreateView(IsAdminMixin, CreateView):
 class AdminResourceUpdateView(IsAdminMixin, UpdateView):
     model = ResourceItem
     template_name = "admin/seo_form.html"
-    fields = ["title", "slug", "resource_type", "description", "grade", "learning_area", "file", "is_free", "price",
-              "vendor",
-              "meta_title", "meta_description", "meta_keywords", "featured_image"]
+    form_class = ResourceItemForm
     success_url = reverse_lazy("management:resource_list")
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = f"Edit Resource: {self.object.title}"
-        ctx["cancel_url"] = self.success_url
-        ctx["parent_title"] = "Resources"
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Edit Resource: {self.object.title}"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Resources"
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Resource updated successfully.")
