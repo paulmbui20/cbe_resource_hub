@@ -114,10 +114,19 @@ class ResourceDetailView(DetailView):
     """
     Single resource detail page.
     """
-
     model = ResourceItem
     template_name = "resources/resource_detail.html"
     context_object_name = "resource"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Pre-fetch user favorites to avoid N+1 queries in the template
+        if self.request.user.is_authenticated:
+            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+        else:
+            context["user_favorite_ids"] = set()
+
+        return context
 
 
 @require_POST
@@ -128,7 +137,6 @@ def increment_downloads(request, slug):
         resource_item.increment_downloads()
         resource_item_final_downloads = resource_item.downloads
         message = f"Download incremented from {resource_item_initial_downloads} to {resource_item_final_downloads}"
-        print(message)
         return JsonResponse(
             {
                 "success": message
@@ -265,6 +273,12 @@ class ResourceTypeDetailView(ListView):
         context["learning_areas"] = get_learning_areas()
         context["resource_types"] = get_resource_types()
 
+        # Pre-fetch user favorites to avoid N+1 queries in the template
+        if self.request.user.is_authenticated:
+            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+        else:
+            context["user_favorite_ids"] = set()
+
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -336,6 +350,12 @@ class EducationLevelDetailsView(ListView):
         context['current_grade'] = self.request.GET.get("grade", '')
         context['search_query'] = self.request.GET.get("q", '')
 
+        # Pre-fetch user favorites to avoid N+1 queries in the template
+        if self.request.user.is_authenticated:
+            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+        else:
+            context["user_favorite_ids"] = set()
+
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -395,6 +415,12 @@ class LearningAreaDetailsView(ListView):
         context['current_grade'] = self.request.GET.get("grade", '')
         context['search_query'] = self.request.GET.get("q", '')
 
+        # Pre-fetch user favorites to avoid N+1 queries in the template
+        if self.request.user.is_authenticated:
+            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+        else:
+            context["user_favorite_ids"] = set()
+
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -451,6 +477,12 @@ class GradeDetailsView(ListView):
         context['current_learning_area'] = self.request.GET.get("learning_area", '')
         context['current_resource_type'] = self.request.GET.get("resource_type", '')
         context['search_query'] = self.request.GET.get("q", '')
+
+        # Pre-fetch user favorites to avoid N+1 queries in the template
+        if self.request.user.is_authenticated:
+            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+        else:
+            context["user_favorite_ids"] = set()
 
         return context
 

@@ -157,7 +157,7 @@ class ResourceItemManager(models.Manager):
         return (
             super().get_queryset().select_related(
                 "grade", "grade__level", "vendor", "learning_area",
-            )
+            ).prefetch_related("favorited_by")
         )
 
 

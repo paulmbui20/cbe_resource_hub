@@ -1,65 +1,62 @@
 {% load static %}
 {% if filters %}
-<!-- Resource cards grid -->
-<div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-6 gap-5 mb-2">
-  {% for filter in filters %}
-  <article class="mb-2 group relative flex flex-col rounded-2xl bg-white/5 border border-white/10 hover:border-brand-gold/50 hover:bg-white/8 transition-all duration-300 overflow-hidden shadow-md hover:shadow-brand-gold/10 hover:shadow-lg"
-           id="filter-{{ filter.pk }}">
+    <!-- Resource cards grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-6 gap-5 mb-2">
+        {% for filter in filters %}
+            <article
+                    class="mb-2 group relative flex flex-col rounded-2xl bg-white/5 border border-white/10 hover:border-brand-gold/50 hover:bg-white/8 transition-all duration-300 overflow-hidden shadow-md hover:shadow-brand-gold/10 hover:shadow-lg"
+                    id="filter-{{ filter.pk }}">
+                <div class="p-5 flex flex-col flex-1 gap-3">
+                    <!-- Title -->
+                    <h2 class="text-sm font-semibold text-white leading-snug line-clamp-2 group-hover:text-brand-gold transition-colors">
+                        <a href="{{ filter.get_absolute_url }}" class="stretched-link after:absolute after:inset-0">
+                            {{ filter.name }}
+                        </a>
+                    </h2>
 
-    <!-- Colored top stripe based on learning area -->
-    <div class="h-1.5 bg-linear-to-r from-brand-gold/50 to-brand-gold/75"></div>
+                    <!-- Description -->
+                    <article class="text-xs text-white/50 leading-relaxed line-clamp-2 flex-1">
+                        {{ filter.meta_description|truncatewords:5 }}
+                    </article>
 
-    <div class="p-5 flex flex-col flex-1 gap-3">
-
-      <!-- Title -->
-      <h2 class="text-sm font-semibold text-white leading-snug line-clamp-2 group-hover:text-brand-gold transition-colors">
-        <a href="{{ filter.get_absolute_url }}" class="stretched-link after:absolute after:inset-0">
-          {{ filter.name }}
-        </a>
-      </h2>
-
-      <!-- Description -->
-      <article class="text-xs text-white/50 leading-relaxed line-clamp-2 flex-1">
-        {{ filter.meta_description|truncatewords:5 }}
-      </article>
-
-      <!-- Footer meta -->
-      <div class="pt-2 border-t border-white/5 flex items-center justify-between text-xs text-white/40">
-        <span class="flex items-center gap-1">
-          {{ filter.resources.count }} Resources
-        </span>
-      </div>
+                    <!-- Footer meta -->
+                    <div class="pt-2 border-t border-white/5 flex items-center justify-between text-xs text-white/40">
+                        <span class="flex items-center gap-1">
+                          {{ filter.resources.count }} Resources
+                        </span>
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
     </div>
-  </article>
-  {% endfor %}
-</div>
 
-<!-- ─── HTMX Infinite Scroll trigger ─────────────────────────────── -->
-{% if page_obj.has_next %}
-<div id="htmx-next-page"
-     hx-get="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_area %}&area={{ current_area }}{% endif %}"
-     hx-trigger="revealed"
-     hx-swap="outerHTML"
-     hx-indicator="#load-indicator"
-     class="flex justify-center py-8 mt-4">
-  <span class="text-white/30 text-sm animate-pulse">Loading more…</span>
-</div>
-{% endif %}
+    <!-- ─── HTMX Infinite Scroll trigger ─────────────────────────────── -->
+    {% if page_obj.has_next %}
+        <div id="htmx-next-page"
+             hx-get="?page=
+                     {{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_area %}&area={{ current_area }}{% endif %}"
+             hx-trigger="revealed"
+             hx-swap="outerHTML"
+             hx-indicator="#load-indicator"
+             class="flex justify-center py-8 mt-4">
+            <span class="text-white/30 text-sm animate-pulse">Loading more…</span>
+        </div>
+    {% endif %}
 
-<!-- Loading indicator (hidden by default, shown during HTMX request) -->
-<div id="load-indicator" class="htmx-indicator flex justify-center py-4">
-  <svg class="animate-spin h-6 w-6 text-brand-gold" fill="none" viewBox="0 0 24 24">
-    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-    <path class="opacity-75" fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-  </svg>
-</div>
+    <!-- Loading indicator (hidden by default, shown during HTMX request) -->
+    <div id="load-indicator" class="htmx-indicator flex justify-center py-4">
+        <svg class="animate-spin h-6 w-6 text-brand-gold" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+    </div>
 
 {% else %}
-<!-- Empty state -->
-<div class="flex flex-col items-center justify-center py-24 text-center">
-  <div class="text-5xl mb-4">📭</div>
-  <h2 class="text-xl font-semibold text-white/70 mb-2">No filters found</h2>
-  <p class="text-sm text-white/40">Try adjusting your filters or search terms.</p>
-</div>
+    <!-- Empty state -->
+    <div class="flex flex-col items-center justify-center py-24 text-center">
+        <div class="text-5xl mb-4">📭</div>
+        <h2 class="text-xl font-semibold text-white/70 mb-2">No filters found</h2>
+        <p class="text-sm text-white/40">Try adjusting your filters or search terms.</p>
+    </div>
 {% endif %}
