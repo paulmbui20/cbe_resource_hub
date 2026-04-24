@@ -19,9 +19,10 @@ from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
 
+from core.models import AcademicSession
 from .admin_views import VendorRequiredMixin
 from .cache import get_learning_areas, get_grades, get_resource_types, get_education_levels, \
-    get_slug_based_object_or_404_with_cache
+    get_slug_based_object_or_404_with_cache, get_academic_sessions
 from .forms import ResourceItemForm
 from .models import EducationLevel, LearningArea, ResourceItem, Grade
 
@@ -495,6 +496,71 @@ class GradeDetailsView(ListView):
         return super().render_to_response(context, **response_kwargs)
 
 
+class AcademicSessionDetailView(ListView):
+    template_name = "resources/academic_session_detail.html"
+    partial_template_name = "resources/partials/resource_cards.html"
+    context_object_name = "resources"
+    paginate_by = 24
+
+    def get_queryset(self) -> QuerySet[ResourceItem]:
+        self.academic_session = self.kwargs["slug"]
+        qs = (
+            ResourceItem.objects.filter(academic_session__slug=self.academic_session)
+        )
+
+        q = self.request.GET.get("q")
+        q = q.strip() if q else ''
+
+        learning_area_id = self.request.GET.get("learning_area")
+        learning_area_id = int(learning_area_id) if learning_area_id else None
+        resource_type = self.request.GET.get("resource_type")
+        resource_type = str(resource_type) if resource_type else None
+        grade = self.request.GET.get("grade", '')
+        grade = int(grade) if grade else None
+
+        if q:
+            qs = qs.filter(
+                Q(title__icontains=q) | Q(description__icontains=q)
+            )
+        if learning_area_id:
+            qs = qs.filter(learning_area_id=learning_area_id)
+        if resource_type:
+            qs = qs.filter(resource_type=resource_type)
+        if grade:
+            qs = qs.filter(grade_id=grade)
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["academic_session"] = get_slug_based_object_or_404_with_cache(AcademicSession, self.academic_session)
+        context["all_academic_sessions"] = get_academic_sessions()
+        context["grades"] = get_grades()
+        context["learning_areas"] = get_learning_areas()
+        context["resource_types"] = get_resource_types()
+
+        context['current_learning_area'] = self.request.GET.get("learning_area", '')
+        context['current_resource_type'] = self.request.GET.get("resource_type", '')
+        context['current_grade'] = self.request.GET.get("grade", '')
+        context['search_query'] = self.request.GET.get("q", '')
+
+        # Pre-fetch user favorites to avoid N+1 queries in the template
+        if self.request.user.is_authenticated:
+            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+        else:
+            context["user_favorite_ids"] = set()
+
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Return a partial HTML snippet for HTMX requests; full page otherwise.
+        """
+        if self.request.headers.get("HX-Request"):
+            self.template_name = self.partial_template_name
+        return super().render_to_response(context, **response_kwargs)
+
+
 class LearningAreaListView(ListView):
     """
     SEO-optimized landing page for all Learning Areas.
@@ -552,10 +618,10 @@ class GradeListView(ListView):
         - Partial template ``resources/partials/filter_cards.html`` for HTMX requests
     """
 
-    page_size = 24
+    paginate_by = 24
     template_name = "resources/grade_list.html"
     partial_template_name = "resources/partials/filter_cards.html"
-    context_object_name = "filters"
+    context_object_name = "academic_sessions"
 
     def get_queryset(self) -> QuerySet[Grade]:
         """
@@ -570,6 +636,40 @@ class GradeListView(ListView):
         if q:
             qs = qs.filter(name__icontains=q)
 
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["search_query"] = self.request.GET.get("q")
+
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Return a partial HTML snippet for HTMX requests; full page otherwise.
+        """
+
+        if self.request.headers.get("HX-Request"):
+            self.template_name = self.partial_template_name
+        return super().render_to_response(context, **response_kwargs)
+
+
+class AcademicSessionListView(ListView):
+    paginate_by = 24
+    template_name = "resources/academic_session_list.html"
+    partial_template_name = "resources/partials/academic_sessions_cards.html"
+    context_object_name = "academic_sessions"
+
+    def get_queryset(self):
+        qs = get_academic_sessions()
+
+        q = self.request.GET.get("q")
+        q = q.strip() if q else None
+
+        if q:
+            qs = qs.filter(
+                Q(current_year__year__icontains=q) | Q(current_term__term_number__icontains=q)
+            )
         return qs
 
     def get_context_data(self, **kwargs):

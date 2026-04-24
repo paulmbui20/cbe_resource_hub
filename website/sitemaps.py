@@ -12,7 +12,7 @@ from django.db.models import Max
 from django.urls import reverse
 
 from cms.models import Page
-from resources.cache import get_learning_areas, get_grades, get_education_levels
+from resources.cache import get_learning_areas, get_grades, get_education_levels, get_academic_sessions
 from resources.models import ResourceItem
 from website.models import Partner
 
@@ -28,6 +28,7 @@ class StaticViewSitemap(Sitemap):
             "home", "contact", "partners",
             "resources:list", "resources:grade_list",
             "resources:learning_areas_list",
+            "resources:academic_session_list",
         ]
 
     def location(self, item):
@@ -124,6 +125,19 @@ class LearningAreaSitemap(Sitemap):
         return obj.updated_at
 
 
+class AcademicSessionSitemap(Sitemap):
+    priority = 0.4
+    changefreq = "weekly"
+    protocol = "https" if not settings.DEBUG else "http"
+
+    def items(self):
+        return get_academic_sessions()
+
+    def location(self, obj):
+        return reverse("resources:academic_session_detail", kwargs={"slug": obj.slug})
+
+
+
 class EducationLevelSitemap(Sitemap):
     priority = 0.4
     changefreq = "weekly"
@@ -162,4 +176,5 @@ sitemaps = {
     "grades": GradeSitemap,
     "learning_areas": LearningAreaSitemap,
     "education_levels": EducationLevelSitemap,
+    "academic_sessions": AcademicSessionSitemap,
 }

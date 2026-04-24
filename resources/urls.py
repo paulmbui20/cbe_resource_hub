@@ -3,7 +3,7 @@ from django.contrib.sitemaps.views import sitemap
 from django.urls import path, re_path
 
 from website.sitemaps import ResourceSitemap, ResourceTypeSitemap, GradeSitemap, EducationLevelSitemap, \
-    LearningAreaSitemap
+    LearningAreaSitemap, AcademicSessionSitemap
 from . import views
 
 resources_sitemaps = {"resources": ResourceSitemap}
@@ -11,6 +11,7 @@ resources_types_sitemaps = {"resources_type": ResourceTypeSitemap}
 grades_sitemaps = {"grades": GradeSitemap}
 education_levels_sitemaps = {"education_levels": EducationLevelSitemap}
 learning_areas_sitemaps = {"learning_areas": LearningAreaSitemap}
+academic_sessions_sitemaps = {"academic_sessions": AcademicSessionSitemap}
 
 app_name = "resources"
 
@@ -23,6 +24,12 @@ urlpatterns = [
 
     # public resources endpoints
     path("", views.ResourceListView.as_view(), name="list"),
+
+    path("academic-sessions/sitemap.xml/", sitemap, {"sitemaps": academic_sessions_sitemaps},
+         name="academic_sessions_sitemap"),
+    path("academic-sessions/", views.AcademicSessionListView.as_view(), name="academic_session_list"),
+    re_path(r'^academic-sessions(?:/(?P<slug>[-\w]+))?/$', views.AcademicSessionDetailView.as_view(),
+            name="academic_session_detail"),
 
     path("type/sitemap.xml", sitemap, {'sitemaps': resources_types_sitemaps}, name="type_sitemaps"),
     re_path(r'^type(?:/(?P<resource_type>[-\w]+))?/$', views.ResourceTypeDetailView.as_view(), name="type_detail"),

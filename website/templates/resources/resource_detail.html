@@ -90,6 +90,13 @@
                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/70 underline">
                             {{ resource.resource_type }}
                         </a>
+                        {% if resource.academic_session %} >
+                            <a href="{% url 'resources:academic_session_detail' resource.academic_session.slug %}"
+                               title="View more {{ resource.academic_session|lower }}"
+                               class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/70 underline">
+                                {{ resource.academic_session }}
+                            </a>
+                        {% endif %}
 
                     </div>
                     <p class="mb-4  text-xs text-white/30">

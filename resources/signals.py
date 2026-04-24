@@ -2,15 +2,8 @@ from django.core.cache import cache
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
+from core.utils import clear_object_cache
 from resources.models import LearningArea, Grade, EducationLevel
-
-
-def clear_object_cache(model, slug):
-    cache_base_key = f"{model._meta.app_label}:{model._meta.model_name}:{slug}"
-
-    object_instance_cache = cache.get(cache_base_key)
-    if object_instance_cache:
-        cache.delete(cache_base_key)
 
 
 @receiver([post_save, post_delete], sender=LearningArea)

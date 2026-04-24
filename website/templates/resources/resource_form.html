@@ -2,137 +2,174 @@
 {% load static %}
 
 {% block title %}
-  {% if object %}Edit Resource{% else %}Add Resource{% endif %}
+    {% if object %}Edit Resource{% else %}Add Resource{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-  
-  {# Breadcrumb #}
-  <nav class="flex items-center gap-2 text-xs text-white/40 mb-8" aria-label="Breadcrumb">
-    <a href="{% url 'accounts:dashboard' %}" class="hover:text-white transition-colors">Dashboard</a>
-    <span>/</span>
-    <span class="text-white/60">{% if object %}Edit Resource{% else %}Add Resource{% endif %}</span>
-  </nav>
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-  <div class="rounded-2xl bg-white/5 border border-white/10 overflow-hidden shadow-lg">
-    <div class="h-1 bg-linear-to-r from-brand-primary to-brand-accent"></div>
-    <div class="p-8">
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-white">{% if object %}Edit Resource{% else %}Add New Resource{% endif %}</h1>
-        {% if object %}
-        <a href="{% url 'resources:manage_delete' object.slug %}" class="text-xs text-red-400 hover:text-red-300 transition-colors font-semibold py-1.5 px-3 rounded-lg bg-red-400/10 hover:bg-red-400/20">
-          Delete Resource
-        </a>
-        {% endif %}
-      </div>
-      {{ form.media }}
+        {# Breadcrumb #}
+        <nav class="flex items-center gap-2 text-xs text-white/40 mb-8" aria-label="Breadcrumb">
+            <a href="{% url 'accounts:dashboard' %}" class="hover:text-white transition-colors">Dashboard</a>
+            <span>/</span>
+            <span class="text-white/60">{% if object %}Edit Resource{% else %}Add Resource{% endif %}</span>
+        </nav>
 
-      <form method="post" enctype="multipart/form-data" novalidate>
-        {% csrf_token %}
-        
-        {% if form.non_field_errors %}
-        <div class="mb-6 p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 text-sm">
-          {{ form.non_field_errors }}
+        <div class="rounded-2xl bg-white/5 border border-white/10 overflow-hidden shadow-lg">
+            <div class="h-1 bg-linear-to-r from-brand-primary to-brand-accent"></div>
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h1 class="text-2xl font-bold text-white">{% if object %}Edit Resource{% else %}Add New
+                        Resource{% endif %}</h1>
+                    {% if object %}
+                        <a href="{% url 'resources:manage_delete' object.slug %}"
+                           class="text-xs text-red-400 hover:text-red-300 transition-colors font-semibold py-1.5 px-3 rounded-lg bg-red-400/10 hover:bg-red-400/20">
+                            Delete Resource
+                        </a>
+                    {% endif %}
+                </div>
+                {{ form.media }}
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="mb-6 p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 text-sm">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    {# Title #}
+                    <div class="mb-5">
+                        <label for="{{ form.title.id_for_label }}"
+                               class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Title
+                            *</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ form.title.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    {# Description #}
+                    <div class="mb-5">
+                        <label for="{{ form.description.id_for_label }}"
+                               class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Description
+                            *</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ form.description.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+                        {# Grade #}
+                        <div>
+                            <label for="{{ form.grade.id_for_label }}"
+                                   class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Grade
+                                *</label>
+                            {{ form.grade }}
+                            {% if form.grade.errors %}
+                                <p class="mt-1 text-xs text-red-400">{{ form.grade.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        {# Subject #}
+                        <div>
+                            <label for="{{ form.learning_area.id_for_label }}"
+                                   class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Subject
+                                *</label>
+                            {{ form.learning_area }}
+                            {% if form.learning_area.errors %}
+                                <p class="mt-1 text-xs text-red-400">{{ form.learning_area.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+
+                        {# Resource Type #}
+                        <div class="mb-5">
+                            <label for="{{ form.resource_type.id_for_label }}"
+                                   class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Resource
+                                Type *</label>
+                            {{ form.resource_type }}
+                            {% if form.resource_type.errors %}
+                                <p class="mt-1 text-xs text-red-400">{{ form.resource_type.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        {# Resource Type #}
+                        <div class="mb-5">
+                            <label for="{{ form.academic_session.id_for_label }}"
+                                   class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Academic
+                                Session</label>
+                            {{ form.academic_session }}
+                            {% if form.academic_session.errors %}
+                                <p class="mt-1 text-xs text-red-400">{{ form.academic_session.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    {# File Upload #}
+                    <div class="mb-6">
+                        <label for="{{ form.file.id_for_label }}"
+                               class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Resource
+                            File *</label>
+                        <div class="p-4 rounded-xl border border-dashed border-white/20 bg-white/2">
+                            {{ form.file }}
+                        </div>
+                        {% if form.file.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ form.file.errors.0 }}</p>{% endif %}
+                        <p class="mt-2 text-xs text-white/40">Upload your PDF, DOCX, or ZIP containing the
+                            resource.</p>
+                    </div>
+
+                    {# Pricing #}
+                    <div class="mb-8 p-4 rounded-xl bg-linear-to-br from-brand-gold/10 to-transparent border border-brand-gold/20">
+                        <h3 class="text-sm font-semibold text-brand-gold mb-3">Pricing Settings</h3>
+                        <span><small>Currently defaults to free</small></span>
+                        <div class="flex items-center gap-3 mb-4">
+                            {{ form.is_free }}
+                            <label for="{{ form.is_free.id_for_label }}"
+                                   class="text-sm text-white/80 font-medium cursor-pointer">Offer this resource for
+                                free</label>
+                        </div>
+
+                        {#          <div id="price-field-wrapper" class="{% if form.is_free.value %}opacity-50 pointer-events-none{% endif %} transition-opacity">#}
+                        {#            <label for="{{ form.price.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Price (KES)</label>#}
+                        {#            <div class="relative">#}
+                        {#              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-white/40 text-sm">KES</span>#}
+                        {#              <input type="number" name="{{ form.price.name }}" id="{{ form.price.id_for_label }}" value="{{ form.price.value|default:'0.00' }}" class="w-full rounded-lg bg-white/5 border border-white/10 pl-11 pr-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-gold">#}
+                        {#            </div>#}
+                        {#            {% if form.price.errors %}<p class="mt-1 text-xs text-red-400">{{ form.price.errors.0 }}</p>{% endif %}#}
+                        {#          </div>#}
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-white/10">
+                        <button type="submit"
+                                class="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-primary/20">
+                            {% if object %}Save Changes{% else %}Upload Resource{% endif %}
+                        </button>
+                        <a href="{% url 'accounts:dashboard' %}"
+                           class="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-colors">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% endif %}
-
-        {# Title #}
-        <div class="mb-5">
-          <label for="{{ form.title.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Title *</label>
-          {{ form.title }}
-          {% if form.title.errors %}<p class="mt-1 text-xs text-red-400">{{ form.title.errors.0 }}</p>{% endif %}
-        </div>
-
-        {# Description #}
-        <div class="mb-5">
-          <label for="{{ form.description.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Description *</label>
-          {{ form.description }}
-          {% if form.description.errors %}<p class="mt-1 text-xs text-red-400">{{ form.description.errors.0 }}</p>{% endif %}
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-          {# Grade #}
-          <div>
-            <label for="{{ form.grade.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Grade *</label>
-            {{ form.grade }}
-            {% if form.grade.errors %}<p class="mt-1 text-xs text-red-400">{{ form.grade.errors.0 }}</p>{% endif %}
-          </div>
-
-          {# Subject #}
-          <div>
-            <label for="{{ form.learning_area.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Subject *</label>
-            {{ form.learning_area }}
-            {% if form.learning_area.errors %}<p class="mt-1 text-xs text-red-400">{{ form.learning_area.errors.0 }}</p>{% endif %}
-          </div>
-        </div>
-
-        {# Resource Type #}
-        <div class="mb-5">
-          <label for="{{ form.resource_type.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Resource Type *</label>
-          {{ form.resource_type }}
-          {% if form.resource_type.errors %}<p class="mt-1 text-xs text-red-400">{{ form.resource_type.errors.0 }}</p>{% endif %}
-        </div>
-
-        {# File Upload #}
-        <div class="mb-6">
-          <label for="{{ form.file.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Resource File *</label>
-          <div class="p-4 rounded-xl border border-dashed border-white/20 bg-white/2">
-            {{ form.file }}
-          </div>
-          {% if form.file.errors %}<p class="mt-1 text-xs text-red-400">{{ form.file.errors.0 }}</p>{% endif %}
-          <p class="mt-2 text-xs text-white/40">Upload your PDF, DOCX, or ZIP containing the resource.</p>
-        </div>
-
-        {# Pricing #}
-        <div class="mb-8 p-4 rounded-xl bg-linear-to-br from-brand-gold/10 to-transparent border border-brand-gold/20">
-          <h3 class="text-sm font-semibold text-brand-gold mb-3">Pricing Settings</h3>
-            <span><small>Currently defaults to free</small></span>
-          <div class="flex items-center gap-3 mb-4">
-            {{ form.is_free }}
-            <label for="{{ form.is_free.id_for_label }}" class="text-sm text-white/80 font-medium cursor-pointer">Offer this resource for free</label>
-          </div>
-          
-{#          <div id="price-field-wrapper" class="{% if form.is_free.value %}opacity-50 pointer-events-none{% endif %} transition-opacity">#}
-{#            <label for="{{ form.price.id_for_label }}" class="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Price (KES)</label>#}
-{#            <div class="relative">#}
-{#              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-white/40 text-sm">KES</span>#}
-{#              <input type="number" name="{{ form.price.name }}" id="{{ form.price.id_for_label }}" value="{{ form.price.value|default:'0.00' }}" class="w-full rounded-lg bg-white/5 border border-white/10 pl-11 pr-3 py-2 text-sm text-white focus:ring-2 focus:ring-brand-gold">#}
-{#            </div>#}
-{#            {% if form.price.errors %}<p class="mt-1 text-xs text-red-400">{{ form.price.errors.0 }}</p>{% endif %}#}
-{#          </div>#}
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-white/10">
-          <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-primary/20">
-            {% if object %}Save Changes{% else %}Upload Resource{% endif %}
-          </button>
-          <a href="{% url 'accounts:dashboard' %}" class="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-colors">
-            Cancel
-          </a>
-        </div>
-      </form>
     </div>
-  </div>
-</div>
 
-{#<script>#}
-{#  // Simple toggle for price field opacity based on 'is_free' checkbox#}
-{#  document.addEventListener('DOMContentLoaded', () => {#}
-{#    const isFreeCb = document.getElementById('{{ form.is_free.id_for_label }}');#}
-{#    const priceWrapper = document.getElementById('price-field-wrapper');#}
-{#    const priceInput = document.getElementById('{{ form.price.id_for_label }}');#}
-{#    #}
-{#    if(isFreeCb && priceWrapper) {#}
-{#      isFreeCb.addEventListener('change', (e) => {#}
-{#        if(e.target.checked) {#}
-{#          priceWrapper.classList.add('opacity-50', 'pointer-events-none');#}
-{#          priceInput.value = '0.00';#}
-{#        } else {#}
-{#          priceWrapper.classList.remove('opacity-50', 'pointer-events-none');#}
-{#        }#}
-{#      });#}
-{#    }#}
-{#  });#}
-{#</script>#}
+    {#<script>#}
+    {#  // Simple toggle for price field opacity based on 'is_free' checkbox#}
+    {#  document.addEventListener('DOMContentLoaded', () => {#}
+    {#    const isFreeCb = document.getElementById('{{ form.is_free.id_for_label }}');#}
+    {#    const priceWrapper = document.getElementById('price-field-wrapper');#}
+    {#    const priceInput = document.getElementById('{{ form.price.id_for_label }}');#}
+    {#    #}
+    {#    if(isFreeCb && priceWrapper) {#}
+    {#      isFreeCb.addEventListener('change', (e) => {#}
+    {#        if(e.target.checked) {#}
+    {#          priceWrapper.classList.add('opacity-50', 'pointer-events-none');#}
+    {#          priceInput.value = '0.00';#}
+    {#        } else {#}
+    {#          priceWrapper.classList.remove('opacity-50', 'pointer-events-none');#}
+    {#        }#}
+    {#      });#}
+    {#    }#}
+    {#  });#}
+    {#</script>#}
 {% endblock %}

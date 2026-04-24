@@ -21,11 +21,12 @@ from django.utils.html import strip_tags
 from django.utils.text import slugify
 from tinymce.models import HTMLField
 
+from core.models import AcademicSession
 from resources.utils import PublicFilesStorageCallable, file_upload_path
 from seo.models import SEOModel, SlugRedirectMixin
 
 
-class EducationLevel(SEOModel, models.Model):
+class EducationLevel(SEOModel, SlugRedirectMixin, models.Model):
     """
     Top-level curriculum classification.
 
@@ -70,7 +71,7 @@ class GradeManager(models.Manager):
         )
 
 
-class Grade(SEOModel, models.Model):
+class Grade(SEOModel, SlugRedirectMixin, models.Model):
     """
     A specific grade/class within an EducationLevel.
 
@@ -109,7 +110,7 @@ class Grade(SEOModel, models.Model):
         return f"{self.level.name} — {self.name}"
 
 
-class LearningArea(SEOModel, models.Model):
+class LearningArea(SEOModel, SlugRedirectMixin, models.Model):
     """
     A subject / learning area in the CBC curriculum.
 
@@ -156,7 +157,8 @@ class ResourceItemManager(models.Manager):
     def get_queryset(self):
         return (
             super().get_queryset().select_related(
-                "grade", "grade__level", "vendor", "learning_area",
+                "grade", "grade__level", "vendor", "learning_area", "academic_session",
+                "academic_session__current_year", "academic_session__current_term",
             ).prefetch_related("favorited_by")
         )
 
@@ -189,6 +191,13 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
         LearningArea,
         on_delete=models.PROTECT,
         related_name="resources",
+    )
+    academic_session = models.ForeignKey(
+        AcademicSession,
+        on_delete=models.SET_NULL,
+        related_name="resources",
+        null=True,
+        blank=True
     )
 
     # --- File Storage (Cloudflare R2 in production) ---

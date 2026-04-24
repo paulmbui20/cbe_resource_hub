@@ -34,14 +34,16 @@ PRIMARY_ITEMS = [
     ("Resources", "/resources/", 10),
     ("Learning Areas", reverse("resources:learning_areas_list"), 30),
     ("Grades", reverse("resources:grade_list"), 31),
-    ("Contact", "/contact/", 32),
+    ("Years & Terms", reverse("resources:academic_session_list"), 32),
+    ("Contact", "/contact/", 33),
 ]
 
 # Items added only to the footer Quick Links column.
 FOOTER_ONLY_ITEMS: list[tuple[str, str, int]] = [
-    ("Learning Areas", reverse("resources:learning_areas_list"), 33),
-    ("Grades", reverse("resources:grade_list"), 34),
-    ("Partners", "/partners/", 35),
+    ("Learning Areas", reverse("resources:learning_areas_list"), 34),
+    ("Grades", reverse("resources:grade_list"), 35),
+    ("Years & Terms", reverse("resources:academic_session_list"), 36),
+    ("Partners", "/partners/", 37),
 ]
 
 

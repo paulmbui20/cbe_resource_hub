@@ -3,6 +3,7 @@ from django.core.cache import cache
 from django.db.models import QuerySet, Model
 from django.shortcuts import get_object_or_404
 
+from core.models import AcademicSession
 from resources.models import LearningArea, Grade, ResourceItem, EducationLevel
 
 CACHE_TIMEOUT = getattr(settings, "CACHE_TIMEOUT")
@@ -78,3 +79,13 @@ def get_slug_based_object_or_404_with_cache(model: Model, slug: str):
         if _object:
             cache.set(cache_base_key, _object, CACHE_TIMEOUT)
     return _object
+
+
+def get_academic_sessions() -> QuerySet[AcademicSession]:
+    cache_base_key = "resources:academic_sessions"
+    academic_sessions = cache.get(cache_base_key)
+    if not academic_sessions:
+        academic_sessions = AcademicSession.objects.all()
+        if academic_sessions.exists():
+            cache.set(cache_base_key, academic_sessions, CACHE_TIMEOUT)
+    return academic_sessions
