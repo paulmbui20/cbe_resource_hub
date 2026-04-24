@@ -55,6 +55,7 @@ class AcademicSession(models.Model):
         verbose_name = "Academic Session"
         verbose_name_plural = "Academic Sessions"
         unique_together = ('current_year', 'current_term')
+        ordering = ["current_year", "current_term"]
 
     def __str__(self):
         return f"{self.current_year} - {self.current_term}"

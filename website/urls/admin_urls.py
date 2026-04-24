@@ -8,23 +8,26 @@ urlpatterns = [
     # Dashboard
     path("", views.AdminDashboardView.as_view(), name="dashboard"),
 
+    # CMS eg pages, menus, and settings
+    path("cms/", include("cms.admin_urls")),
+
+    # Core app models like Year, Term, AcademicSession
+    path("core/", include("core.admin_urls")),
+
+    # Files
+    path("files/", include("files.admin_urls")),
+
     # Notifications
     path("notifications/", include("notifications.urls")),
+
+    # Resources (Read-only list, management actions go to regular edit)
+    path("resources/", include("resources.admin_urls")),
 
     # Seo
     path("seo/", include("seo.urls")),
 
     # Users
     path("users/", include("accounts.admin_urls")),
-
-    # CMS eg pages, menus, and settings
-    path("cms/", include("cms.admin_urls")),
-
-    # Files
-    path("files/", include("files.admin_urls")),
-
-    # Resources (Read-only list, management actions go to regular edit)
-    path("resources/", include("resources.admin_urls")),
 
     # Contact Messages
     path("contacts/", views.AdminContactMessageListView.as_view(), name="contact_list"),
