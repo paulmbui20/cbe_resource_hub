@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 from core.utils import current_year
 
@@ -48,6 +49,7 @@ class AcademicSessionManager(models.Manager):
 class AcademicSession(models.Model):
     current_year = models.ForeignKey(Year, on_delete=models.CASCADE, related_name='sessions')
     current_term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='sessions')
+    slug = models.SlugField(max_length=255, unique=True, db_index=True, default='', blank=True)
 
     objects = AcademicSessionManager()
 
@@ -59,3 +61,8 @@ class AcademicSession(models.Model):
 
     def __str__(self):
         return f"{self.current_year} - {self.current_term}"
+
+    def save(self, *args, **kwargs):
+        if self.slug == '' or not self.slug  and (self.current_year and self.current_term):
+            self.slug = slugify(f"{self.current_year}-{self.current_term}"[:255])
+        super().save(*args, **kwargs)

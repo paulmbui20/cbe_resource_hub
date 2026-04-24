@@ -24,6 +24,7 @@
                 <tr class="border-b border-white/8 bg-white/3">
                     <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Year</th>
                     <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Term</th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Slug</th>
                     <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">
                         Actions
                     </th>
@@ -38,6 +39,9 @@
                         <td class="px-5 py-3">
                             <div class="font-medium text-white">{{ academic_session.current_term }}</div>
                         </td>
+                        <td class="px-5 py-3">
+                            <div class="font-medium text-white">{{ academic_session.slug }}</div>
+                        </td>
                         <td class="px-5 py-3 text-right">
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{% url 'management:academic_session_update' academic_session.pk %}"
@@ -50,7 +54,7 @@
                                 </a>
                                 <button type="button"
                                         x-on:click.prevent="$dispatch('open-delete-modal', { url: '{% url 'management:academic_session_delete' academic_session.pk %}', name: '{{ academic_session|escapejs }}' })"
-                                        class="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors tooltip"
+                                        class="hover:cursor-pointer p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors tooltip"
                                         title="Delete">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

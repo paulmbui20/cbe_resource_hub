@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.core.management import BaseCommand
 from django.db import transaction
+from django.utils.text import slugify
 
 from core.models import Year, Term, AcademicSession
 
@@ -55,22 +56,24 @@ class Command(BaseCommand):
                 terms_found += 1
                 self.stdout.write(self.style.NOTICE(f"Found: {term}"))
 
-        accademic_session_found = 0
-        accademic_session_created = 0
+        academic_session_found = 0
+        academic_session_created = 0
         for year in db_years:
             for term in db_terms:
-                accademic_session, created = AcademicSession.objects.get_or_create(
+                slug = slugify(f"{year}-{term}")
+                academic_session, created = AcademicSession.objects.get_or_create(
                     current_year=year,
                     current_term=term,
+                    defaults={"slug": slug}
                 )
                 if created:
-                    accademic_session_created += 1
-                    self.stdout.write(self.style.SUCCESS(f"Created Academic Session: {accademic_session}"))
+                    academic_session_created += 1
+                    self.stdout.write(self.style.SUCCESS(f"Created Academic Session: {academic_session}"))
                 else:
-                    accademic_session_found += 1
-                    self.stdout.write(self.style.NOTICE(f"Found Academic Session: {accademic_session}"))
+                    academic_session_found += 1
+                    self.stdout.write(self.style.NOTICE(f"Found Academic Session: {academic_session}"))
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"✔ Finished, Created {created_count} year(s), {terms_created} terms and {accademic_session_created} academic session(s) and found {year_found} year(s), {terms_found} term(s) and {accademic_session_found} academic session(s)"
+                f"✔ Finished, Created {created_count} year(s), {terms_created} terms and {academic_session_created} academic session(s) and found {year_found} year(s), {terms_found} term(s) and {academic_session_found} academic session(s)"
             ))
