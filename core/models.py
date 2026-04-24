@@ -44,7 +44,7 @@ class AcademicSessionManager(models.Manager):
         return (
             super().get_queryset().select_related(
                 "current_year", "current_term"
-            ).prefetch_related("resources", )
+            )#.prefetch_related("resources", )
         )
 
 

@@ -621,7 +621,7 @@ class GradeListView(ListView):
     paginate_by = 24
     template_name = "resources/grade_list.html"
     partial_template_name = "resources/partials/filter_cards.html"
-    context_object_name = "academic_sessions"
+    context_object_name = "filters"
 
     def get_queryset(self) -> QuerySet[Grade]:
         """

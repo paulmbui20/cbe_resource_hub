@@ -85,7 +85,7 @@ def get_academic_sessions() -> QuerySet[AcademicSession]:
     cache_base_key = "resources:academic_sessions"
     academic_sessions = cache.get(cache_base_key)
     if not academic_sessions:
-        academic_sessions = AcademicSession.objects.all()
+        academic_sessions = AcademicSession.objects.all().prefetch_related("resources")
         if academic_sessions.exists():
             cache.set(cache_base_key, academic_sessions, CACHE_TIMEOUT)
     return academic_sessions
