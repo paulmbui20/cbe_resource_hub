@@ -19,6 +19,7 @@ from .base import (
     _cf_settings,
     _private_r2,
     _public_r2,
+    _backup_r2,
 )
 
 # ── Security hardening ────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ MIDDLEWARE.insert(1, "django.middleware.cache.UpdateCacheMiddleware")
 MIDDLEWARE.append("django.middleware.cache.FetchFromCacheMiddleware")
 
 # ── Storage: Cloudflare R2 dual-bucket ───────────────────────────────────────
-if _private_r2 and _public_r2:
+if _private_r2 and _public_r2 and _backup_r2:
     STORAGES = {
         # Private media / resource file uploads  (signed URLs, 1-hour TTL)
         "default": {
