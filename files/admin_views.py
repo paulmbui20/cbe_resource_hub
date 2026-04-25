@@ -65,8 +65,10 @@ class AdminFileUpdateView(IsAdminMixin, View):
 class AdminFileDeleteView(IsAdminMixin, View):
     def post(self, request, pk, *args, **kwargs):
         file_obj = get_object_or_404(File, pk=pk)
+        title = file_obj.title or f"File #{pk}"
         file_obj.delete()
 
-        response = HttpResponse(status=204)
-        response['HX-Trigger'] = 'mediaUpdated'
-        return response
+        from django.contrib import messages
+        from django.shortcuts import redirect
+        messages.success(request, f'"{title}" has been permanently deleted.')
+        return redirect("management:file_list")

@@ -42,8 +42,17 @@ from sentry_sdk.integrations.django import DjangoIntegration
 
 load_dotenv()
 
+# --- Function to require env vars ----
+def require_env(name: str, default: str | None = None) -> str:
+    """Get an env var or raise RuntimeError if it's missing and no default is given."""
+    value = os.getenv(name, default)
+    if value is None:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
 # ── Resolve environment first so everything below can reference it ────────────
-environment: str = os.getenv("ENVIRONMENT")
+environment: str = require_env("ENVIRONMENT")
 _prod: bool = environment == "production"
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -51,15 +60,17 @@ _prod: bool = environment == "production"
 # ──────────────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY: str = os.getenv("SECRET_KEY")
+SECRET_KEY: str = require_env("SECRET_KEY")
 
-debug_env = os.getenv("DEBUG", "False")
-DEBUG: bool = ast.literal_eval(debug_env) if debug_env or _prod else False
+debug_env = os.getenv("DEBUG", "False")  # optional — defaults to False
+DEBUG: bool = ast.literal_eval(debug_env) if debug_env else False
+if _prod and DEBUG:
+    raise RuntimeError("DEBUG must be False in production")
 
-allowed_hosts = os.getenv("ALLOWED_HOSTS")
+allowed_hosts = require_env("ALLOWED_HOSTS")
 ALLOWED_HOSTS: list[str] = [h.strip() for h in allowed_hosts.split(",") if h.strip()]
 
-csrf_origins = os.getenv("CSRF_ORIGINS")
+csrf_origins = os.getenv("CSRF_ORIGINS", "")  # optional — may be empty in dev
 CSRF_TRUSTED_ORIGINS: list[str] = (
     [h.strip() for h in csrf_origins.split(",") if h.strip()]
     if csrf_origins
@@ -194,10 +205,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ──────────────────────────────────────────────────────────────────────────────
 # 6. CACHE  (Redis)
 # ──────────────────────────────────────────────────────────────────────────────
-_redis_url: str = os.getenv("REDIS_URL")
-_redis_password: str = os.getenv("REDIS_PASSWORD")
-_redis_port: int = int(os.getenv("REDIS_PORT")) if os.getenv("REDIS_PORT") else None
-_redis_host: str = os.getenv("REDIS_HOST")
+_redis_url: str = require_env("REDIS_URL")
+_redis_password: str = os.getenv("REDIS_PASSWORD", "")  # optional — some Redis configs have no auth
+_redis_port_raw = os.getenv("REDIS_PORT")
+_redis_port: int | None = int(_redis_port_raw) if _redis_port_raw else None
+_redis_host: str = require_env("REDIS_HOST")
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -335,8 +347,8 @@ ALLAUTH_UI_THEME = "dark"
 
 # ── Google OAuth ──────────────────────────────────────────────────────────────
 
-GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
-GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
+GOOGLE_OAUTH_CLIENT_ID = require_env("GOOGLE_OAUTH_CLIENT_ID")
+GOOGLE_OAUTH_CLIENT_SECRET = require_env("GOOGLE_OAUTH_CLIENT_SECRET")
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -376,12 +388,12 @@ USE_TZ = True
 # 11. EMAIL
 # ──────────────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST: str = os.getenv("EMAIL_HOST")
-EMAIL_PORT: int = int(os.getenv("EMAIL_PORT"))
-_email_tls = os.getenv("EMAIL_USE_TLS")
+EMAIL_HOST: str = require_env("EMAIL_HOST")
+EMAIL_PORT: int = int(require_env("EMAIL_PORT"))
+_email_tls = require_env("EMAIL_USE_TLS")
 EMAIL_USE_TLS: bool = ast.literal_eval(_email_tls) if _email_tls else True
-EMAIL_HOST_USER: str = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD: str = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER: str = require_env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD: str = require_env("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL: str = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -645,10 +657,10 @@ DBBACKUP_DATABASES = ["default"]
 # ──────────────────────────────────────────────────────────────────────────────
 # 20. MISC / SITE IDENTITY
 # ──────────────────────────────────────────────────────────────────────────────
-SITE_URL: str = os.getenv("SITE_URL")
-SITE_NAME: str = os.getenv("SITE_NAME")
-admin_email = os.getenv("ADMIN_EMAIL")
-ADMINS: list[tuple[str, str]] = [(os.getenv("ADMIN_NAME"), admin_email)]
+SITE_URL: str = require_env("SITE_URL")
+SITE_NAME: str = require_env("SITE_NAME")
+admin_email = require_env("ADMIN_EMAIL")
+ADMINS: list[tuple[str, str]] = [(require_env("ADMIN_NAME"), admin_email)]
 SERVER_EMAIL: str = admin_email
 PHONENUMBER_DB_FORMAT: str = "E164"
 
@@ -736,7 +748,7 @@ else:
         LOCAL_APPS.append("debug_toolbar")
         LOCAL_MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
 
-    enable_silk = os.getenv("ENABLE_SILK", "True")
+    enable_silk = os.getenv("ENABLE_SILK", "False")
     ENABLE_SILK = ast.literal_eval(enable_silk) if enable_silk and DEBUG else False
 
     if ENABLE_SILK:
@@ -798,13 +810,6 @@ CONTACT_EMAIL: str = str(contact_email_env_var) if contact_email_env_var else ""
 contact_phone_env_var = os.getenv("CONTACT_PHONE")
 CONTACT_PHONE: str = str(contact_phone_env_var) if contact_phone_env_var else ""
 
-#     DISALLOWED_USER_AGENTS = [
-#         re.compile(r'^NaverBot.*'),
-#         re.compile(r'^EmailSiphon.*'),
-#         re.compile(r'^SiteSucker.*'),
-#         re.compile(r'^sohu-search'),
-#     ] # to uncomment and add some
-DISALLOWED_USER_AGENTS = []  # to add
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Quick reference

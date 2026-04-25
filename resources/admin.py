@@ -61,7 +61,7 @@ class ResourceItemAdmin(SEOAdminMixin, admin.ModelAdmin):
         ),
         (
             "Curriculum",
-            {"fields": ("grade", "learning_area")},
+            {"fields": ("grade", "learning_area", "academic_session")},
         ),
         (
             "Marketplace",
@@ -72,3 +72,7 @@ class ResourceItemAdmin(SEOAdminMixin, admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
+
+    def get_fieldsets(self, request, obj=None):
+        return self.fieldsets + (self.get_seo_fieldset(),)
+

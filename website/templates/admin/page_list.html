@@ -28,14 +28,11 @@
             <table class="w-full text-sm" {% if pages %}id="dataTable"{% endif %}>
                 <thead>
                 <tr class="border-b border-white/8 bg-white/3">
-                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Title /
-                        Slug
-                    </th>
-                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Status
-                    </th>
-                    <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">
-                        Actions
-                    </th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Title / Slug</th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Status</th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">SEO Title</th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Focus Keyword</th>
+                    <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">Actions</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-white/5">
@@ -47,12 +44,26 @@
                                href="{% url 'cms:page_detail' p.slug %}" title="{{ p.title }} page details">
                                 {{ p.get_absolute_url }}</a>
                         </td>
-                        <td class="px-5 py-3 ">
+                        <td class="px-5 py-3">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border
                               {% if p.is_published %}bg-green-500/10 text-green-400 border-green-500/20{% else %}bg-amber-500/10 text-amber-400 border-amber-500/20{% endif %}">
                               <span class="w-1.5 h-1.5 rounded-full {% if p.is_published %}bg-green-400{% else %}bg-amber-400{% endif %}"></span>
                                 {% if p.is_published %}Published{% else %}Draft{% endif %}
                             </span>
+                        </td>
+                        <td class="px-5 py-3">
+                            {% if p.meta_title %}
+                              <span class="text-xs text-white/70 line-clamp-1" title="{{ p.meta_title }}">{{ p.meta_title }}</span>
+                            {% else %}
+                              <span class="text-xs text-amber-400/60 italic">—  auto</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3">
+                            {% if p.focus_keyword %}
+                              <span class="inline-flex px-2 py-0.5 rounded-md bg-brand-primary/10 text-brand-primary text-[10px] font-semibold border border-brand-primary/20">{{ p.focus_keyword }}</span>
+                            {% else %}
+                              <span class="text-xs text-white/20">—</span>
+                            {% endif %}
                         </td>
                         <td class="px-5 py-3 text-right">
                             <div class="flex items-center justify-end gap-2">
@@ -78,7 +89,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="3" class="px-5 py-8 text-center text-white/40">No pages found.</td>
+                        <td colspan="5" class="px-5 py-8 text-center text-white/40">No pages found.</td>
                     </tr>
                 {% endfor %}
                 </tbody>

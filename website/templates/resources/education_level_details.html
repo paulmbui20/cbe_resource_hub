@@ -5,9 +5,15 @@
 {% block meta_description_value %}Download free {{ education_level.name|lower }} aligned to the Kenya CBC/CBE
     curriculum. {{ education_level.meta_description }} {{ paginator.count }} resource{{ paginator.count|pluralize }}
     available.{% endblock %}
+{% block og_type %}article{% endblock %}
 {% block og_title %}{{ education_level.name }} — CBE Resource Hub Kenya{% endblock %}
 {% block og_description %}{{ education_level.meta_description }} Browse {{ paginator.count }} free
     {{ education_level.name|lower }} resources for Kenyan learners.{% endblock %}
+{% block og_image %}{% load static %}{% if education_level.featured_image and education_level.featured_image.name %}{{ request.scheme }}://{{ request.get_host }}{{ education_level.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endif %}{% endblock %}
+{% block meta_keywords_value %}{{ education_level.meta_keywords|default:education_level.name }}, CBC resources Kenya, free learning materials{% endblock %}
+{% block twitter_title %}{{ education_level.name }} — CBE Resource Hub Kenya{% endblock %}
+{% block twitter_description %}{{ education_level.meta_description }} Browse {{ paginator.count }} free {{ education_level.name|lower }} resources.{% endblock %}
+{% block twitter_image %}{% load static %}{% if education_level.featured_image and education_level.featured_image.name %}{{ request.scheme }}://{{ request.get_host }}{{ education_level.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endif %}{% endblock %}
 
 {% block structured_data %}
     <script type="application/ld+json">

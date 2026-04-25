@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from seo.admin import SEOAdminMixin
 from .models import ContactMessage, Partner, EmailSubscriber
 
 
@@ -12,11 +14,18 @@ class ContactMessageAdmin(admin.ModelAdmin):
 
 
 @admin.register(Partner)
-class PartnerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'link', 'created_at', 'slug')
-    search_fields = ('name', 'link')
-    list_filter = ('created_at', 'updated_at')
+class PartnerAdmin(SEOAdminMixin, admin.ModelAdmin):
+    list_display = ('name', 'link', 'show_as_banner', 'created_at', 'slug', 'focus_keyword')
+    search_fields = ('name', 'link', 'meta_title', 'focus_keyword')
+    list_filter = ('show_as_banner', 'created_at', 'updated_at')
     prepopulated_fields = {'slug': ('name',)}
+
+    fieldsets = (
+        ("Partner Info", {"fields": ("name", "slug", "link", "logo", "description", "show_as_banner", "banner_cta")}),
+    )
+
+    def get_fieldsets(self, request, obj=None):
+        return self.fieldsets + (self.get_seo_fieldset(),)
 
 
 @admin.register(EmailSubscriber)

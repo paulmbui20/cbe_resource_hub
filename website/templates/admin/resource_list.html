@@ -35,20 +35,12 @@
             <table class="w-full text-sm" {% if resources %}id="dataTable"{% endif %}>
                 <thead>
                 <tr class="border-b border-white/8 bg-white/3">
-                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Title
-                    </th>
-                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">
-                        Vendor
-                    </th>
-                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">
-                        Subject / Grade
-                    </th>
-                    <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">
-                        Downloads
-                    </th>
-                    <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">
-                        Actions
-                    </th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Title</th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Vendor</th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Subject / Grade</th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Focus Keyword</th>
+                    <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">Downloads</th>
+                    <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">Actions</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-white/5">
@@ -63,9 +55,16 @@
                         <td class="px-5 py-4 ">
                             <div class="text-white/80 font-medium text-sm">{{ r.vendor.email|default:"Anonymous" }}</div>
                         </td>
-                        <td class="px-5 py-4 ">
+                        <td class="px-5 py-4">
                             <div class="text-white/80 font-medium text-sm">{{ r.learning_area.name|default:"Not specified" }}</div>
                             <div class="text-xs text-white/40 mt-1">{{ r.grade.name|default:"Not specified" }}</div>
+                        </td>
+                        <td class="px-5 py-4">
+                            {% if r.focus_keyword %}
+                              <span class="inline-flex px-2 py-0.5 rounded-md bg-brand-primary/10 text-brand-primary text-[10px] font-semibold border border-brand-primary/20">{{ r.focus_keyword }}</span>
+                            {% else %}
+                              <span class="text-xs text-white/20">—</span>
+                            {% endif %}
                         </td>
                         <td class="px-5 py-4 text-right text-white/60 font-bold">{{ r.downloads }}</td>
                         <td class="px-5 py-4 text-right">
@@ -81,7 +80,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="5" class="px-5 py-8 text-center text-white/40">No resources found.</td>
+                        <td colspan="6" class="px-5 py-8 text-center text-white/40">No resources found.</td>
                     </tr>
                 {% endfor %}
                 </tbody>

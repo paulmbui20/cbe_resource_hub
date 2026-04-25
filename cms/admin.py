@@ -2,6 +2,7 @@
 
 from django.contrib import admin
 
+from seo.admin import SEOAdminMixin
 from .models import Menu, MenuItem, Page, SiteSetting
 
 
@@ -38,9 +39,17 @@ class MenuItemAdmin(admin.ModelAdmin):
 
 
 @admin.register(Page)
-class PageAdmin(admin.ModelAdmin):
-    list_display = ("title", "slug", "is_published", "updated_at")
+class PageAdmin(SEOAdminMixin, admin.ModelAdmin):
+    list_display = ("title", "slug", "is_published", "focus_keyword", "updated_at")
     list_filter = ("is_published",)
-    search_fields = ("title", "content")
+    search_fields = ("title", "content", "meta_title", "focus_keyword")
     prepopulated_fields = {"slug": ("title",)}
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at", "seo_preview")
+
+    fieldsets = (
+        ("Page", {"fields": ("title", "slug", "content", "is_published")}),
+        ("Timestamps", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
+    def get_fieldsets(self, request, obj=None):
+        return self.fieldsets + (self.get_seo_fieldset(),)

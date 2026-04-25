@@ -14,24 +14,23 @@ Defaults:
     --timeout    10
 """
 
+from __future__ import annotations
+
 import argparse
-import datetime
+import datetime as dt
 import sys
 import time
 from dataclasses import dataclass, field
 from typing import Optional
 
 import requests
-from requests.exceptions import ConnectionError, Timeout, RequestException
+from requests.exceptions import ConnectionError, RequestException, Timeout
 
-# ──────────────────────────────────────────────
-# Configuration
-# ──────────────────────────────────────────────
 
 DEFAULT_BASE_URL = "http://localhost:8000"
 DEFAULT_CYCLES = 2
-DEFAULT_DELAY = 4  # seconds between requests
-DEFAULT_TIMEOUT = 10  # seconds before a request is considered timed-out
+DEFAULT_DELAY = 4
+DEFAULT_TIMEOUT = 10
 
 TARGET_PATHS = [
     "/",
@@ -58,10 +57,6 @@ TARGET_PATHS = [
     "/partners",
 ]
 
-# ──────────────────────────────────────────────
-# ANSI colour helpers (disabled automatically on Windows / non-TTY)
-# ──────────────────────────────────────────────
-
 USE_COLOR = sys.stdout.isatty()
 
 
@@ -69,34 +64,44 @@ def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if USE_COLOR else text
 
 
-def green(t):  return _c("32", t)
+def green(text: str) -> str:
+    return _c("32", text)
 
 
-def red(t):    return _c("31", t)
+def red(text: str) -> str:
+    return _c("31", text)
 
 
-def yellow(t): return _c("33", t)
+def yellow(text: str) -> str:
+    return _c("33", text)
 
 
-def cyan(t):   return _c("36", t)
+def cyan(text: str) -> str:
+    return _c("36", text)
 
 
-def bold(t):   return _c("1", t)
+def bold(text: str) -> str:
+    return _c("1", text)
 
 
-def dim(t):    return _c("2", t)
+def dim(text: str) -> str:
+    return _c("2", text)
 
 
-# ──────────────────────────────────────────────
-# Data structures
-# ──────────────────────────────────────────────
+def _elapsed_ms(start: float) -> float:
+    return round((time.perf_counter() - start) * 1000, 1)
+
+
+def _now() -> dt.datetime:
+    return dt.datetime.now()
+
 
 @dataclass
 class RequestResult:
     url: str
-    status_code: Optional[int]  # None on network error
+    status_code: Optional[int]
     response_time_ms: float
-    error: Optional[str] = None  # set on exception
+    error: Optional[str] = None
 
     @property
     def ok(self) -> bool:
@@ -106,16 +111,15 @@ class RequestResult:
     def label(self) -> str:
         if self.error:
             return red(f"ERROR  ({self.error})")
-        color = green if self.ok else red
-        return color(str(self.status_code))
+        return green(str(self.status_code)) if self.ok else red(str(self.status_code))
 
 
 @dataclass
 class CycleSummary:
     cycle_number: int
     results: list[RequestResult] = field(default_factory=list)
-    start_time: datetime.datetime = field(default_factory=datetime.datetime.now)
-    end_time: Optional[datetime.datetime] = None
+    start_time: dt.datetime = field(default_factory=_now)
+    end_time: Optional[dt.datetime] = None
 
     @property
     def total(self) -> int:
@@ -144,35 +148,28 @@ class CycleSummary:
 
     @property
     def elapsed(self) -> str:
-        if self.end_time:
-            return str(self.end_time - self.start_time).split(".")[0]
-        return "—"
+        return str(self.end_time - self.start_time).split(".")[0] if self.end_time else "—"
 
-
-# ──────────────────────────────────────────────
-# Core logic
-# ──────────────────────────────────────────────
 
 def probe(url: str, timeout: int) -> RequestResult:
     """Send a single GET request and return a RequestResult."""
-    t0 = time.perf_counter()
+    start = time.perf_counter()
     try:
-        resp = requests.get(url, timeout=timeout, allow_redirects=True)
-        elapsed_ms = (time.perf_counter() - t0) * 1000
-        return RequestResult(url=url, status_code=resp.status_code, response_time_ms=round(elapsed_ms, 1))
+        response = requests.get(url, timeout=timeout, allow_redirects=True)
+        return RequestResult(
+            url=url,
+            status_code=response.status_code,
+            response_time_ms=_elapsed_ms(start),
+        )
     except Timeout:
-        elapsed_ms = (time.perf_counter() - t0) * 1000
-        return RequestResult(url=url, status_code=None, response_time_ms=round(elapsed_ms, 1), error="Timeout")
+        return RequestResult(url=url, status_code=None, response_time_ms=_elapsed_ms(start), error="Timeout")
     except ConnectionError:
-        elapsed_ms = (time.perf_counter() - t0) * 1000
-        return RequestResult(url=url, status_code=None, response_time_ms=round(elapsed_ms, 1), error="ConnectionError")
+        return RequestResult(url=url, status_code=None, response_time_ms=_elapsed_ms(start), error="ConnectionError")
     except RequestException as exc:
-        elapsed_ms = (time.perf_counter() - t0) * 1000
-        return RequestResult(url=url, status_code=None, response_time_ms=round(elapsed_ms, 1), error=str(exc)[:60])
+        return RequestResult(url=url, status_code=None, response_time_ms=_elapsed_ms(start), error=str(exc)[:60])
 
 
 def run_cycle(cycle_num: int, base_url: str, paths: list[str], delay: float, timeout: int) -> CycleSummary:
-    """Run one full pass over all endpoints."""
     summary = CycleSummary(cycle_number=cycle_num)
     total = len(paths)
 
@@ -185,60 +182,62 @@ def run_cycle(cycle_num: int, base_url: str, paths: list[str], delay: float, tim
         result = probe(full_url, timeout)
         summary.results.append(result)
 
-        # Per-request line
-        status_col = result.label.ljust(5)
-        time_col = f"{result.response_time_ms:>9.1f}"
-        url_col = dim(full_url)
-        print(f"  {idx:<5} {status_col} {time_col}  {url_col}")
+        print(
+            f"  {idx:<5} "
+            f"{result.label.ljust(5)} "
+            f"{result.response_time_ms:>9.1f}  "
+            f"{dim(full_url)}"
+        )
 
         if idx < total:
             time.sleep(delay)
 
-    summary.end_time = datetime.datetime.now()
+    summary.end_time = _now()
     _print_cycle_summary(summary)
     return summary
 
 
-def _print_cycle_summary(s: CycleSummary):
-    ok_bar = green("█" * s.ok_count)
-    error_bar = red("█" * s.error_count)
-    print(f"\n  {bold('Summary — Cycle')} {s.cycle_number}")
-    print(f"  Requests : {s.total}")
-    print(f"  Success  : {green(str(s.ok_count))} ({s.success_rate}%)  {ok_bar}")
-    print(f"  Errors   : {red(str(s.error_count))} ({s.error_rate}%)  {error_bar}")
-    print(f"  Avg resp : {s.avg_response_ms} ms")
-    print(f"  Duration : {s.elapsed}")
+def _print_cycle_summary(summary: CycleSummary) -> None:
+    ok_bar = green("█" * summary.ok_count)
+    error_bar = red("█" * summary.error_count)
 
-    if s.error_count:
+    print(f"\n  {bold('Summary — Cycle')} {summary.cycle_number}")
+    print(f"  Requests : {summary.total}")
+    print(f"  Success  : {green(str(summary.ok_count))} ({summary.success_rate}%)  {ok_bar}")
+    print(f"  Errors   : {red(str(summary.error_count))} ({summary.error_rate}%)  {error_bar}")
+    print(f"  Avg resp : {summary.avg_response_ms} ms")
+    print(f"  Duration : {summary.elapsed}")
+
+    if summary.error_count:
         print(f"\n  {yellow('Failed endpoints:')}")
-        for r in s.results:
-            if not r.ok:
-                print(f"    {red('✗')} {r.url}  →  {r.label}")
+        for result in summary.results:
+            if not result.ok:
+                print(f"    {red('✗')} {result.url}  →  {result.label}")
 
 
-def _print_final_report(cycles: list[CycleSummary], overall_start: datetime.datetime):
-    overall_end = datetime.datetime.now()
-    total_reqs = sum(c.total for c in cycles)
+def _print_final_report(cycles: list[CycleSummary], overall_start: dt.datetime) -> None:
+    overall_end = _now()
+    total_requests = sum(c.total for c in cycles)
     total_ok = sum(c.ok_count for c in cycles)
-    total_err = sum(c.error_count for c in cycles)
-    success_pct = round(total_ok / total_reqs * 100, 2) if total_reqs else 0
+    total_errors = sum(c.error_count for c in cycles)
+    success_pct = round(total_ok / total_requests * 100, 2) if total_requests else 0.0
+    error_pct = round(100 - success_pct, 2)
 
     print(f"\n{'═' * 55}")
     print(bold("  FINAL REPORT"))
     print(f"{'═' * 55}")
     print(f"  Cycles run     : {len(cycles)}")
-    print(f"  Total requests : {total_reqs}")
+    print(f"  Total requests : {total_requests}")
     print(f"  Total success  : {green(str(total_ok))} ({success_pct}%)")
-    print(f"  Total errors   : {red(str(total_err))} ({round(100 - success_pct, 2)}%)")
+    print(f"  Total errors   : {red(str(total_errors))} ({error_pct}%)")
     print(f"  Total duration : {str(overall_end - overall_start).split('.')[0]}")
 
-    # Highlight any consistently failing endpoints
-    all_results: dict[str, list[RequestResult]] = {}
+    results_by_url: dict[str, list[RequestResult]] = {}
     for cycle in cycles:
-        for r in cycle.results:
-            all_results.setdefault(r.url, []).append(r)
+        for result in cycle.results:
+            results_by_url.setdefault(result.url, []).append(result)
 
-    persistent_failures = [url for url, results in all_results.items() if all(not r.ok for r in results)]
+    persistent_failures = [url for url, results in results_by_url.items() if all(not r.ok for r in results)]
     if persistent_failures:
         print(f"\n  {bold(red('Persistently failing endpoints:'))}")
         for url in persistent_failures:
@@ -248,10 +247,6 @@ def _print_final_report(cycles: list[CycleSummary], overall_start: datetime.date
 
     print(f"{'═' * 55}\n")
 
-
-# ──────────────────────────────────────────────
-# CLI entry point
-# ──────────────────────────────────────────────
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -265,7 +260,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     print(bold(cyan("\n  ╔══════════════════════════════════════╗")))
@@ -277,18 +272,19 @@ def main():
     print(f"  Timeout  : {args.timeout}s per request")
     print(f"  Endpoints: {len(TARGET_PATHS)}")
 
-    overall_start = datetime.datetime.now()
+    overall_start = _now()
     all_cycles: list[CycleSummary] = []
 
     for cycle_num in range(1, args.cycles + 1):
         if cycle_num > 1:
             print(dim(f"\n  [Waiting {args.delay}s before next cycle…]"))
             time.sleep(args.delay)
-        summary = run_cycle(cycle_num, args.base_url, TARGET_PATHS, args.delay, args.timeout)
-        all_cycles.append(summary)
+
+        all_cycles.append(run_cycle(cycle_num, args.base_url, TARGET_PATHS, args.delay, args.timeout))
 
     _print_final_report(all_cycles, overall_start)
 
 
 if __name__ == "__main__":
     main()
+    

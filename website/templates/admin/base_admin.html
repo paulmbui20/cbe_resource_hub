@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <style>
+        /* Force admin tables to not wrap their text, allowing the overflow-x-auto containers to scroll */
+        table#dataTable th, table#dataTable td, table.w-full th, table.w-full td {
+            white-space: nowrap !important;
+        }
+    </style>
     <div x-data="{ adminSidebarOpen: false }" class="relative flex w-full">
 
         <!-- Backing mobile mask -->
