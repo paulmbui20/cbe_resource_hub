@@ -24,7 +24,6 @@ Sections:
    20.  Misc / Site Identity
    21.  Test overrides
 """
-from __future__ import annotations
 
 import ast
 import logging
@@ -798,11 +797,6 @@ CONTACT_EMAIL: str = str(contact_email_env_var) if contact_email_env_var else ""
 
 contact_phone_env_var = os.getenv("CONTACT_PHONE")
 CONTACT_PHONE: str = str(contact_phone_env_var) if contact_phone_env_var else ""
-
-IGNORABLE_404_URLS = [
-    re.compile(r'^/favicon.ico$'),
-    re.compile(r'^/apple-touch-icon.*\.png$'),
-]
 
 #     DISALLOWED_USER_AGENTS = [
 #         re.compile(r'^NaverBot.*'),
