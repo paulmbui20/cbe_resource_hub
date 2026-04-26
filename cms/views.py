@@ -9,5 +9,7 @@ class PageDetailView(DetailView):
     template_name = "cms/page_detail.html"
     context_object_name = "page"
 
+    http_method_names = ["get", ]
+
     def get_queryset(self):
         return Page.objects.filter(is_published=True)
