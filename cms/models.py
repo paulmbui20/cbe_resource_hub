@@ -13,6 +13,8 @@ from django.utils.html import strip_tags
 from django.utils.text import slugify
 from tinymce.models import HTMLField
 
+import cms.models
+from cms.utils import unique_slug_generator
 from seo.models import SlugRedirectMixin, SEOModel
 
 
@@ -163,11 +165,11 @@ class Page(SEOModel, SlugRedirectMixin, models.Model):
 
     def save(self, *args, **kwargs) -> None:
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = unique_slug_generator(slugify(self.title), 200, cms.models.Page)
         if self.title and not self.meta_title:
-            self.meta_title = self.title
+            self.meta_title = self.title[:60]
         if self.content and not self.meta_description:
-            self.meta_description = strip_tags(self.content)
+            self.meta_description = strip_tags(self.content)[:160]
         super().save(*args, **kwargs)
 
     def get_absolute_url(self) -> str:
