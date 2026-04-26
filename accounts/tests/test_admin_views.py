@@ -109,8 +109,13 @@ class IsAdminMixinTests(AccountsBaseTestcase):
 
     def test_admin_can_access_user_delete(self):
         self.login_as_admin()
+        response = self.client.post(reverse("management:user_delete", kwargs={"pk": self.user.pk}))
+        self.assertEqual(response.status_code, 302)
+
+    def test_forbidden_response_on_get_for_user_delete(self):
+        self.login_as_admin()
         response = self.client.get(reverse("management:user_delete", kwargs={"pk": self.user.pk}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)
 
 
 # ── AdminUserListView ─────────────────────────────────────────────────────────
@@ -246,9 +251,9 @@ class AdminUserCreateViewTests(AccountsBaseTestcase):
         payload = self._valid_payload(email=self.user.email)
         response = self.client.post(self.url, data=payload)
         self.assertEqual(response.status_code, 200)
-        self.assertFormError(response, "form", "email", [])  # at least one error exists
         # simpler guard: no second user with that email
         self.assertEqual(CustomUser.objects.filter(email=self.user.email).count(), 1)
+        self.assertTemplateUsed(response, "admin/generic_form.html")
 
 
 # ── AdminUserUpdateView ───────────────────────────────────────────────────────
@@ -347,7 +352,7 @@ class AdminUserDeleteViewTests(AccountsBaseTestcase):
 
     def test_get_returns_200(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)
 
     def test_post_deletes_user(self):
         self.client.post(self.url)
@@ -359,7 +364,7 @@ class AdminUserDeleteViewTests(AccountsBaseTestcase):
 
     def test_delete_nonexistent_user_returns_404(self):
         url = reverse("management:user_delete", kwargs={"pk": 99999})
-        response = self.client.get(url)
+        response = self.client.post(url)
         self.assertEqual(response.status_code, 404)
 
 

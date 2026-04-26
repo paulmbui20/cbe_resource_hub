@@ -48,8 +48,6 @@ class AdminUserCreateView(IsAdminMixin, CreateView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
-        print(user)
-        print(user.email)
         alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
         raw_password = "".join(secrets.choice(alphabet) for _ in range(12))
 
@@ -58,7 +56,7 @@ class AdminUserCreateView(IsAdminMixin, CreateView):
         user.save()
         message = f"User created securely! Their generated password is: {raw_password}"
         subject = "User created!"
-        context = f"Username = {user.username}, email = {user.email}, role = {user.role}, date_joined = {user.date_joined}"
+        context = f"Username:{user.username},email:{user.email},role:{user.role},date_joined:{user.date_joined}"
 
         messages.success(self.request, message)
 
@@ -90,17 +88,24 @@ class AdminUserUpdateView(IsAdminMixin, UpdateView):
 class AdminUserDeleteView(IsAdminMixin, DeleteView):
     model = CustomUser
     success_url = reverse_lazy("management:user_list")
+    http_method_names = [
+        "post",
+    ]
 
     def form_valid(self, form):
-        message = f"User {self.object.email} deleted permanently."
+        message = f"User{self.object.email} deleted permanently."
         subject = "User deleted!"
-        context = f"Username = {self.object.username}, email = {self.object.email}, deleted at: {timezone.now()}"
+        context = f"Username:{self.object.username},email:{self.object.email},deleted at:{timezone.now()}"
         notify_generic_message(subject, message, context)
         messages.success(self.request, message)
         return super().form_valid(form)
 
 
 class AdminUserBulkToggleView(IsAdminMixin, TemplateView):
+    http_method_names = [
+        "post"
+    ]
+
     def post(self, request, *args, **kwargs):
         try:
             data = json.loads(request.body)
