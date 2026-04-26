@@ -25,12 +25,12 @@ class AccountsBaseTestcase(TestCase):
 
     def login_as_admin(self):
         """Log in as admin user"""
-        self.client.login(email=self.admin.email, password='password123')
+        self.client.force_login(self.admin)
 
     def login_as_vendor(self):
         """Log in as vendor user"""
-        self.client.login(email=self.vendor.email, password='password123')
+        self.client.force_login(self.vendor)
 
     def login_as_user(self):
         """Log in as user"""
-        self.client.login(email=self.user.email, password='password123')
+        self.client.force_login(self.user)
