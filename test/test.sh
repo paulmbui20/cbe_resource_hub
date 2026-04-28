@@ -45,8 +45,8 @@ echo "======================================"
 echo -e "${BLUE}Running pytest in parallel...${NC}"
 pytest \
   --verbose \
-  --tb=short #\
-#  -n ${PARALLEL_JOBS}
+  --tb=short \
+  -n ${PARALLEL_JOBS}
 
 TEST_EXIT_CODE=$?
 
