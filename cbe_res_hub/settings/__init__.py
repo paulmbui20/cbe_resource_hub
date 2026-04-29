@@ -25,9 +25,8 @@ _testing = (
 
 _environment = os.getenv("ENVIRONMENT")
 
-if _testing:
+if _testing or _environment == "testing":
     from .testing import *  # noqa: F401, F403
-    from .testing import *  # noqa: F401, F403 — explicit so linters see the wildcard
 elif _environment == "production":
     from .production import *  # noqa: F401, F403
 else:
