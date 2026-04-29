@@ -62,15 +62,11 @@ jobs:
             -e SITE_NAME=TestSite \
             -e GOOGLE_OATH_CLIENT_ID=google_oauth_test_client_id \
             -e GOOGLE_OAUTH_CLIENT_SECRET=google_oauth_test_secret_key \
-#            -e POSTHOG_API_KEY=radom_posthog_api_key \
-#            -e POSTHOG_HOST=https://eu.i.posthog.com \
-#            -e POSTHOG_ENABLED=False \
             -e SITE_ID=1 \
             -e ADMIN_NAME=admin \
             -e ADMIN_EMAIL=admin@gmail.com \
             -e CONTACT_EMAIL=admin@gmail.com \
             -e CONTACT_PHONE=+254712345678 \
-               
             django-test \
             ./test/test.sh
 
