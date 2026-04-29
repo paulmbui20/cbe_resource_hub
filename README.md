@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12-blue)](https://python.org)
 [![Django](https://img.shields.io/badge/Django-6.0-green)](https://djangoproject.com)
+[![CI](https://github.com/paulmbui20/cbe_resource_hub/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/paulmbui20/cbe_resource_hub/actions/workflows/ci-cd.yml)
 
 ---
 
@@ -51,286 +52,183 @@
 │   ├── admin.py               # admin registration of models
 │   ├── admin_urls.py          # custom admin urls
 │   ├── admin_views.py         # custom admin views
-│   ├── apps.py
+│   ├── apps.py                # accounts app apps config
 │   ├── migrations/           # folder with accounts app migration files
 │   ├── models.py             # accounts models for users 
 │   ├── signals.py            # signals 
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-├── build.sh
+│   ├── tests/                # accounts app tests
+│   ├── urls.py               # accounts app urls
+│   └── views.py              # accounts app views
+├── build.sh                  # build script for the project
 ├── cbe_res_hub
-│   ├── __init__.py
-│   ├── asgi.py
-│   ├── celery.py
-│   ├── middleware.py
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
+│   ├── __init__.py           # cbe_res_hub app init
+│   ├── asgi.py               # cbe_res_hub app asgi
+│   ├── celery.py             # cbe_res_hub app celery
+│   ├── middleware.py         # cbe_res_hub app middleware
+│   ├── settings/
+│   │   ├── base.py          # shared settings loaded by every environment
+│   │   ├── development.py   # DEBUG=True, SQLite option, debug toolbar
+│   │   ├── production.py    # PostgreSQL, Cloudflare R2, Sentry
+│   │   └── testing.py       # SQLite, Celery eager, filesystem storage
+│   ├── urls.py              # cbe_res_hub app urls
+│   └── wsgi.py              # cbe_res_hub app wsgi
 ├── cms
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── admin_urls.py
-│   ├── admin_views.py
-│   ├── apps.py
-│   ├── context_processors.py
-│   ├── forms.py
+│   ├── __init__.py          # cms app init
+│   ├── admin.py             # admin registration of models
+│   ├── admin_urls.py        # custom admin urls
+│   ├── admin_views.py       # custom admin views
+│   ├── apps.py              # cms app apps config
+│   ├── context_processors.py # cms app context processors
+│   ├── forms.py             # cms app forms
 │   ├── management
-│   │   ├── __init__.py
+│   │   ├── __init__.py      # cms app management init
 │   │   └── commands
-│   │       ├── __init__.py
-│   │       ├── populate_menus.py
-│   │       └── populate_site_settings.py
-│   ├── migrations/
-│   ├── models.py
-│   ├── signals.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-├── compose.yaml
-├── conftest.py
-├── docker-health-check.py
-├── Dockerfile
-├── docs
-│   ├── HOMEPAGE.md
-│   ├── MENUS.md
-│   ├── NOTIFICATIONS.md
-│   └── ROADMAP.md
-├── files
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── admin_urls.py
-│   ├── admin_views.py
-│   ├── apps.py
+│   │       ├── __init__.py  # cms app commands init
+│   │       ├── populate_menus.py # cms app commands populate menus
+│   │       └── populate_site_settings.py # cms app commands populate site settings
+│   ├── migrations/           # folder with cms app migration files
+│   ├── models.py             # cms app models
+│   ├── signals.py            # cms app signals
+│   ├── tests.py              # cms app tests
+│   ├── urls.py               # cms app urls
+│   └── views.py              # cms app views
+├── compose.yaml              # docker compose file
+├── conftest.py               # conftest for pytest
+├── docker-health-check.py    # docker health check script
+├── Dockerfile                # dockerfile for the project
+├── docs                      # documentation folder
+│   ├── CI-CD.md              # CI/CD pipeline reference
+│   ├── HOMEPAGE.md           # Homepage reference
+│   ├── MENUS.md              # Menus reference
+│   ├── NOTIFICATIONS.md      # Notifications reference
+│   └── ROADMAP.md            # Roadmap reference
+├── files                     # folder with files app files
+│   ├── __init__.py           # files app init
+│   ├── admin.py              # admin registration of models
+│   ├── admin_urls.py         # custom admin urls
+│   ├── admin_views.py        # custom admin views
+│   ├── apps.py               # files app apps config
 │   ├── management
-│   │   ├── __init__.py
+│   │   ├── __init__.py       # files app management init
 │   │   └── commands
-│   │       ├── __init__.py
-│   │       ├── calculate_file_hashes.py
-│   │       ├── check_orphaned_files.py
-│   │       └── regenerate_metadata.py
-│   ├── migrations
-│   │   ├── 0001_initial.py
-│   │   ├── 0002_alter_file_file.py
-│   │   ├── 0003_alter_file_file.py
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── signals.py
-│   ├── tests
-│   │   ├── __init__.py
-│   │   ├── fixtures.py
-│   │   ├── README.md
-│   │   ├── test_admin.py
-│   │   ├── test_integration.py
-│   │   ├── test_management_commands.py
-│   │   ├── test_models.py
-│   │   ├── test_performance.py
-│   │   └── test_validators.py
-│   ├── urls.py
-│   └── views.py
-├── helpers
-│   ├── __init__.py
-│   ├── cloudflare
-│   │   ├── __init__.py
-│   │   ├── settings.py
-│   │   └── storages.py
+│   │       ├── __init__.py   # files app commands init
+│   │       ├── calculate_file_hashes.py # files app commands calculate file hashes
+│   │       ├── check_orphaned_files.py # files app commands check orphaned files
+│   │       └── regenerate_metadata.py # files app commands regenerate metadata
+│   ├── migrations/           # folder with files app migration files
+│   ├── models.py             # files app models
+│   ├── signals.py            # files app signals
+│   ├── tests                 # folder with files app tests
+│   │   ├── __init__.py       # files app tests init
+│   │   ├── fixtures.py       # files app tests fixtures
+│   │   ├── README.md         # files app tests README
+│   │   ├── test_admin.py     # files app tests admin
+│   │   ├── test_integration.py # files app tests integration
+│   │   ├── test_management_commands.py # files app tests management commands
+│   │   ├── test_models.py    # files app tests models
+│   │   ├── test_performance.py # files app tests performance
+│   │   └── test_validators.py # files app tests validators
+│   ├── urls.py               # files app urls
+│   └── views.py              # files app views
+├── helpers                   # folder with helpers files
+│   ├── __init__.py           # helpers app init
+│   ├── cloudflare            # folder with cloudflare files
+│   │   ├── __init__.py       # cloudflare app init
+│   │   ├── settings.py       # cloudflare app settings
+│   │   └── storages.py       # cloudflare app storages
 │   └── storages
-│       ├── __init__.py
-│       └── mixins.py
-├── LICENSE
-├── manage.py
-├── notifications
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── admin_views.py
-│   ├── apps.py
-│   ├── migrations/
-│   ├── models.py
-│   ├── notifier.py
-│   ├── signals.py
-│   ├── tasks.py
-│   ├── templates
-│   │   └── notifications
-│   │       ├── admin
-│   │       │   └── notification_list.html
-│   │       ├── contact_form.html
-│   │       ├── contact_form.txt
-│   │       ├── email_base.html
-│   │       ├── generic_message.html
-│   │       ├── generic_message.txt
-│   │       ├── resource_upload.html
-│   │       ├── resource_upload.txt
-│   │       ├── security_alert.html
-│   │       ├── security_alert.txt
-│   │       ├── signup_admin.html
-│   │       └── signup_admin.txt
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-├── pyproject.toml
-├── README.md
-├── requirements.txt
-├── resources
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── admin_dependency_views.py
-│   ├── admin_urls.py
-│   ├── admin_views.py
-│   ├── apps.py
-│   ├── forms.py
-│   ├── management
-│   │   ├── __init__.py
-│   │   └── commands
-│   │       ├── __init__.py
-│   │       └── prepopulate_cbe.py
-│   ├── migrations/
-│   ├── models.py
-│   ├── tests.py
-│   ├── urls.py
-│   ├── validators.py
-│   └── views.py
-├── seo
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── admin_views.py
-│   ├── apps.py
-│   ├── management
-│   │   ├── __init__.py
-│   │   └── commands
-│   │       ├── __init__.py
-│   │       ├── clean_slug_redirects.py
-│   │       └── fix_circular_redirects.py
-│   ├── middleware.py
-│   ├── migrations/
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── static
-│   │   └── admin
-│   │       ├── css
-│   │       │   └── seo-admin.css
-│   │       └── js
-│   │           └── seo-counter.js
-│   ├── tests.py
-│   ├── urls.py
-│   ├── utils.py
-│   └── views.py
-├── test
-│   ├── compose.yaml
-│   ├── Dockerfile
-│   └── test.sh
-├── uv.lock
-└── website
-    ├── __init__.py
-    ├── admin.py
-    ├── admin_views.py
-    ├── apps.py
-    ├── bun.lock
-    ├── context_processors.py
-    ├── forms
-    │   ├── __init__.py
-    │   └── contact.py
-    ├── health_checks.py
-    ├── management
-    │   ├── __init__.py
-    │   └── commands
-    │       ├── __init__.py
-    │       ├── check_health.py
-    │       ├── clear_all_cache.py
-    │       ├── debug_backup_storage.py
-    │       ├── manual_backup.py
-    │       └── restore_backup.py
-    ├── migrations/
-    ├── models.py
-    ├── package.json
-    ├── sitemaps.py
-    ├── static
-    │   ├── css
-    │   │   ├── simple-datatables.min.css
-    │   │   └── src
-    │   │       ├── input.css
-    │   │       └── output.css
-    │   ├── images
-    │   │   ├── logo.svg
-    │   │   └── og-default.png
-    │   └── js
-    │       ├── alpine-collapse.min.js
-    │       ├── alpine-intersect.min.js
-    │       ├── alpine.min.js
-    │       ├── htmx.min.js
-    │       └── simple-datatables.min.js
-    ├── tasks.py
-    ├── templates
-    │   ├── accounts
-    │   │   ├── dashboard.html
-    │   │   └── profile.html
-    │   ├── admin
-    │   │   ├── base_admin.html
-    │   │   ├── basic_list.html
-    │   │   ├── contact_message_detail.html
-    │   │   ├── contact_message_list.html
-    │   │   ├── dashboard.html
-    │   │   ├── files
-    │   │   │   ├── file_list.html
-    │   │   │   └── partials
-    │   │   │       └── grid.html
-    │   │   ├── generic_form.html
-    │   │   ├── menu_list.html
-    │   │   ├── page_list.html
-    │   │   ├── partials
-    │   │   │   ├── _delete_modal.html
-    │   │   │   └── seo_panel.html
-    │   │   ├── partner_list.html
-    │   │   ├── resource_list.html
-    │   │   ├── seo
-    │   │   │   ├── audit.html
-    │   │   │   ├── redirect_form.html
-    │   │   │   └── redirect_list.html
-    │   │   ├── seo_form.html
-    │   │   ├── settings_list.html
-    │   │   └── user_list.html
-    │   ├── allauth
-    │   │   └── layouts
-    │   │       ├── base.html
-    │   │       └── entrance.html
-    │   ├── axes
-    │   │   └── lockout.html
-    │   ├── base.html
-    │   ├── cms
-    │   │   └── page_detail.html
-    │   ├── components
-    │   │   ├── container.html
-    │   │   └── form.html
-    │   ├── partials
-    │   │   ├── _notifications.html
-    │   │   └── partner_banners.html
-    │   ├── resources
-    │   │   ├── partials
-    │   │   │   ├── basic_resource_card.html
-    │   │   │   ├── favorite_button.html
-    │   │   │   ├── resource_cards.html
-    │   │   │   └── search_suggestions.html
-    │   │   ├── resource_confirm_delete.html
-    │   │   ├── resource_detail.html
-    │   │   ├── resource_form.html
-    │   │   ├── resource_list.html
-    │   │   └── resource_type_detail.html
-    │   ├── robots.txt
-    │   ├── socialaccount
-    │   │   └── snippets
-    │   │       └── provider_list.html
-    │   └── website
-    │       ├── contact.html
-    │       ├── home.html
-    │       └── partners.html
-    ├── templatetags
-    │   ├── __init__.py
-    │   └── model_tags.py
-    ├── tests.py
-    ├── urls
-    │   ├── admin_urls.py
-    │   └── website_urls.py
-    └── views.py
+│       ├── __init__.py       # storages app init
+│       └── mixins.py         # storages app mixins
+├── LICENSE                   # license file
+├── manage.py                 # manage.py file
+├── notifications             # folder with notifications files
+│   ├── __init__.py           # notifications app init
+│   ├── admin.py              # notifications app admin
+│   ├── admin_views.py        # notifications app admin views
+│   ├── apps.py               # notifications app apps config
+│   ├── migrations/           # folder with notifications app migration files
+│   ├── models.py             # notifications app models
+│   ├── notifier.py           # notifications app notifier
+│   ├── signals.py            # notifications app signals
+│   ├── tasks.py              # notifications app tasks
+│   ├── templates/            # folder with notifications app templates
+│   ├── tests/                # pytest package
+│   │   ├── __init__.py       # notifications app tests init
+│   │   ├── base.py           # notifications app tests base
+│   │   └── test_*.py         # notifications app tests test_*.py
+│   ├── urls.py               # notifications app urls
+│   └── views.py              # notifications app views
+├── pyproject.toml              # pyproject.toml file
+├── README.md                 # README.md file
+├── requirements.txt          # requirements.txt file
+├── resources                 # folder with resources files
+│   ├── __init__.py           # resources app init
+│   ├── admin.py              # resources app admin
+│   ├── admin_dependency_views.py # resources app admin dependency views
+│   ├── admin_urls.py         # resources app admin urls
+│   ├── admin_views.py        # resources app admin views
+│   ├── apps.py               # resources app apps config
+│   ├── forms.py              # resources app forms
+│   ├── management/           # folder with resources app management files
+│   ├── migrations/           # folder with resources app migration files
+│   ├── models.py             # resources app models
+│   ├── tests/                # pytest package
+│   │   ├── __init__.py       # resources app tests init
+│   │   ├── base.py           # resources app tests base
+│   │   └── test_*.py         # resources app tests test_*.py
+│   ├── urls.py               # resources app urls
+│   ├── validators.py         # resources app validators
+│   └── views.py              # resources app views
+├── seo                         # folder with seo files
+│   ├── __init__.py           # seo app init
+│   ├── admin.py              # seo app admin
+│   ├── admin_views.py        # seo app admin views
+│   ├── apps.py               # seo app apps config
+│   ├── management/           # folder with seo app management files
+│   ├── middleware.py         # seo app middleware
+│   ├── migrations/           # folder with seo app migration files
+│   ├── models.py             # seo app models
+│   ├── static/               # folder with seo app static files
+│   ├── tests/                # pytest package
+│   │   ├── __init__.py       # seo app tests init
+│   │   ├── base.py           # seo app tests base
+│   │   └── test_*.py         # seo app tests test_*.py
+│   ├── urls.py               # seo app urls
+│   ├── utils.py              # seo app utils
+│   └── views.py              # seo app views
+├── test                       # Docker test harness
+│   ├── compose.yaml          # Docker compose file
+│   ├── Dockerfile            # Dockerfile for test
+│   └── test.sh               # test script
+├── tests                      # Project-level tests
+│   ├── __init__.py           # project-level tests init
+│   ├── test_integration.py    # Cross-app end-to-end flows
+│   └── test_settings.py       # Django settings validation
+├── uv.lock                   # uv.lock file
+├── website                   # folder with website files
+│   ├── __init__.py           # website app init
+│   ├── admin.py              # website app admin
+│   ├── admin_views.py        # website app admin views
+│   ├── apps.py               # website app apps config
+│   ├── forms/                # folder with website app forms
+│   ├── health_checks.py      # website app health checks
+│   ├── management/           # folder with website app management files
+│   ├── migrations/           # folder with website app migration files
+│   ├── models.py             # website app models
+│   ├── sitemaps.py           # website app sitemaps
+│   ├── static/               # folder with website app static files
+│   ├── templates/            # folder with website app templates
+│   ├── templatetags/         # folder with website app templatetags
+│   ├── tests/                # pytest package
+│   │   ├── __init__.py       # website app tests init
+│   │   ├── base.py           # website app tests base
+│   │   └── test_*.py         # website app tests test_*.py
+│   ├── urls/                 # folder with website app urls
+│   └── views.py              # website app views
 ```
+
+> **Note:** All templates live under `website/templates/` grouped by app sub-folder — a known
+> architectural quirk documented in [docs/ROADMAP.md](./docs/ROADMAP.md).
 
 ---
 
@@ -510,7 +408,7 @@ Visit: http://localhost:8000
 ## 🔑 Key URLs
 
 | URL                              | Description                                                         |
-|----------------------------------|---------------------------------------------------------------------|
+| -------------------------------- | ------------------------------------------------------------------- |
 | `/`                              | Public homepage — live search, resource type cards, stats, partners |
 | `/resources/`                    | Searchable & filterable resource catalogue                          |
 | `/resources/type/<type>/`        | SEO-optimised resource type landing page                            |
@@ -535,7 +433,7 @@ Navigation menus are **100% database-driven** — no code changes needed.
 1. **Admin Panel → Menus → + Add Menu** — use one of the reserved slot names:
 
    | Menu Name        | Where it renders                   |
-      | ---------------- | ---------------------------------- |
+   | ---------------- | ---------------------------------- |
    | `primary_header` | Desktop & mobile header navigation |
    | `footer`         | Footer quick-links column          |
 
@@ -571,7 +469,7 @@ Toasts auto-dismiss after 5 seconds with an animated progress bar. Users can als
 ## 👤 User Roles
 
 | Role               | Permissions                                                                                 |
-|--------------------|---------------------------------------------------------------------------------------------|
+| ------------------ | ------------------------------------------------------------------------------------------- |
 | **Standard User**  | Browse & download resources, manage favourites                                              |
 | **Vendor/Creator** | All of the above + upload and manage own resources                                          |
 | **Admin**          | Full management panel access: CRUD for users, pages, resources, menus, settings, curriculum |
@@ -666,7 +564,7 @@ To test email sending locally and offline with an smpt server use mailpit
 ## 🎨 Frontend Stack
 
 | Technology                    | Purpose                                                   |
-|-------------------------------|-----------------------------------------------------------|
+| ----------------------------- | --------------------------------------------------------- |
 | **Tailwind CSS v4**           | Utility-first styling                                     |
 | **Alpine.js**                 | Reactive UI (modals, bulk actions, dropdowns)             |
 | **HTMX**                      | Server-driven interactivity (favourites, partial updates) |
@@ -703,7 +601,51 @@ uv run python manage.py test
 
 ---
 
-## 🖼 Template Patterns & Gotchas
+## 🧪 Testing
+
+The project uses **pytest** with **pytest-xdist** for parallel test execution.
+All app-level tests live in `<app>/tests/` packages. Project-level tests (settings
+validation and cross-app integration flows) are in the top-level `tests/` package.
+
+```bash
+# Run the full suite (sequential)
+uv run pytest
+
+# Run in parallel (recommended — matches CI)
+uv run pytest -n auto
+
+# Run with DB reuse and no migrations (fastest for dev iteration)
+uv run pytest --reuse-db --nomigrations
+
+# Run only a specific app
+uv run pytest website/tests/
+
+# Run settings and integration tests
+uv run pytest tests/
+
+# Run with coverage
+uv run pytest --cov=. --cov-report=html
+```
+
+> **1 395 tests across all apps** — settings validation, unit tests, integration
+> flows, file upload concurrency, performance baselines, and admin CRUD all run
+> at 100% pass rate in CI.
+
+---
+
+## 🚀 CI/CD
+
+Two GitHub Actions workflows handle automated testing and Docker image publishing.
+See [docs/CI-CD.md](./docs/CI-CD.md) for the full reference.
+
+**Quick summary:**
+
+| Trigger                              | What happens                                                    |
+| ------------------------------------ | --------------------------------------------------------------- |
+| Push / PR → `main`                   | Full test suite runs; image pushed as `sha` + `latest` on merge |
+| `git push origin v1.2.3` from `main` | Tests run, then image pushed as `1.2.3`, `1.2`, `1`, `latest`   |
+
+**Required GitHub Secrets:** `REGISTRY_USERNAME`, `REGISTRY_PASSWORD`
 
 ### FileField / ImageField `.url` safety
 
