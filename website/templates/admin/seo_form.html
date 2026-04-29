@@ -1,0 +1,114 @@
+{% extends "admin/base_admin.html" %}
+{% load widget_tweaks %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block admin_content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <nav class="flex flex-wrap items-center gap-2 text-xs text-white/40 mb-8" aria-label="Breadcrumb">
+    <a href="{% url 'management:dashboard' %}" class="hover:text-white transition-colors">Admin Panel</a>
+    {% if cancel_url %}
+    <span>/</span>
+    <a href="{{ cancel_url }}" class="hover:text-white transition-colors">{{ parent_title|default:"Return to List" }}</a>
+    {% endif %}
+    <span>/</span>
+    <span class="text-white/60">{{ title }}</span>
+  </nav>
+
+  {{ form.media }}
+
+  <form method="post" enctype="multipart/form-data" novalidate id="adminForm">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="mb-6 p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 text-sm">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <!-- 2-column layout: Main content left, SEO panel right -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+
+      <!-- LEFT: Main Fields -->
+      <div class="xl:col-span-2 space-y-6">
+        <div class="rounded-2xl bg-white/3 border border-white/10 overflow-hidden">
+          <div class="px-6 py-4 border-b border-white/10">
+            <h2 class="font-bold text-white text-lg">{{ title }}</h2>
+          </div>
+          <div class="p-6 space-y-5">
+            {% for field in form %}
+              {% if field.name != 'meta_title' and field.name != 'meta_description' and field.name != 'meta_keywords' and field.name != 'featured_image' %}
+              <div>
+                <label for="{{ field.id_for_label }}" class="block text-xs font-bold uppercase tracking-wider text-white/50 mb-1.5">
+                  {{ field.label }}{% if field.field.required %} <span class="text-red-400">*</span>{% endif %}
+                </label>
+                {% if field.field.widget.input_type == 'checkbox' %}
+                  <div class="flex items-center gap-3 mt-2">
+                    {% render_field field class="w-4 h-4 text-brand-primary bg-white/5 border-white/10 rounded focus:ring-brand-primary focus:ring-2" %}
+                    <span class="text-sm text-white/70">{{ field.help_text }}</span>
+                  </div>
+                {% elif field.field.widget.input_type == 'select' %}
+                  {% render_field field class="w-full rounded-xl bg-[#0d1117] border border-white/10 px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-brand-primary appearance-none" %}
+                {% elif field.field.widget.input_type == 'textarea' %}
+                  <div class="relative overflow-x-auto">
+                    {% render_field field class="responsive" %}
+                  </div>
+                {% elif field.field.widget.input_type == 'file' %}
+                  {% render_field field class="w-full text-sm text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 transition-all" %}
+                {% else %}
+                  {% render_field field class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-brand-primary placeholder:text-white/20 transition-all" %}
+                {% endif %}
+                {% if field.help_text and field.field.widget.input_type != 'checkbox' %}
+                  <p class="mt-1.5 text-xs text-white/30">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                  <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Save Actions (below main card on mobile, repeated here for convenience) -->
+        <div class="flex flex-wrap items-center gap-3 xl:hidden">
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-primary/20">Save</button>
+          <a href="{{ cancel_url }}" class="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-colors">Cancel</a>
+        </div>
+      </div>
+
+      <!-- RIGHT: SEO Panel -->
+      <div class="xl:col-span-1">
+        <div class="rounded-2xl bg-white/3 border border-white/10 overflow-hidden sticky top-20">
+          <div class="p-6">
+            {% include "admin/partials/seo_panel.html" %}
+
+            <!-- Sticky Save Actions -->
+            <div class="flex flex-col gap-3 mt-8 pt-6 border-t border-white/10">
+              <button type="submit" class="w-full px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-primary/20">Save Changes</button>
+              <a href="{{ cancel_url }}" class="w-full text-center px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white text-sm font-medium transition-colors">Cancel</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const titleInput = document.querySelector('input[name="title"], input[name="name"]');
+  const slugInput = document.querySelector('input[name="slug"]');
+  const metaTitleInput = document.getElementById('id_meta_title');
+
+  if (titleInput && slugInput) {
+    titleInput.addEventListener('input', function (e) {
+      if (!slugInput.dataset.touched) {
+        slugInput.value = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      }
+    });
+    slugInput.addEventListener('input', () => { slugInput.dataset.touched = '1'; });
+  }
+});
+</script>
+{% endblock %}

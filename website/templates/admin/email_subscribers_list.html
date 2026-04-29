@@ -1,0 +1,139 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Contact Messages{% endblock %}
+
+{% block admin_content %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <nav class="flex items-center gap-2 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
+            <a href="{% url 'management:dashboard' %}" class="hover:text-white transition-colors">Admin Panel</a>
+            <span>/</span>
+            <span class="text-white/60">Email Subscribers</span>
+        </nav>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-white">Email Subscribers</h1>
+                {% if opted_out_count %}
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-600 hover:bg-red-600/90 text-white shadow-lg hover:shadow-red-600/30 animate-pulse">
+                        {{ opted_out_count }} opted out
+                    </span>
+                {% endif %}
+            </div>
+            <a href="{% url 'management:email_subscriber_add' %}"
+               class="shrink-0 px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-accent text-white font-semibold text-sm transition-all shadow-lg flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Email Subscriber
+            </a>
+        </div>
+
+        <form class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search by email or name..."
+                   class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2 pr-10 text-sm text-white focus:ring-2 focus:ring-brand-primary placeholder:text-white/30">
+            <button type="submit"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-accent hover:bg-blue-60 text-white hover:bg-brand-primary font-semibold transition-colors shadow-lg shadow-brand-primary/20 whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                Search
+            </button>
+        </form>
+
+        <div class="rounded-2xl border border-white/8 overflow-x-auto bg-white/5 pb-2">
+            <table class="w-full text-sm" {% if email_subscribers %}id="dataTable"{% endif %}>
+                <thead>
+                <tr class="border-b border-white/8 bg-white/3">
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Full
+                        Name
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Email
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Status
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Created
+                        At
+                    </th>
+                    <th class="px-5 py-3 text-center text-xs text-white/40 font-medium uppercase tracking-wider w-20">
+                        Updated At
+                    </th>
+                    <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                {% for email_subscriber in email_subscribers %}
+                    <tr class="hover:bg-white/2 transition-colors group {% if not email_subscriber.opted_out %}bg-brand-primary/5{% endif %}">
+                        <td class="px-5 py-3">
+                            <div class="font-medium text-white flex items-center gap-2">
+                                {% if not email_subscriber.opted_out %}
+                                    <span class="w-1.5 h-1.5 rounded-full bg-brand-primary shrink-0"></span>{% endif %}
+                                {{ email_subscriber.full_name|default:'-' }}
+                            </div>
+                            <div class="text-xs text-white/40 mt-0.5">{{ email_subscriber.email }}</div>
+                        </td>
+                        <td class="px-5 py-3 text-white/70 max-w-xs truncate">{{ email_subscriber.email }}</td>
+                        <td class="px-5 py-3 text-center">
+                            {% if not email_subscriber.opted_out %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-green-400">Active</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-600 hover:bg-red-600/90 text-white">Opted Out</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3 text-white/50 ">{{ email_subscriber.created_at|date:"M d, Y H:i"|default:'-' }}</td>
+                        <td class="px-5 py-3 text-white/40 ">{{ email_subscriber.updated_at|date:"M d, Y H:i"|default:'-' }}</td>
+
+                        <td class="px-5 py-3 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{% url 'management:email_subscriber_edit' email_subscriber.pk %}"
+                                   class="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
+                                   title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                                <button type="button"
+                                        x-on:click.prevent="$dispatch('open-delete-modal', { url: '{% url 'management:email_subscribers_delete' email_subscriber.pk %}', name: '{{ email_subscriber.name|escapejs }} — {{ email_subscriber.email|escapejs }}' })"
+                                        class="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors tooltip"
+                                        title="Delete">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-5 py-12 text-center">
+                            <div class="text-4xl mb-3">📭</div>
+                            <p class="text-white/40">No contact messages yet.</p>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <div class="mt-6 flex items-center justify-center gap-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}"
+                       class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm">&laquo;
+                        Prev</a>
+                {% endif %}
+                <span class="text-white/40 text-sm">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}"
+                       class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm">Next
+                        &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </div>
+{% endblock %}

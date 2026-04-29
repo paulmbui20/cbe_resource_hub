@@ -1,0 +1,123 @@
+{% extends "resources/resource_filter_base.html" %}
+{% load static %}
+
+{% block title %}{{ resource_type_label }} — Free Kenya CBC Resources{% endblock %}
+{% block meta_title_value %}{{ resource_type_label }} | CBE Resource Hub Kenya{% endblock %}
+{% block meta_description_value %}Download free {{ resource_type_label|lower }} aligned to the Kenya CBC/CBE curriculum.
+    {{ resource_type_desc }} {{ paginator.count }} resource{{ paginator.count|pluralize }}
+    available.{% endblock %}
+{% block og_title %}{{ resource_type_label }} — CBE Resource Hub Kenya{% endblock %}
+{% block og_description %}{{ resource_type_desc }} Browse {{ paginator.count }} free {{ resource_type_label|lower }}
+    for Kenyan learners.{% endblock %}
+
+{% block structured_data %}
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "{{ resource_type_label }} — CBE Resource Hub",
+          "description": "{{ resource_type_desc }}",
+          "url": "{{ request.build_absolute_uri }}",
+          "numberOfItems": {{ paginator.count }}
+        }
+    </script>
+{% endblock %}
+{% block filter_label %}{{ resource_type_label }} Resources{% endblock %}
+{% block filter_title %}{{ resource_type_label }} Resources{% endblock %}
+{% block filter_meta_description_value %}{{ resource_type_desc }}{% endblock %}
+{% block filter_count %}{{ paginator.count }}{% endblock %}
+
+{% block filter_bar %}
+    <!-- ─── Filter bar ──────────────────────────────────────────────── -->
+    <form method="get" action="{% url 'resources:type_detail' resource_type_key %}"
+          hx-get="{% url 'resources:type_detail' resource_type_key %}"
+          hx-push-url="true"
+          hx-target="#resource-grid"
+          hx-swap="innerHTML"
+          class="mb-4 grid grid-cols-2 md:grid-cols-5 gap-2 items-end justify-between">
+
+        <!-- Search -->
+        <div class="">
+            <label for="id_q" class="block text-xs text-white/50 mb-1">Search</label>
+            <input id="id_q" type="search" name="q" value="{{ search_query }}"
+                   placeholder="e.g. Integrated Science Notes…"
+                   class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-gold transition"/>
+        </div>
+
+        <!-- Education Level -->
+        <div class="">
+            <label for="id_level" class="block text-xs text-white/50 mb-1">Level</label>
+            <select id="id_level" name="education_level"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Levels</option>
+                {% for level in education_levels %}
+                    <option value="{{ level.pk }}"
+                            {% if current_education_level == level.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ level.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Grade -->
+        <div class="">
+            <label for="id_grade" class="block text-xs text-white/50 mb-1">Grade</label>
+            <select id="id_grade" name="grade"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Grades</option>
+                {% for grade in grades %}
+                    <option value="{{ grade.pk }}"
+                            {% if current_grade == grade.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ grade.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Learning Area -->
+        <div class="">
+            <label for="id_area" class="block text-xs text-white/50 mb-1">Subject</label>
+            <select id="id_area" name="learning_area"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Subjects</option>
+                {% for area in learning_areas %}
+                    <option value="{{ area.pk }}"
+                            {% if current_learning_area == area.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ area.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex w-full gap-2 items-center">
+            <button type="submit"
+                    class="w-full px-4 py-2 rounded-lg bg-brand-gold/90 hover:bg-brand-gold text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-gold/20 hover:cursor-pointer">
+                Filter
+            </button>
+            <button type="button"
+                    hx-get="{% url 'resources:type_detail' resource_type_key %}"
+                    hx-push-url="true"
+                    hx-target="#resource-grid"
+                    hx-swap="innerHTML"
+                    class="w-full px-4 py-2 rounded-lg bg-brand-primary hover:bg-brand-accent text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-accent/20 hover:cursor-pointer">
+                Clear
+            </button>
+        </div>
+    </form>
+{% endblock filter_bar %}
+
+{% block other_filters %}
+    {# ── Sidebar: other types ── #}
+    <h2 class="text-xs font-bold uppercase tracking-wider text-white/30 mb-4">Other Resource Types</h2>
+    <ul class="grid grid-cols-3 md:grid-cols-2 gap-2">
+        {% for key, info in all_resource_types.items %}
+            {% if key != resource_type_key %}
+                <li>
+                    <a href="{% url 'resources:type_detail' key %}"
+                       class="flex items-center  p-2 rounded-xl bg-white/3 border border-white/5 hover:bg-white/8 hover:border-white/10 transition-all text-sm text-white/60 hover:text-white group">
+                        <span class="font-medium text-xs">{{ info.label }}</span>
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endblock %}

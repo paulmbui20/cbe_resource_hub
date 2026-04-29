@@ -54,3 +54,12 @@ class PublicFilesStorage(mixins.DefaultACLMixin, CloudflareStorage):
     location = "media"  # Files will be stored at media/files/{category}/{filename}
     default_acl = "public-read"
     querystring_auth = False
+
+
+class DbBackupPrivateStorage(mixins.DefaultACLMixin, CloudflareStorage):
+    """
+    This is a private protected bucket For storing db backup uploads
+    """
+    location = "database-backups"
+    default_acl = "private"
+    querystring_auth = True

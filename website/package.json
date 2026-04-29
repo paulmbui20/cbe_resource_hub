@@ -1,5 +1,11 @@
 {
-  "dependencies": {
+  "name": "cbe_resource_hub_ui",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "bun run tailwindcss -i ./static/css/src/input.css -o static/css/src/output.css --watch",
+    "build": "bun run tailwindcss -i ./static/css/src/input.css -o static/css/src/output.css --minify"
+  },
+  "devDependencies": {
     "@tailwindcss/cli": "^4.2.2",
     "tailwindcss": "^4.2.2"
   }

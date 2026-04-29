@@ -1,0 +1,27 @@
+{% extends "notifications/email_base.html" %}
+
+{% block content %}
+<div class="alert alert-danger">
+  <h2>Security Alert: IP Lockout</h2>
+  <p>A brute-force attempted was detected and the source IP has been locked out.</p>
+</div>
+
+<table>
+  <tr>
+    <th>IP Address</th>
+    <td>{{ ip_address }}</td>
+  </tr>
+  <tr>
+    <th>Attempted Username</th>
+    <td>{{ username|default:"N/A" }}</td>
+  </tr>
+  <tr>
+    <th>Timestamp</th>
+    <td>{{ timestamp|date:"F j, Y, g:i a" }}</td>
+  </tr>
+</table>
+
+<p><strong>User Agent:</strong><br><small>{{ user_agent }}</small></p>
+
+<p>No action is required unless this is an unexpected spike in security alerts.</p>
+{% endblock %}

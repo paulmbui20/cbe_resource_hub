@@ -1,0 +1,240 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Media Library{% endblock %}
+
+{% block admin_content %}
+<div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+     x-data="{ 
+        inspectorOpen: false, 
+        selectedFile: { id: null, title: '', url: '', category: '', created: '', human_size: '', dimensions: '' },
+        isDragging: false,
+        activeCategory: '{{ request.GET.category|default:"all" }}',
+        copySuccess: false,
+        
+        openInspector(fileData) {
+            this.selectedFile = fileData;
+            this.inspectorOpen = true;
+            this.copySuccess = false;
+        },
+        
+        closeInspector() {
+            this.inspectorOpen = false;
+        },
+        
+        async copyUrl() {
+            if (!this.selectedFile) return;
+            try {
+                // Ensure we get the absolute URL natively using Alpine logic rather than template tags
+                const link = window.location.origin + this.selectedFile.url;
+                await navigator.clipboard.writeText(link);
+                this.copySuccess = true;
+                setTimeout(() => this.copySuccess = false, 2000);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+            }
+        },
+
+        triggerUpload() {
+            document.getElementById('file-upload-input').click();
+        },
+
+        handleDrop(e) {
+            this.isDragging = false;
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                const input = document.getElementById('file-upload-input');
+                // Create a DataTransfer object to assign the dropped files correctly to the native input
+                const dt = new DataTransfer();
+                for (let i = 0; i < files.length; i++) {
+                    dt.items.add(files[i]);
+                }
+                input.files = dt.files;
+                
+                // Trigger HTMX form submission
+                htmx.trigger('#file-upload-form', 'submit');
+            }
+        }
+     }">
+
+  <!-- Header & Filters & Upload Trigger -->
+  <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-white tracking-tight">Media Library</h1>
+      <p class="text-white/40 mt-1">Manage all your visual assets and document attachments globally.</p>
+    </div>
+    
+    <div class="flex flex-col sm:flex-row items-center gap-4">
+      <!-- Hidden form for drag-and-drop or select button upload pushes using HTMX -->
+      <form id="file-upload-form" hx-post="{% url 'management:file_upload' %}" hx-encoding="multipart/form-data" hx-swap="none" class="hidden">
+        {% csrf_token %}
+        <input type="file" id="file-upload-input" name="file" multiple @change="htmx.trigger('#file-upload-form', 'submit')">
+      </form>
+      
+      <button type="button" x-on:click="triggerUpload()" class="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-blue-600 text-white font-semibold transition-all shadow-lg shadow-brand-primary/20 flex items-center gap-2 relative overflow-hidden group">
+        <svg class="w-5 h-5 group-hover:-translate-y-1 transition-transform relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+        <span class="relative z-10">Upload Media</span>
+        
+        <!-- HTMX spinner injection container when in flight overlaying the button -->
+        <div class="absolute inset-0 bg-brand-primary opacity-0 flex items-center justify-center transition-opacity htmx-indicator">
+            <svg class="w-5 h-5 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Primary Application Body (Draggable Area) -->
+  <div class="relative flex gap-6"
+       @dragover.prevent="isDragging = true"
+       @dragleave.prevent="if($event.relatedTarget === null || !$el.contains($event.relatedTarget)) isDragging = false"
+       @drop.prevent="handleDrop($event)">
+       
+    <!-- Interactive Drag Target Overlay -->
+    <div x-show="isDragging" x-transition.opacity 
+         class="absolute inset-0 z-50 bg-brand-primary/10 border-2 border-dashed border-brand-primary rounded-2xl flex items-center justify-center backdrop-blur-sm pointer-events-none">
+        <div class="text-center">
+            <svg class="w-20 h-20 text-brand-primary drop-shadow-xl mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+            <h3 class="text-3xl font-extrabold tracking-tight text-white drop-shadow-xl shadow-black">Drop files anywhere to upload</h3>
+        </div>
+    </div>
+
+    <!-- Media Library Grid Structure -->
+    <div class="flex-1 transition-all duration-300 min-w-0"
+         :class="inspectorOpen ? 'xl:mr-96' : ''">
+         
+        <!-- Filter Category Tabs using HTMX for seamless swaps -->
+        <div class="mb-6 flex space-x-2 border-b border-white/10 pb-4 overflow-x-auto" hx-target="#media-grid-contents" hx-swap="outerHTML">
+           <button x-on:click="activeCategory = 'all'" 
+                   hx-get="{% url 'management:file_list' %}?category=all" 
+                   :class="activeCategory === 'all' ? 'bg-white/10 text-white font-semibold' : 'text-white/50 hover:bg-white/5 hover:text-white'"
+                   class="px-4 py-2 rounded-lg text-sm transition-colors whitespace-nowrap">All Media</button>
+           <button x-on:click="activeCategory = 'image'" 
+                   hx-get="{% url 'management:file_list' %}?category=image"
+                   :class="activeCategory === 'image' ? 'bg-white/10 text-white font-semibold' : 'text-white/50 hover:bg-white/5 hover:text-white'"
+                   class="px-4 py-2 rounded-lg text-sm transition-colors whitespace-nowrap">Images</button>
+           <button x-on:click="activeCategory = 'document'" 
+                   hx-get="{% url 'management:file_list' %}?category=document"
+                   :class="activeCategory === 'document' ? 'bg-white/10 text-white font-semibold' : 'text-white/50 hover:bg-white/5 hover:text-white'"
+                   class="px-4 py-2 rounded-lg text-sm transition-colors whitespace-nowrap">Documents</button>
+           <button x-on:click="activeCategory = 'archive'" 
+                   hx-get="{% url 'management:file_list' %}?category=archive"
+                   :class="activeCategory === 'archive' ? 'bg-white/10 text-white font-semibold' : 'text-white/50 hover:bg-white/5 hover:text-white'"
+                   class="px-4 py-2 rounded-lg text-sm transition-colors whitespace-nowrap">Archives</button>
+           <button x-on:click="activeCategory = 'audio'" 
+                   hx-get="{% url 'management:file_list' %}?category=audio"
+                   :class="activeCategory === 'audio' ? 'bg-white/10 text-white font-semibold' : 'text-white/50 hover:bg-white/5 hover:text-white'"
+                   class="px-4 py-2 rounded-lg text-sm transition-colors whitespace-nowrap">Audio</button>
+           <button x-on:click="activeCategory = 'other'" 
+                   hx-get="{% url 'management:file_list' %}?category=other"
+                   :class="activeCategory === 'other' ? 'bg-white/10 text-white font-semibold' : 'text-white/50 hover:bg-white/5 hover:text-white'"
+                   class="px-4 py-2 rounded-lg text-sm transition-colors whitespace-nowrap">Other</button>
+        </div>
+
+        <!-- HTMX auto-refresh trigger listener (Triggers explicitly off our views signals) -->
+        <div hx-get="{% url 'management:file_list' %}"
+             hx-trigger="mediaUpdated from:body"
+             hx-include="[name='category']"
+             hx-target="#media-grid-contents"
+             hx-swap="outerHTML"
+             class="hidden"></div>
+             
+        <!-- Dynamic Grid Content Container -->
+        {% include "admin/files/partials/grid.html" %}
+    </div>
+    
+    <!-- File Details / Inspector Sidebar -->
+    <aside x-show="inspectorOpen" 
+           x-transition:enter="transition ease-out duration-300"
+           x-transition:enter-start="opacity-0 translate-x-10"
+           x-transition:enter-end="opacity-100 translate-x-0"
+           x-transition:leave="transition ease-in duration-200"
+           x-transition:leave-start="opacity-100 translate-x-0"
+           x-transition:leave-end="opacity-0 translate-x-10"
+           class="fixed right-4 top-20 xl:top-18 bottom-4 w-80 lg:w-96 rounded-2xl bg-white/5 border border-white/10 shadow-2xl backdrop-blur-xl z-40 overflow-hidden flex flex-col"
+           x-cloak>
+           
+        <div class="flex-1 overflow-y-auto p-6" x-show="selectedFile.id">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+                <h3 class="font-bold text-white tracking-tight flex items-center gap-2">
+                    <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    File Overview
+                </h3>
+                <button type="button" x-on:click="closeInspector()" class="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Context Window Preview Matrix -->
+            <div class="aspect-square bg-black/40 rounded-xl mb-6 overflow-hidden flex items-center justify-center border border-white/5 relative group">
+                <template x-if="selectedFile.category === 'image'">
+                    <img :src="selectedFile.url" :alt="selectedFile.title" class="w-full h-full object-contain p-2">
+                </template>
+                <template x-if="selectedFile.category !== 'image'">
+                    <svg class="w-24 h-24 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </template>
+                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                    <a :href="selectedFile.url" target="_blank" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm font-semibold transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        Open in New Tab
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Metadata Readout -->
+            <div class="grid grid-cols-2 gap-4 mb-6 text-sm flex-1">
+                <div class="bg-white/5 rounded-xl p-3 border border-white/5 text-center">
+                    <label class="block text-[10px] uppercase font-bold text-white/30 tracking-wider mb-1">Uploaded On</label>
+                    <div class="text-white font-medium" x-text="selectedFile.created"></div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3 border border-white/5 text-center">
+                    <label class="block text-[10px] uppercase font-bold text-white/30 tracking-wider mb-1">File Size</label>
+                    <div class="text-white font-medium" x-text="selectedFile.human_size"></div>
+                </div>
+                <template x-if="selectedFile.dimensions">
+                    <div class="col-span-2 bg-white/5 rounded-xl p-3 border border-white/5 text-center">
+                        <label class="block text-[10px] uppercase font-bold text-white/30 tracking-wider mb-1">Image Dimensions</label>
+                        <div class="text-white font-medium" x-text="selectedFile.dimensions"></div>
+                    </div>
+                </template>
+            </div>
+            
+            <!-- Interactives -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] uppercase font-bold text-white/30 tracking-wider mb-2">Display Title</label>
+                    <!-- HTMX driven form updating the asset title explicitly on blur-->
+                    <form x-bind:hx-post="'/management/files/' + selectedFile.id + '/'" hx-swap="none" @change="$el.dispatchEvent(new Event('submit', {cancelable: true}))" class="relative group">
+                        {% csrf_token %}
+                        <input type="text" name="title" x-model="selectedFile.title" 
+                               class="w-full bg-white/2 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:bg-white/5 focus:ring-1 focus:border-brand-primary focus:ring-brand-primary placeholder:text-white/20 transition-all">
+                        <div class="absolute inset-y-0 right-3 flex items-center opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none">
+                            <span class="text-[10px] bg-brand-primary text-white rounded px-1.5 py-0.5 font-bold uppercase">Saving auto</span>
+                        </div>
+                    </form>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] uppercase font-bold text-white/30 tracking-wider mb-2">Public URL Path</label>
+                    <div class="flex gap-2">
+                        <input type="text" readonly :value="selectedFile.url" class="flex-1 bg-black/30 border border-white/5 rounded-xl px-3 py-2 text-xs font-mono text-white/40 focus:outline-none">
+                        <button type="button" x-on:click="copyUrl()" class="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 rounded-xl transition-all tooltip" :title="copySuccess ? 'Copied!' : 'Copy to Clipboard'">
+                            <svg x-show="!copySuccess" class="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <svg x-show="copySuccess" class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Sticky Subfooter Action Area -->
+        <div class="p-6 bg-red-500/5 border-t border-red-500/10 mt-auto" x-show="selectedFile.id">
+            <button x-on:click="$dispatch('open-delete-modal', { url: '/management/files/' + selectedFile.id + '/delete/', name: selectedFile.title }); closeInspector();" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 hover:text-red-400 border border-red-500/20 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Permanently Delete File
+            </button>
+        </div>
+    </aside>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "notifications/email_base.html" %}
+
+{% block title %}{{ context.subject }}{% endblock %}
+{% block content %}
+    <div class="alert alert-info">
+        <h2>Message for admin: </h2>
+        <p>{{ context.subject }}</p>
+    </div>
+
+    <article>
+        {{ context.message }}
+    </article>
+
+    <div><strong>In context of:</strong>
+        <p>{{ context.context }}</p>
+    </div>
+
+
+
+{% endblock %}

@@ -1,0 +1,10 @@
+New Contact Message
+-------------------
+From: {{ message.name }} ({{ message.email|default:"No email" }})
+Subject: {{ message.subject }}
+Date: {{ message.created_at }}
+
+Message:
+{{ message.message }}
+
+You can view and reply to this message in the management dashboard.

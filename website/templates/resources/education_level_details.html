@@ -1,0 +1,133 @@
+{% extends 'resources/resource_filter_base.html' %}
+
+{% block title %}{{ education_level.name }} Resources — Free Kenya CBC Resources{% endblock %}
+{% block meta_title_value %}{{ education_level.meta_title }} Resources  | CBE Resource Hub Kenya{% endblock %}
+{% block meta_description_value %}Download free {{ education_level.name|lower }} aligned to the Kenya CBC/CBE
+    curriculum. {{ education_level.meta_description }} {{ paginator.count }} resource{{ paginator.count|pluralize }}
+    available.{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ education_level.name }} — CBE Resource Hub Kenya{% endblock %}
+{% block og_description %}{{ education_level.meta_description }} Browse {{ paginator.count }} free
+    {{ education_level.name|lower }} resources for Kenyan learners.{% endblock %}
+{% block og_image %}{% load static %}{% if education_level.featured_image and education_level.featured_image.name %}{{ request.scheme }}://{{ request.get_host }}{{ education_level.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endif %}{% endblock %}
+{% block meta_keywords_value %}{{ education_level.meta_keywords|default:education_level.name }}, CBC resources Kenya, free learning materials{% endblock %}
+{% block twitter_title %}{{ education_level.name }} — CBE Resource Hub Kenya{% endblock %}
+{% block twitter_description %}{{ education_level.meta_description }} Browse {{ paginator.count }} free {{ education_level.name|lower }} resources.{% endblock %}
+{% block twitter_image %}{% load static %}{% if education_level.featured_image and education_level.featured_image.name %}{{ request.scheme }}://{{ request.get_host }}{{ education_level.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endif %}{% endblock %}
+
+{% block structured_data %}
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "{{ education_level.name }} Resources — CBE Resource Hub",
+  "description": "{{ education_level.meta_description }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "numberOfItems": {{ paginator.count }}
+        }
+    </script>
+{% endblock %}
+{% block filter_label %}{{ education_level.name }} Resources{% endblock %}
+{% block filter_title %}{{ education_level.name }} Resources{% endblock %}
+{% block filter_meta_description_value %}{{ education_level.meta_description }}{% endblock %}
+{% block filter_count %}{{ paginator.count }}{% endblock %}
+
+{% block filter_bar %}
+
+    <!-- ─── Filter bar ──────────────────────────────────────────────── -->
+    <form method="get" action="{% url 'resources:education_level_details' education_level.slug %}"
+          hx-get="{% url 'resources:education_level_details' education_level.slug %}"
+          hx-push-url="true"
+          hx-target="#resource-grid"
+          hx-swap="innerHTML"
+          class="mb-4 grid grid-cols-2 md:grid-cols-5 gap-2 items-end justify-between">
+
+        <!-- Search -->
+        <div class="">
+            <label for="id_q" class="block text-xs text-white/50 mb-1">Search</label>
+            <input id="id_q" type="search" name="q" value="{{ search_query }}"
+                   placeholder="e.g. Integrated Science Notes…"
+                   class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-gold transition"/>
+        </div>
+
+        <!-- Resource Type -->
+        <div class="">
+            <label for="id_resource_type" class="block text-xs text-white/50 mb-1">Resource Type</label>
+            <select id="id_resource_type" name="resource_type"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Types</option>
+                {% for resource_type in resource_types %}
+                    <option value="{{ resource_type }}"
+                            {% if current_resource_type == resource_type|stringformat:"s" %}selected{% endif %}>
+                        {{ resource_type }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Grade -->
+        <div class="">
+            <label for="id_grade" class="block text-xs text-white/50 mb-1">Grade</label>
+            <select id="id_grade" name="grade"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Grades</option>
+                {% for grade in grades %}
+                    <option value="{{ grade.pk }}"
+                            {% if current_grade == grade.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ grade.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Learning Area -->
+        <div class="">
+            <label for="id_area" class="block text-xs text-white/50 mb-1">Subject</label>
+            <select id="id_area" name="learning_area"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Subjects</option>
+                {% for area in learning_areas %}
+                    <option value="{{ area.pk }}"
+                            {% if current_learning_area == area.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ area.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex w-full gap-2 items-center">
+            <button type="submit"
+                    class="w-full px-4 py-2 rounded-lg bg-brand-gold/90 hover:bg-brand-gold text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-gold/20 hover:cursor-pointer">
+                Filter
+            </button>
+            <button type="button"
+                    hx-get="{% url 'resources:education_level_details' education_level.slug %}"
+                    hx-push-url="true"
+                    hx-target="#resource-grid"
+                    hx-swap="innerHTML"
+                    class="w-full px-4 py-2 rounded-lg bg-brand-primary hover:bg-brand-accent text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-accent/20 hover:cursor-pointer">
+                Clear
+            </button>
+        </div>
+
+    </form>
+
+{% endblock filter_bar %}
+
+
+{% block other_filters %}
+    <h2 class="text-xs font-bold uppercase tracking-wider text-white/30 mb-4">Other Education Levels</h2>
+
+    <ul class="grid grid-cols-2 gap-2">
+        {% for level in all_education_levels %}
+            {% if level.slug != education_level.slug %}
+                <li>
+                    <a href="{% url 'resources:education_level_details' level.slug %}"
+                       class="flex items-center  p-2 rounded-xl bg-white/3 border border-white/5 hover:bg-white/8 hover:border-white/10 transition-all text-sm text-white/60 hover:text-white group">
+                        <span class="font-medium text-xs">{{ level.name }}</span>
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+
+{% endblock %}

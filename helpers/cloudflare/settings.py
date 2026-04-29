@@ -11,6 +11,13 @@ private_endpoint = os.getenv("CLOUDFLARE_R2_BUCKET_ENDPOINT")
 private_access_key = os.getenv("CLOUDFLARE_R2_ACCESS_KEY")
 private_secret_key = os.getenv("CLOUDFLARE_R2_SECRET_KEY")
 
+# ============ BACKUP PRIVATE BUCKET (for DB Backup uploads) ============
+private_backup_bucket = os.getenv("BACKUP_R2_BUCKET_NAME")
+private_backup_endpoint = os.getenv("BACKUP_R2_ENDPOINT")
+private_backup_access_key = os.getenv("BACKUP_R2_ACCESS_KEY_ID")
+private_backup_secret_key = os.getenv("BACKUP_R2_SECRET_ACCESS_KEY")
+private_backup_region_name = os.getenv("BACKUP_R2_REGION", "auto")
+
 # ============ PUBLIC BUCKET (for static files/TinyMCE) ============
 public_bucket = os.getenv("CLOUDFLARE_R2_PUBLIC_BUCKET")
 public_endpoint = os.getenv("CLOUDFLARE_R2_PUBLIC_BUCKET_ENDPOINT")
@@ -76,3 +83,36 @@ else:
     if not public_secret_key:
         missing.append("CLOUDFLARE_R2_PUBLIC_SECRET_KEY")
     logger.warning(f"Public R2 bucket not configured. Missing: {', '.join(missing)}")
+
+# ============ BACKUP BUCKET CONFIG ============
+
+CLOUDFLARE_R2_BACKUP_CONFIG_OPTIONS = {}
+
+if all([private_backup_bucket, private_backup_endpoint, private_backup_access_key, private_backup_secret_key,
+        private_backup_region_name]):
+    CLOUDFLARE_R2_BACKUP_CONFIG_OPTIONS = {
+        "bucket_name": private_backup_bucket,
+        "signature_version": "s3v4",
+        "endpoint_url": private_backup_endpoint,
+        "access_key": private_backup_access_key,
+        "secret_key": private_backup_secret_key,
+        "default_acl": "private",
+        "file_overwrite": False,
+        "location": "database-backups",
+        "querystring_auth": True,
+        "querystring_expire": 3600,
+    }
+    logger.info("✓ Private DB Backup R2 bucket configured (DB Backup uploads)")
+else:
+    missing = []
+    if not private_backup_bucket:
+        missing.append("BACKUP_R2_BUCKET_NAME")
+    if not private_backup_endpoint:
+        missing.append("BACKUP_R2_ENDPOINT")
+    if not private_backup_access_key:
+        missing.append("BACKUP_R2_ACCESS_KEY_ID")
+    if not private_backup_secret_key:
+        missing.append("BACKUP_R2_SECRET_ACCESS_KEY")
+    if not private_backup_region_name:
+        missing.append("BACKUP_R2_REGION")
+    logger.warning(f"Private DB Backup R2 bucket not configured. Missing: {', '.join(missing)}")

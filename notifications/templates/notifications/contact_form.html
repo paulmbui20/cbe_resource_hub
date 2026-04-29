@@ -1,0 +1,27 @@
+{% extends "notifications/email_base.html" %}
+
+{% block content %}
+<h2>New Contact Message</h2>
+<p>You have received a new message via the contact form on <strong>CBE Resource Hub</strong>.</p>
+
+<table>
+  <tr>
+    <th>From</th>
+    <td>{{ message.name }} ({{ message.email|default:"No email" }})</td>
+  </tr>
+  <tr>
+    <th>Subject</th>
+    <td>{{ message.subject }}</td>
+  </tr>
+  <tr>
+    <th>Date</th>
+    <td>{{ message.created_at|date:"F j, Y, g:i a" }}</td>
+  </tr>
+</table>
+
+<div style="margin-top: 20px; padding: 20px; background: #f8fafc; border-radius: 8px; font-style: italic;">
+  {{ message.message|linebreaks }}
+</div>
+
+<p>You can view and reply to this message in the management dashboard.</p>
+{% endblock %}

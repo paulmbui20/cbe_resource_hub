@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 py-6">
+
+        {# Breadcrumb #}
+        <nav class="flex items-center gap-2 text-xs text-white/40 mb-4" aria-label="Breadcrumb">
+            <a href="{% url 'accounts:dashboard' %}" class="hover:text-white transition-colors">Dashboard</a>
+            <span>/</span>
+            <span class="text-white/60">Edit Profile</span>
+        </nav>
+
+        <div class="rounded-2xl bg-brand-secondary/5 border border-white/5 shadow-2xl overflow-hidden">
+            <div class="p-8">
+                <h1 class="text-xl font-bold text-white mb-4">Edit Profile</h1>
+
+                {# Messages #}
+                {% for msg in messages %}
+                    <div class="mb-4 flex items-center gap-3 px-4 py-3 rounded-xl
+                        {% if msg.tags == 'success' %}bg-green-500/10 border border-green-500/20 text-green-400
+                        {% else %}bg-red-500/10 border border-red-500/20 text-red-400{% endif %}">
+                        <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            {% if msg.tags == 'success' %}
+                                <path fill-rule="evenodd"
+                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                      clip-rule="evenodd"></path>
+                            {% else %}
+                                <path fill-rule="evenodd"
+                                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                      clip-rule="evenodd"></path>
+                            {% endif %}
+                        </svg>
+                        <span class="text-sm">{{ msg }}</span>
+                    </div>
+                {% endfor %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {# Read-only email #}
+                    <div class="mb-4">
+                        <label class="block text-xs text-white/50 mb-1.5 uppercase tracking-wider">Email</label>
+                        <div class="w-full rounded-lg bg-white/3 border border-white/5 px-3 py-2.5 text-sm text-white/40 cursor-not-allowed">
+                            {{ user.email }}
+                        </div>
+                        <p class="mt-1 text-xs text-white/30">Email is managed via <a href="{% url 'account_email' %}"
+                                                                                      class="text-brand-accent hover:underline">email
+                            settings</a>.</p>
+                    </div>
+
+                    {# First name #}
+                    <div class="mb-4">
+                        <label for="id_first_name" class="block text-xs text-white/50 mb-1.5 uppercase tracking-wider">First
+                            Name</label>
+                        <input id="id_first_name" type="text" name="first_name"
+                               value="{{ form.first_name.value|default:'' }}"
+                               class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-primary transition"/>
+                        {% if form.first_name.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ form.first_name.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    {# Last name #}
+                    <div class="mb-4">
+                        <label for="id_last_name" class="block text-xs text-white/50 mb-1.5 uppercase tracking-wider">Last
+                            Name</label>
+                        <input id="id_last_name" type="text" name="last_name"
+                               value="{{ form.last_name.value|default:'' }}"
+                               class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-primary transition"/>
+                        {% if form.last_name.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ form.last_name.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    {# Phone #}
+                    <div class="mb-4">
+                        <label for="id_phone_number"
+                               class="block text-xs text-white/50 mb-1.5 uppercase tracking-wider">Phone Number</label>
+                        <input id="id_phone_number" type="tel" name="phone_number"
+                               value="{{ form.phone_number.value|default:'' }}"
+                               placeholder="+254 7XX XXX XXX"
+                               class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-primary transition"/>
+                        {% if form.phone_number.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ form.phone_number.errors.0 }}</p>{% endif %}
+                    </div>
+                    {# Disable Email Notifications #}
+                    <div class="mb-4">
+                        <div class="flex items-center gap-3 mt-2">
+                            <label for="{{ form.disable_email_notification.id_for_label }}"
+                                   class="hover:cursor-pointer block text-xs text-white/50 uppercase tracking-wider">
+                                {{ form.disable_email_notification.label }}
+                            </label>
+                            {{ form.disable_email_notification }}
+                        </div>
+                        <p class="mt-1 text-xs text-white/30">{{ form.disable_email_notification.help_text }}</p>
+                        {% if form.disable_email_notification.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ form.disable_email_notification.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button type="submit"
+                                class="hover:cursor-pointer px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-primary/20">
+                            Save Changes
+                        </button>
+                        <a href="{% url 'accounts:dashboard' %}"
+                           class="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-colors">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# Change password link #}
+        <div class="mt-2 text-center">
+            <a href="{% url 'account_change_password' %}"
+               class="text-xs text-white/40 hover:text-white transition-colors">
+                Change password
+            </a>
+        </div>
+
+    </div>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Admin Control Panel{% endblock %}
+
+{% block admin_content %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-white mb-1">Admin Control Panel</h1>
+                <p class="text-white/50 text-sm">Manage the platform, users, and resources.</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-10">
+
+            {# Quick Settings link #}
+            <div class="p-5 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-brand-accent font-semibold text-lg">Site Settings</h2>
+                    <p class="text-white/60 text-sm">Update platform name, global configurations, and contact info.</p>
+                </div>
+                <a href="{% url 'management:settings_list' %}"
+                   class="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-blue-600 text-white text-sm font-semibold transition-all shadow-lg shadow-brand-primary/20 whitespace-nowrap">Edit
+                    Site Settings</a>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-6">
+                <a href="{% url 'management:user_list' %}"
+                   class="p-6 rounded-2xl bg-white/5 border border-white/8 hover:border-white/20 transition-all group">
+                    <p class="text-xs text-white/40 uppercase tracking-widest mb-2 font-medium">Total Users</p>
+                    <p class="text-4xl font-bold text-white group-hover:text-brand-accent transition-colors">{{ total_users }}</p>
+                </a>
+                <a href="{% url 'management:email_subscribers' %}"
+                   class="p-6 rounded-2xl bg-white/5 border border-white/8 hover:border-white/20 transition-all group">
+                    <p class="text-xs text-white/40 uppercase tracking-widest mb-2 font-medium">Email
+                        Subscribers</p>
+                    <p class="text-4xl font-bold text-white group-hover:text-brand-accent transition-colors">{{ total_email_subscribers }}</p>
+                </a>
+
+                <div class="p-6 rounded-2xl bg-white/5 border border-white/8">
+                    <p class="text-xs text-white/40 uppercase tracking-widest mb-2 font-medium">Total Vendors</p>
+                    <p class="text-4xl font-bold text-white">{{ total_vendors }}</p>
+                </div>
+
+                <a href="{% url 'management:resource_list' %}"
+                   class="p-6 rounded-2xl bg-white/5 border border-white/8 hover:border-white/20 transition-all group">
+                    <p class="text-xs text-white/40 uppercase tracking-widest mb-2 font-medium">Resources</p>
+                    <p class="text-4xl font-bold text-white group-hover:text-brand-accent transition-colors">{{ total_resources }}</p>
+                </a>
+
+                <a href="{% url 'management:page_list' %}"
+                   class="p-6 rounded-2xl bg-white/5 border border-white/8 hover:border-white/20 transition-all group">
+                    <p class="text-xs text-white/40 uppercase tracking-widest mb-2 font-medium">CMS Pages</p>
+                    <p class="text-4xl font-bold text-white group-hover:text-brand-accent transition-colors">{{ total_pages }}</p>
+                </a>
+            </div>
+
+            {# System Architecture / Dependencies #}
+            <div>
+                <h2 class="text-lg font-semibold text-white mb-4">Architecture & Curriculum</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                    <a href="{% url 'management:level_list' %}"
+                       class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+                        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Education Levels</span>
+                    </a>
+                    <a href="{% url 'management:grade_list' %}"
+                       class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+                        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Grades</span>
+                    </a>
+                    <a href="{% url 'management:learningarea_list' %}"
+                       class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+                        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Learning Areas</span>
+                    </a>
+                    <a href="{% url 'management:menu_list' %}"
+                       class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+                        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Menus</span>
+                    </a>
+                    <a href="{% url 'management:menuitem_list' %}"
+                       class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group">
+                        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Menu Items</span>
+                    </a>
+                    <a href="{% url 'management:contact_list' %}"
+                       class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-white/20 hover:bg-white/10 transition-all text-center group relative">
+                        <span class="block text-sm font-semibold text-white group-hover:text-brand-accent transition-colors">Contact Messages</span>
+                        {% if unread_messages %}
+                            <span class="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-primary text-white text-[10px] font-bold shadow-lg">{{ unread_messages }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {# Recent Users #}
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-white">Recent Signups</h2>
+                        <a href="{% url 'management:user_list' %}"
+                           class="text-xs font-semibold text-brand-primary hover:text-brand-accent transition-colors">View
+                            All</a>
+                    </div>
+                    <div class="rounded-2xl border border-white/8 overflow-hidden bg-white/5">
+                        <table class="w-full text-sm">
+                            <tbody class="divide-y divide-white/5">
+                            {% for u in recent_users %}
+                                <tr class="hover:bg-white/2 transition-colors group">
+                                    <td class="px-5 py-4">
+                                        <div class="font-medium text-white group-hover:text-brand-accent transition-colors">{{ u.email }}</div>
+                                        <div class="text-xs text-white/40 mt-1 capitalize">{{ u.get_role_display }}</div>
+                                    </td>
+                                    <td class="px-5 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="{% url 'management:user_edit' u.pk %}"
+                                               class="p-2 text-brand-accent hover:bg-brand-accent/10 rounded-lg transition-colors tooltip"
+                                               title="Edit">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                     viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                          stroke-width="2"
+                                                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="px-5 py-6 text-center text-white/40">No signups yet.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {# Recent Resources #}
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-white">Recent Resources</h2>
+                        <a href="{% url 'management:resource_list' %}"
+                           class="text-xs font-semibold text-brand-primary hover:text-brand-accent transition-colors">View
+                            All</a>
+                    </div>
+                    <div class="rounded-2xl border border-white/8 overflow-hidden bg-white/5">
+                        <table class="w-full text-sm">
+                            <tbody class="divide-y divide-white/5">
+                            {% for r in recent_resources %}
+                                <tr class="hover:bg-white/2 transition-colors group">
+                                    <td class="px-5 py-4">
+                                        <div class="font-medium text-white group-hover:text-brand-accent transition-colors line-clamp-1">{{ r.title }}</div>
+                                        <div class="text-xs text-white/40 mt-1">{{ r.learning_area.name|default:"General" }}
+                                            - {{ r.grade.name|default:"Any Grade" }}</div>
+                                    </td>
+                                    <td class="px-5 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="{% url 'management:resource_edit' r.pk %}"
+                                               class="p-2 text-brand-accent hover:bg-brand-accent/10 rounded-lg transition-colors tooltip"
+                                               title="Edit">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                     viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                          stroke-width="2"
+                                                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="px-5 py-6 text-center text-white/40">No resources found.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

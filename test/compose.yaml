@@ -1,0 +1,34 @@
+services:
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: [ "redis-server", "--appendonly", "yes" ]
+    networks:
+      - testnet
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  django_tests:
+    build:
+      context: ..
+      dockerfile: test/Dockerfile
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.12}
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - ../.env.test
+    networks:
+      - testnet
+    command: ["./test/test.sh"]
+    restart: no
+
+
+networks:
+  testnet:
+    driver: bridge

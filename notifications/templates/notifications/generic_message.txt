@@ -1,0 +1,5 @@
+Message for admin:
+---------------------
+Subject: {{ context.subject }}
+Message:  {{ context.message }}
+

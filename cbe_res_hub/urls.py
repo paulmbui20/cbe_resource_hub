@@ -1,22 +1,63 @@
-"""
-URL configuration for cbe_res_hub project.
+"""cbe_res_hub/urls.py"""
+from __future__ import annotations
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+import sys
+
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.contrib.sitemaps.views import sitemap
+from django.urls import include, path
+from django.views.generic import TemplateView
+
+from website.sitemaps import sitemaps as SITEMAPS
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # ── Root ────────────────────────────────────────────────────────────────
+    path("", include("website.urls.website_urls")),
+
+    # ── SEO: robots.txt & sitemap.xml ─────────────────────────────────────
+    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots"),
+    path("sitemap.xml", sitemap, {"sitemaps": SITEMAPS}, name="django.contrib.sitemaps.views.sitemap"),
+
+    # ── Django admin ─────────────────────────────────────────────────────────
+    path("admin/", admin.site.urls),
+
+    # ── Authentication (allauth — login, sign-up, password, Google OAuth) ────
+    path("accounts/", include("allauth.urls")),
+
+    # ── Account dashboard / profile ──────────────────────────────────────────
+    path("account/", include("accounts.urls", namespace="accounts")),
+    path("management/", include("website.urls.admin_urls", namespace="management")),
+
+    # ── CBC resources (/resources/) ──────────────────────────────────────────
+    path("resources/", include("resources.urls")),
+
+    # ── CMS pages (/pages/<slug>/) ───────────────────────────────────────────
+    path("pages/", include("cms.urls")),
+
+    # ── TinyMCE ──────────────────────────────────────────────────────────────
+    path("tinymce/", include("tinymce.urls")),
+
 ]
+
+# ── Development only (excludes testing environment)─────────────────────────────
+if settings.DEBUG and not ("pytest" in sys.modules or "test" in sys.argv):
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    ENABLE_DEBUG_TOOLBAR = getattr(settings, "ENABLE_DEBUG_TOOLBAR")
+    ENABLE_SILK = getattr(settings, "ENABLE_SILK")
+    import debug_toolbar  # noqa: PLC0415
+
+    if ENABLE_DEBUG_TOOLBAR:
+        urlpatterns += [
+            # ── Django Debug Toolbar ───────────────────────────────────────────────
+            path("__debug__/", include(debug_toolbar.urls)),
+        ]
+
+    if ENABLE_SILK:
+        urlpatterns += [
+            # ── Silk profiler ──────────────────────────────────────────────────────
+            path("silk/", include("silk.urls", namespace="silk")),
+
+        ]

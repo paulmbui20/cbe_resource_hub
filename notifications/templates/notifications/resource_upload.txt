@@ -1,0 +1,8 @@
+New Resource Uploaded
+---------------------
+Title: {{ resource.title }}
+Grade: {{ resource.grade }}
+Price: {% if resource.is_free %}Free{% else %}KSh {{ resource.price }}{% endif %}
+Uploaded By: {{ resource.vendor.email|default:"System Admin" }}
+
+The resource is currently pending review or published based on system settings.

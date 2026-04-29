@@ -1,0 +1,92 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Contact Messages{% endblock %}
+
+{% block admin_content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <nav class="flex items-center gap-2 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
+    <a href="{% url 'management:dashboard' %}" class="hover:text-white transition-colors">Admin Panel</a>
+    <span>/</span>
+    <span class="text-white/60">Contact Messages</span>
+  </nav>
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-white">Contact Messages</h1>
+      {% if unread_count %}
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-brand-primary text-white shadow-lg shadow-brand-primary/30 animate-pulse">
+        {{ unread_count }} unread
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-white/8 overflow-x-auto bg-white/5 pb-2">
+    <table class="w-full text-sm" {% if contact_messages %}id="dataTable"{% endif %}>
+      <thead>
+        <tr class="border-b border-white/8 bg-white/3">
+          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider">Contact Name</th>
+          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Subject</th>
+          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Phone</th>
+          <th class="px-5 py-3 text-left text-xs text-white/40 font-medium uppercase tracking-wider ">Received</th>
+          <th class="px-5 py-3 text-center text-xs text-white/40 font-medium uppercase tracking-wider w-20">Status</th>
+          <th class="px-5 py-3 text-right text-xs text-white/40 font-medium uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        {% for msg in contact_messages %}
+        <tr class="hover:bg-white/2 transition-colors group {% if not msg.is_read %}bg-brand-primary/5{% endif %}">
+          <td class="px-5 py-3">
+            <div class="font-medium text-white flex items-center gap-2">
+              {% if not msg.is_read %}<span class="w-1.5 h-1.5 rounded-full bg-brand-primary shrink-0"></span>{% endif %}
+              {{ msg.name }}
+            </div>
+            <div class="text-xs text-white/40 mt-0.5">{{ msg.email }}</div>
+          </td>
+          <td class="px-5 py-3 text-white/70 max-w-xs truncate">{{ msg.subject }}</td>
+          <td class="px-5 py-3 text-white/50 ">{{ msg.phone|default:"—" }}</td>
+          <td class="px-5 py-3 text-white/40 ">{{ msg.created_at|date:"M d, Y H:i" }}</td>
+          <td class="px-5 py-3 text-center">
+            {% if msg.is_read %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-green-400">Read</span>
+            {% else %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-brand-primary/20 text-brand-accent">New</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-3 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <a href="{% url 'management:contact_detail' msg.pk %}" class="p-2 text-brand-accent hover:bg-brand-accent/10 rounded-lg transition-colors tooltip" title="View Message">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+              </a>
+              <button type="button" x-on:click.prevent="$dispatch('open-delete-modal', { url: '{% url 'management:contact_delete' msg.pk %}', name: '{{ msg.name|escapejs }} — {{ msg.subject|escapejs }}' })" class="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors tooltip" title="Delete">
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="px-5 py-12 text-center">
+            <div class="text-4xl mb-3">📭</div>
+            <p class="text-white/40">No contact messages yet.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if is_paginated %}
+  <div class="mt-6 flex items-center justify-center gap-2">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm">&laquo; Prev</a>
+    {% endif %}
+    <span class="text-white/40 text-sm">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm">Next &raquo;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

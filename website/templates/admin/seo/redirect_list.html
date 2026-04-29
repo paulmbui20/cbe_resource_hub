@@ -1,0 +1,178 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}SEO — Slug Redirects{% endblock %}
+
+{% block admin_content %}
+    <div class="max-w-7xl mx-auto p-4">
+
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-4">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <div class="p-2 rounded-xl bg-brand-primary/10 border border-brand-primary/20">
+                        <svg class="w-5 h-5 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-white tracking-tight">Slug Redirects</h1>
+                </div>
+                <p class="text-white/40 text-sm ml-12">Manage permanent URL redirects to preserve SEO equity.</p>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+
+                <a href="{% url 'management:seo_redirect_add' %}"
+                   class="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-accent text-white font-semibold text-sm transition-all shadow-lg shadow-brand-primary/20 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    New Redirect
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+            <div class="bg-white/3 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
+                <div class="p-2.5 rounded-xl bg-brand-primary/10">
+                    <svg class="w-5 h-5 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                </div>
+                <div><p class="text-2xl font-bold text-white">{{ paginator.count }}</p>
+                    <p class="text-xs text-white/40 mt-0.5">Total Redirects</p></div>
+            </div>
+            <div class="bg-white/3 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
+                <div class="p-2.5 rounded-xl bg-blue-500/10">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                </div>
+                <div><p class="text-2xl font-bold text-white">{{ total_hits }}</p>
+                    <p class="text-xs text-white/40 mt-0.5">Total Redirect Hits</p></div>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <form method="get" class="mb-4 flex gap-2">
+            <div class="relative flex-1">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none"
+                     stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"></path>
+                </svg>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search by old or new slug..."
+                       class="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary transition-all">
+            </div>
+            <button type="submit"
+                    class="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-sm font-medium transition-all">
+                Search
+            </button>
+            {% if q %}<a href="{% url 'management:seo_redirect_list' %}"
+                         class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-red-500/20 text-red-400 text-sm font-medium transition-all">Clear</a>{% endif %}
+        </form>
+
+        <!-- Redirects Table -->
+        <div class="bg-white/3 border border-white/10 rounded-2xl overflow-hidden">
+            <table {% if redirects %} id="dataTable" {% endif %} class="w-full text-sm">
+                <thead>
+                <tr class="border-b border-white/10 bg-white/2">
+                    <th class="text-left px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">Old
+                        Slug
+                    </th>
+                    <th class="text-left px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 ">New
+                        Slug
+                    </th>
+                    <th class="text-left px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 ">
+                        Content Type
+                    </th>
+                    <th class="text-center px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 ">
+                        Hits
+                    </th>
+                    <th class="text-left px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40 ">
+                        Created
+                    </th>
+                    <th class="text-right px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">
+                        Actions
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                {% for redirect in redirects %}
+                    <tr class="group hover:bg-white/4 transition-colors">
+                        <td class="px-6 py-4">
+                                <code class="text-xs bg-red-500/10 text-red-300 px-2 py-1 rounded-lg font-mono truncate">
+                                    <a href="{% url 'management:seo_redirect_edit' redirect.pk %}">/{{ redirect.old_slug }}/</a></code>
+                        </td>
+                        <td class="px-4 py-4 ">
+                            <code class="text-xs bg-green-500/10 text-green-300 px-2 py-1 rounded-lg font-mono truncate">/{{ redirect.new_slug }}/</code>
+                        </td>
+                        <td class="px-4 py-4 ">
+                            <span class="text-xs text-white/50 capitalize">{{ redirect.content_type.model|default:"—" }}</span>
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            {% if redirect.hit_count %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-300 text-xs font-bold border border-blue-500/20">{{ redirect.hit_count }}</span>
+                            {% else %}
+                                <span class="text-white/20 text-xs">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4 ">
+                            <span class="text-xs text-white/40">{{ redirect.created_at|date:"M j, Y" }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-end gap-2 transition-opacity">
+                                <a href="{% url 'management:seo_redirect_edit' redirect.pk %}"
+                                   class="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
+                                   title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                                <button type="button"
+                                        x-on:click="$dispatch('open-delete-modal', { url: '{% url 'management:seo_redirect_delete' redirect.pk %}', name: '{{ redirect.old_slug|escapejs }} → {{ redirect.new_slug|escapejs }}' })"
+                                        class="p-1.5 bg-red-500/5 hover:bg-red-500/10 rounded-lg text-red-400/50 hover:text-red-400 transition-colors"
+                                        title="Delete">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-16 text-center">
+                            <svg class="w-12 h-12 mx-auto text-white/10 mb-3" fill="none" stroke="currentColor"
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            </svg>
+                            <p class="text-white/30 font-medium">No slug redirects found{% if q %} matching "{{ q }}
+                                "{% endif %}.</p>
+                            <a href="{% url 'management:seo_redirect_add' %}"
+                               class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary/10 border border-brand-primary/20 text-brand-accent text-sm font-medium hover:bg-brand-primary/20 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Create your first redirect
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% include 'admin/partials/pagination.html' %}
+
+    </div>
+{% endblock %}

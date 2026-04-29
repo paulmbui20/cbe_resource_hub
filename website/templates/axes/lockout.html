@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Account Locked{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8 bg-brand-secondary/90 p-8 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl">
+    <div>
+      <div class="mx-auto h-16 w-16 text-red-500 rounded-full bg-red-500/10 flex items-center justify-center">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      </div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
+        Account Locked
+      </h2>
+      <p class="mt-2 text-center items-center text-sm text-white/60">
+        You have exceeded the maximum number of login attempts.
+      </p>
+    </div>
+    
+    <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center">
+        <p class="text-red-400 font-medium text-sm">
+            For security reasons, access tightly locked from this IP address.
+            Please wait a few minutes before trying again or contact the administrator.
+        </p>
+    </div>
+    
+    <div class="pt-4 text-center">
+      <a href="/" class="font-medium text-brand-primary hover:text-brand-accent transition-colors">
+        Return to Home Page
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

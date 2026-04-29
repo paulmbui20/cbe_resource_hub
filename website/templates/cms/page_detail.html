@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page.meta_title|default:page.title }}{% endblock %}
+{% block meta_title_value %}{{ page.meta_title|default:page.title }} — CBE Resource Hub{% endblock %}
+{% block meta_description_value %}{{ page.meta_description|default:page.title }}{% endblock %}
+{% block og_title %}{{ page.meta_title|default:page.title }}{% endblock %}
+{% block og_description %}{{ page.meta_description|default:page.title }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_image %}
+    {% if page.featured_image and page.featured_image.name %}
+        {% if page.featured_image.url.startswith == '/' %}
+            {{ request.scheme }}://{{ request.get_host }}{{ page.featured_image.url }}
+        {% else %}
+            {{ page.featured_image.url }}
+        {% endif %}
+    {% else %}
+        {{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}
+    {% endif %}
+{% endblock %}
+
+{% block twitter_title %}{{ page.meta_title|default:page.title }}{% endblock %}
+{% block twitter_description %}{{ page.meta_description|default:page.title }}{% endblock %}
+{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}
+{% block meta_keywords_value %}{{ page.meta_keywords|default:'CBC Kenya, learning resources' }}{% endblock %}
+
+{% block structured_data %}
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "{{ page.title|escapejs }}",
+  "description": "{{ page.meta_description|default:page.title|escapejs }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": "CBE Resource Hub",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  }
+}
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 class="text-3xl font-bold text-white mb-6">{{ page.title }}</h1>
+        <div class="prose prose-invert prose-sm max-w-none text-white/70 leading-relaxed">
+            {{ page.content|safe }}
+        </div>
+    </div>
+{% endblock %}

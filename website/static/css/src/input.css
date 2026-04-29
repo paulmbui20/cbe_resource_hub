@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* ─── Custom CBE Hub brand tokens ─────────────────────────────────────── */
+@theme {
+    --color-brand-primary: #1d4ed8;
+    /* Vibrant blue  */
+    --color-brand-secondary: #0f172a;
+    /* Deep navy     */
+    --color-brand-accent: #3b82f6;
+    /* Sky blue      */
+    --color-brand-gold: #f59e0b;
+    /* Amber accent  */
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}

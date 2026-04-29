@@ -1,0 +1,554 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#" x-data="{ mobileMenuOpen: false }">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    {# ── SEO: Title ───────────────────────────────────────────────────────── #}
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/logo.svg' %}"/>
+    <link rel="shortcut icon" href="{% static 'images/logo.svg' %}"/>
+
+    {% block seo_title_block %}
+        <title>{% block title %}{% endblock %} - {{ site_settings.site_name|default:'CBE Resource Hub' }} - Kenya CBC
+            Learning Resources</title>
+        <meta name="title" content="{% block meta_title_value %}{{ site_settings.site_name|default:'CBE Resource Hub' }} - Kenya CBC Learning Resources{% endblock %}"/>
+    {% endblock %}
+
+    {# ── SEO: Description ─────────────────────────────────────────────────── #}
+    {% block seo_description_block %}
+        <meta name="description" content="{% block meta_description_value %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners. Download Grade 1–9 notes, past papers, lesson plans, and more.' }}{% endblock %}"/>
+    {% endblock %}
+
+    {# ── SEO: Keywords / Author / Robots ──────────────────────────────────── #}
+    <meta name="keywords"
+          content="{% block meta_keywords_value %} {{ site_settings.meta_keywords }} {% endblock %}"/>
+    <meta name="author" content="CBE Resource Hub"/>
+    <meta name="robots" content="{% block meta_robots %}{% if site_settings.site_indexing == 'false' %}noindex, nofollow{% else %}index, follow{% endif %}{% endblock %}"/>
+    <meta name="language" content="English"/>
+    <meta name="revisit-after" content="7 days"/>
+    <meta name="theme-color" content="#f59e0b"/>
+
+    {# ── SEO: Canonical ───────────────────────────────────────────────────── #}
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}"/>
+
+    {# ── SEO: Open Graph ──────────────────────────────────────────────────── #}
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}"/>
+    <meta property="og:site_name" content="{{ site_settings.site_name|default:'CBE Resource Hub' }}"/>
+    <meta property="og:locale" content="en_KE"/>
+    <meta property="og:url" content="{{ request.build_absolute_uri }}"/>
+    <meta property="og:title" content="{% block og_title %}{{ site_settings.site_name|default:'CBE Resource Hub' }} - Kenya CBC Learning Resources Hub{% endblock %}"/>
+    <meta property="og:description" content="{% block og_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}"/>
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endblock %}"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta property="og:image:alt" content="CBE Resource Hub - Free CBC Resources for Kenyan Learners"/>
+
+    {# ── SEO: Twitter Card ────────────────────────────────────────────────── #}
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:site" content="@cberesourceskenya"/>
+    <meta name="twitter:title"
+          content="{% block twitter_title %}{{ site_settings.site_name|default:'CBE Resource Hub' }}{% endblock %}"/>
+    <meta name="twitter:description" content="{% block twitter_description %}{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.' }}{% endblock %}"/>
+    <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endblock %}"/>
+
+    {# ── SEO: JSON-LD Structured Data ─────────────────────────────────────── #}
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "{{ site_settings.site_name|default:'CBE Resource Hub'|escapejs }}",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "description": "{{ site_settings.meta_description|default:'Free CBC curriculum resources for Kenyan learners.'|escapejs }}",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ request.scheme }}://{{ request.get_host }}{% url 'resources:list' %}?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+    </script>
+    {% block structured_data %}{% endblock %}
+
+    {# ── SEO: Sitemaps & Feeds ────────────────────────────────────────────── #}
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml"/>
+
+    {# ── Preconnects ──────────────────────────────────────────────────────── #}
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    {% block initial_head %}{% endblock %}
+    <!-- Bun / Tailwind v4 generated CSS -->
+    <link rel="stylesheet" href="{% static 'css/src/output.css' %}"/>
+
+    <!-- HTMX - local asset, loaded with defer -->
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+
+    <!-- Alpine.js Intersect plugin (required for x-intersect) - loaded before Alpine -->
+    <script src="{% static 'js/alpine-intersect.min.js' %}" defer></script>
+
+    <!-- Alpine.js Collapse plugin (required for x-collapse) - loaded before Alpine -->
+    <script src="{% static 'js/alpine-collapse.min.js' %}" defer></script>
+
+
+    <!-- Alpine.js - local asset, loaded with defer -->
+    <script src="{% static 'js/alpine.min.js' %}" defer></script>
+
+    <!-- HTMX ↔ Django CSRF strategy: attach the CSRF token to every mutating request -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.body.addEventListener('htmx:configRequest', function (event) {
+                event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+            });
+        });
+    </script>
+
+    <!-- Simple-DataTables (Frontend Interaction) -->
+    <link href="{% static 'css/simple-datatables.min.css' %}" rel="stylesheet">
+
+    <style>
+        /* ── Dark theme for ALL native select elements ── */
+        select {
+            background-color: #0d1117 !important;
+            color: white !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        select option {
+            background-color: #0d1117 !important;
+            color: white !important;
+        }
+
+        /* ── Alpine.js x-cloak hide ── */
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* ── simple-datatables dark theme overrides ── */
+        .datatable-wrapper .datatable-container {
+            border-bottom: none;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        .datatable-selector, .datatable-input {
+            background-color: #0d1117 !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 8px;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.875rem;
+        }
+
+        .datatable-selector option {
+            background-color: #0d1117;
+            color: white;
+        }
+
+        .datatable-top, .datatable-bottom {
+            padding: 1rem 1.25rem;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .datatable-top label, .datatable-bottom label {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .datatable-pagination-list-item a {
+            color: rgba(255, 255, 255, 0.7) !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 6px;
+        }
+
+        .datatable-active a {
+            background: var(--color-brand-gold, #3b82f6) !important;
+            color: white !important;
+        }
+
+        .datatable-sorter::before, .datatable-sorter::after {
+            opacity: 0.25 !important;
+        }
+
+        .datatable-ascending .datatable-sorter::after,
+        .datatable-descending .datatable-sorter::before {
+            opacity: 0.9 !important;
+        }
+
+        /* scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 9999px;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-brand-secondary text-white min-h-screen flex flex-col antialiased">
+
+<!-- ═══════════════════════════════════════════════════ HEADER ════ -->
+<header class="sticky top-0 z-40 border-b border-white/10 backdrop-blur-md bg-brand-secondary/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+
+            <!-- Logo -->
+            <a href="/" class="flex items-center gap-2.5 group shrink-0">
+                <img {% if site_settings.site_logo_url %} src="{{ site_settings.site_logo_url }}" {% else %}
+                            src="{% static 'images/logo.svg' %}"{% endif %}
+                     alt="{{ site_settings.site_name|default:'CBE Resource Hub' }} logo"
+                     title="{{ site_settings.site_name|default:'CBE Resource Hub' }} logo"
+                     class="w-8 h-8 transition-transform group-hover:scale-105"/>
+                <span class="font-bold text-lg tracking-tight text-brand-gold/90 group-hover:text-brand-gold transition-colors">
+            {{ site_settings.site_name|default:'CBE Resource Hub' }}
+          </span>
+            </a>
+
+            <!-- Desktop nav -->
+            <nav class="hidden md:flex items-center gap-6" aria-label="Main navigation">
+                <!-- CMS-driven menu items -->
+                {% with primary=menus.primary_header %}
+                    {% if primary %}
+                        {% for item in primary.items.all %}
+                            {% if not item.parent %}
+                                <div x-cloak class="relative" x-data="{ open: false }">
+                                    {% if item.children.exists %}
+                                        <section @mouseover="open = !open" @mouseout="open = false">
+                                            <button x-on:click="open = !open" @keydown.escape="open = false"
+                                                    class="hover:cursor-pointer text-sm text-white/70 hover:text-brand-gold transition-colors flex items-center gap-1">
+                                                {{ item.title }}
+                                                <svg class="w-3.5 h-3.5 transition-transform"
+                                                     :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                                     viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                          stroke-width="2"
+                                                          d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </button>
+                                            <div x-show="open" x-transition @click.outside="open = false"
+                                                 class="absolute top-full left-0 mt-2 w-48 rounded-xl border border-white/10 bg-brand-secondary/95 backdrop-blur shadow-xl py-1 z-40">
+                                                {% for child in item.children.all %}
+                                                    <a href="{{ child.url }}"
+                                                       class="block px-4 py-2 text-sm text-white/80 hover:text-brand-gold hover:bg-white/5 transition-colors">{{ child.title }}</a>
+                                                {% endfor %}
+                                            </div>
+                                        </section>
+
+                                    {% else %}
+                                        <a href="{{ item.url }}"
+                                           class="text-sm text-white/70 hover:text-brand-gold transition-colors">{{ item.title }}</a>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+            </nav>
+
+            <!-- Right side: auth controls -->
+            <div class="hidden md:flex items-center gap-3 shrink-0">
+                {% if user.is_authenticated %}
+                    <!-- User avatar dropdown -->
+                    <div x-cloak class="relative" x-data="{ open: false }">
+                        <section @mouseover="open = !open" @mouseout="open = false">
+                            <button x-on:click="open = !open" @keydown.escape="open = false"
+                                    class="hover:cursor-pointer flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+
+                              <span class="w-7 h-7 rounded-full bg-brand-gold/30 flex items-center justify-center text-xs font-bold text-brand-gold">
+                                {{ user.email|slice:":1"|upper }}
+                              </span>
+                                <span class="text-sm text-white/80 max-w-35 truncate">{{ user.get_full_name|default:user.email }}</span>
+                                <svg class="w-3.5 h-3.5 text-white/40 transition-transform"
+                                     :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                     viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div x-show="open" x-transition @click.outside="open = false"
+                                 class="absolute top-full right-0 mt-2 w-52 rounded-xl border border-white/10 bg-brand-secondary/95 backdrop-blur shadow-2xl py-1.5 z-40">
+                                <div class="px-4 py-2 border-b border-white/5">
+                                    <p class="text-xs text-white/40 truncate">{{ user.email }}</p>
+                                    <p class="text-xs font-medium text-brand-gold capitalize mt-0.5">{{ user.get_role_display }}</p>
+                                </div>
+                                <a href="{% url 'accounts:dashboard' %}"
+                                   class="flex items-center gap-2 px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                                    </svg>
+                                    Dashboard
+                                </a>
+                                <a href="{% url 'accounts:profile' %}"
+                                   class="flex items-center gap-2 px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    Edit Profile
+                                </a>
+                                {% if user.is_staff %}
+                                    <a href="{% url 'admin:index' %}"
+                                       class="flex items-center gap-2 px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        Admin Panel
+                                    </a>
+                                {% endif %}
+                                <div class="border-t border-white/5 mt-1 pt-1">
+                                    <a href="{% url 'account_logout' %}"
+                                       class="flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                        </svg>
+                                        Sign Out
+                                    </a>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                {% else %}
+                    <a href="{% url 'account_login' %}"
+                       class="text-sm text-white/70 hover:text-white transition-colors px-4 py-2 rounded-xl outline-1 outline-brand-gold/50 hover:outline-brand-gold/75 shadow-md shadow-brand-gold/25 hover:shadow-brand-gold/50 hover:scale-105"
+                    >Sign In</a>
+                    <a href="{% url 'account_signup' %}"
+                       class="px-4 py-2 rounded-xl bg-brand-gold/90 hover:bg-gold text-white text-sm font-semibold transition-all shadow-lg shadow-brand-gold/20 hover:scale-105">
+                        Get Started
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile hamburger -->
+            <button x-on:click="mobileMenuOpen = !mobileMenuOpen"
+                    class="md:hidden p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                    aria-label="Toggle mobile menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h16"></path>
+                    <path x-show="mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- Mobile nav drawer -->
+    <div x-show="mobileMenuOpen" x-transition
+         class="md:hidden border-t border-white/10 bg-brand-secondary/95 backdrop-blur px-4 py-4 space-y-1">
+        {% with primary=menus.primary_header %}
+            {% if primary %}
+                {% for item in primary.items.all %}
+                    {% if not item.parent %}
+                        {% if item.children.exists %}
+                            <p class="pt-2 pb-1 text-xs font-semibold text-white/40 uppercase tracking-wider">{{ item.title }}</p>
+                            {% for child in item.children.all %}
+                                <a href="{{ child.url }}"
+                                   class="block pl-3 py-1.5 text-sm text-white/70 hover:text-white transition-colors border-l border-white/10">{{ child.title }}</a>
+                            {% endfor %}
+                        {% else %}
+                            <a href="{{ item.url }}"
+                               class="block py-2 text-sm text-white/80 hover:text-white transition-colors">{{ item.title }}</a>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if user.is_authenticated %}
+            <div class="pt-3 mt-3 border-t border-white/10 space-y-1">
+                <a href="{% url 'accounts:dashboard' %}"
+                   class="block py-2 text-sm text-white/80 hover:text-white transition-colors">Dashboard</a>
+                <a href="{% url 'accounts:profile' %}"
+                   class="block py-2 text-sm text-white/80 hover:text-white transition-colors">Profile</a>
+                {% if user.is_staff %}<a href="{% url 'admin:index' %}"
+                                         class="block py-2 text-sm text-white/80 hover:text-white transition-colors">Admin</a>{% endif %}
+                <a href="{% url 'account_logout' %}"
+                   class="block py-2 text-sm text-red-400 hover:text-red-300 transition-colors">Sign Out</a>
+            </div>
+        {% else %}
+            <div class="pt-3 mt-3 border-t border-white/10 space-y-1">
+                <a href="{% url 'account_login' %}"
+                   class="block py-2 text-sm text-white/80 hover:text-white transition-colors">Sign In</a>
+                <a href="{% url 'account_signup' %}" class="block py-2 text-sm text-brand-gold font-medium">Get
+                    Started →</a>
+            </div>
+        {% endif %}
+    </div>
+</header>
+
+
+<!-- ═══════════════════════════════════════════════════ CONTENT ════ -->
+<main class="flex-1">
+    {% block content %}{% endblock %}
+</main>
+
+
+{# ═══════════════════ SCROLL-TO-TOP FAB ══════════════════════════════════════ #}
+<button id="scrollTopBtn"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})"
+        aria-label="Scroll to top"
+        class="hover:cursor-pointer fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-brand-gold/90 hover:bg-brand-gold text-white shadow-lg shadow-brand-gold/30 hover:shadow-brand-gold/50 flex items-center justify-center transition-all duration-300 hover:scale-110 opacity-0 pointer-events-none"
+        style="opacity:0;pointer-events:none;">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path>
+    </svg>
+</button>
+
+
+<!-- ═══════════════════════════════════════════════════ FOOTER ════ -->
+<footer class="border-t border-white/10 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <!-- Brand column -->
+            <div>
+                <span>
+                    <img {% if site_settings.site_logo_url %} src="{{ site_settings.site_logo_url }}" {% else %}
+                            src="{% static 'images/logo.svg' %}"{% endif %}
+                         alt="{{ site_settings.site_name|default:'CBE Resources Hub' }} logo"
+                         title="{{ site_settings.site_name|default:'CBE Resources Hub' }} logo"
+                         height="100" width="100"
+                    >
+                </span>
+              <span class="font-bold text-white text-lg">
+                {{ site_settings.site_name|default:'CBE Resources Hub' }}
+              </span>
+                <p class="mt-2 text-sm text-white/50 leading-relaxed">
+                    {{ site_settings.meta_description|default:'Free, open-source, community powered, CBE curriculum resources for every Kenyan learner' }}
+                </p>
+            </div>
+
+            <!-- Footer menu -->
+            {% with footer=menus.footer %}
+                {% if footer %}
+                    <div>
+                        <h3 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Quick Links</h3>
+                        <ul class="space-y-1.5">
+                            {% for item in footer.items.all %}
+                                {% if not item.parent %}
+                                    {% if item.children.exists %}
+                                        <li>
+                                            <span class="text-xs font-semibold text-white/40 uppercase tracking-wider">{{ item.title }}</span>
+                                            <ul class="mt-1.5 ml-2 space-y-1.5 border-l border-white/10 pl-3">
+                                                {% for child in item.children.all %}
+                                                    <li>
+                                                        <a href="{{ child.url }}"
+                                                           class="text-sm text-white/50 hover:text-brand-gold transition-colors">
+                                                            {{ child.title }}
+                                                        </a>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </li>
+                                    {% else %}
+                                        <li>
+                                            <a href="{{ item.url }}"
+                                               class="text-sm text-white/50 hover:text-brand-gold transition-colors">
+                                                {{ item.title }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Contact -->
+            <div>
+                <h3 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Contact</h3>
+                {% if site_settings.contact_email %}
+                    <a href="mailto:{{ site_settings.contact_email }}"
+                       class="block text-sm text-white/50 hover:text-brand-gold transition-colors mb-2">
+                        {{ site_settings.contact_email }}
+                    </a>
+                {% endif %}
+                {% if site_settings.contact_phone %}
+                    <a href="tel:{{ site_settings.contact_phone }}"
+                       class="block text-sm text-white/50 hover:text-brand-gold transition-colors mb-2">
+                        {{ site_settings.contact_phone }}
+                    </a>
+                {% endif %}
+                {% include 'partials/email_subscription_form.html' %}
+            </div>
+
+        </div>
+
+        <div class="mt-10 border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p class="text-xs text-white/30">
+                &copy; {% now "Y" %} {{ site_settings.site_name|default:'CBE Resource Hub' }}. Licensed under MIT
+                License.
+            </p>
+            <p class="text-xs text-white/30">Built for Kenyan learners.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Simple-DataTables script -->
+<script src="{% static 'js/simple-datatables.min.js' %}" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Find elements wrapped in the Datatable pattern or with a specific ID.
+        // Easiest is to target `#dataTable` or `.datatable`
+        const table = document.querySelector("#dataTable");
+        if (table) {
+            new simpleDatatables.DataTable(table, {
+                searchable: true,
+                fixedHeight: false,
+                perPage: 15,
+                perPageSelect: [15, 30, 50, 100],
+            });
+        }
+
+        (function () {
+            const btn = document.getElementById('scrollTopBtn');
+            if (!btn) return;
+            const toggle = () => {
+                const show = window.scrollY > 200;
+                btn.style.opacity = show ? '1' : '0';
+                btn.style.pointerEvents = show ? 'auto' : 'none';
+            };
+            window.addEventListener('scroll', toggle, {passive: true});
+            toggle();
+        })();
+
+    });
+</script>
+
+<!-- Global Notification Toasts (Django messages + JS dispatch) -->
+{% include "partials/_notifications.html" %}
+
+<!-- Global Admin Delete Modal -->
+{% include "admin/partials/_delete_modal.html" %}
+
+{% block extra_scripts %}{% endblock %}
+{% if not request.user.is_authenticated and site_settings and site_settings.google_oauth_client_id %}
+    <script async src="https://accounts.google.com/gsi/client"></script>
+    <div id="g_id_onload" data-client_id="{{ site_settings.google_oauth_client_id }}"
+         data-close_on_tap_outside="true" data-itp_support="true"
+         data-login_uri="{% url 'google_login_by_token' %}?next={{ request.get_full_path|urlencode }}"></div>
+{% endif %}
+</body>
+</html>
