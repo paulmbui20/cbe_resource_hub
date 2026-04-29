@@ -1,6 +1,6 @@
 [project]
 name = "cbe-resource-hub"
-version = "0.1.0"
+version = "1.0.1"
 description = "Open-source CBE/CBC educational resource hub for Kenyan learners"
 readme = "README.md"
 license = { text = "MIT" }
