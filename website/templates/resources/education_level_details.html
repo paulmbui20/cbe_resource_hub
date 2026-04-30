@@ -100,6 +100,7 @@
                 Filter
             </button>
             <button type="button"
+                    onclick="this.closest('form').querySelectorAll('input, select').forEach(el => el.value = '');"
                     hx-get="{% url 'resources:education_level_details' education_level.slug %}"
                     hx-push-url="true"
                     hx-target="#resource-grid"

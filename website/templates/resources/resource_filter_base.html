@@ -2,34 +2,41 @@
 {% load static %}
 
 {% block content %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-
-        {# ── Breadcrumb ── #}
-        <nav class="flex items-center gap-2 text-xs text-white/40 mb-4" aria-label="Breadcrumb">
-            <a href="{% url 'home' %}" class="hover:text-white transition-colors">Home</a>
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-            <a href="{% url 'resources:list' %}" class="hover:text-white transition-colors">Resources</a>
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-            {% block filter_parent %}{% endblock filter_parent %}
-            <span class="text-white/60">{% block filter_label %}{% endblock %}</span>
-        </nav>
-
-        {# ── Hero header ── #}
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-        <div>
-          <h1 class="text-3xl font-extrabold text-white tracking-tight">
-                {% block filter_title %}{% endblock %}</h1>
-            <p class="text-white/50 mt-1 max-w-2xl">{% block filter_meta_description_value %}{% endblock %}</p>
-            <p class="text-sm text-brand-accent font-medium mt-1">{% block filter_count %}{% endblock %} free
-                resource(s) available</p>
+    <section class="relative border-b border-white/5 bg-brand-secondary">
+        <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+            <div class="absolute -top-60 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-brand-gold/10 blur-3xl"></div>
         </div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            {# ── Breadcrumb ── #}
+            <nav class="flex items-center gap-2 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
+                <a href="{% url 'home' %}" class="hover:text-white transition-colors">Home</a>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <a href="{% url 'resources:list' %}" class="hover:text-white transition-colors">Resources</a>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                {% block filter_parent %}{% endblock filter_parent %}
+                <span class="text-white/60 truncate">{% block filter_label %}{% endblock %}</span>
+            </nav>
 
+            {# ── Hero header ── #}
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight mb-2">
+                {% block filter_title %}{% endblock %}
+            </h1>
+            <p class="max-w-3xl text-sm sm:text-base text-white/55 leading-relaxed mb-4 line-clamp-3">
+                {% block filter_meta_description_value %}{% endblock %}
+            </p>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/20 text-brand-gold text-xs font-medium mb-8">
+                {% block filter_count %}{% endblock %} free resources available
+            </div>
+
+            {% block filter_bar %}{% endblock filter_bar %}
         </div>
-        {% block filter_bar %}{% endblock filter_bar %}
+    </section>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="flex flex-col lg:flex-row gap-10">
 
             {# ── Resource grid ── #}

@@ -4,45 +4,40 @@
 {% block title %}Browse CBC Learning areas{% endblock %}
 
 {% block content %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <!-- Page heading -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-white tracking-tight">
-                CBC Learning Areas
-            </h1>
-            <p class="mt-2 text-white/60 text-sm">
-                All the learning areas in the new cbc curriculum from Pre-Primary level all the way to Senior School
-                level.
-            </p>
+    <section class="relative border-b border-white/5 bg-brand-secondary">
+        <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+            <div class="absolute -top-60 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-brand-gold/10 blur-3xl"></div>
         </div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4">
+                CBC <span class="bg-linear-to-r from-brand-gold to-brand-gold bg-clip-text text-transparent">Learning Areas</span>
+            </h1>
+            <p class="max-w-2xl mx-auto text-base text-white/55 leading-relaxed mb-8">
+                Explore all learning areas in the competency-based curriculum, mapped from Pre-Primary through Senior School.
+            </p>
 
-        <!-- ─── Filter bar ──────────────────────────────────────────────── -->
-        <form method="get" action="{% url 'resources:learning_areas_list' %}"
-              hx-get="{% url 'resources:learning_areas_list' %}"
-              hx-push-url="true"
-              hx-target="#learning-areas-grid"
-              hx-swap="innerHTML"
-              class="mb-8 flex flex-wrap gap-3 items-end">
-
-            <!-- Search -->
-            <div class="flex-1 min-w-48">
-                <label for="id_q" class="block text-xs text-white/50 mb-1">Search</label>
+            <!-- ─── Filter bar ──────────────────────────────────────────────── -->
+            <form method="get" action="{% url 'resources:learning_areas_list' %}"
+                  hx-get="{% url 'resources:learning_areas_list' %}"
+                  hx-push-url="true"
+                  hx-target="#learning-areas-grid"
+                  hx-swap="innerHTML"
+                  class="max-w-xl mx-auto relative flex items-center">
                 <input id="id_q" type="search" name="q" value="{{ search_query|default:'' }}"
-                       placeholder="e.g. Integrated Science"
-                       class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-gold transition"/>
-            </div>
+                       placeholder="Search learning areas (e.g. Mathematics)..."
+                       class="w-full pl-6 pr-32 py-3.5 rounded-2xl bg-white/8 border border-white/15 text-white placeholder-white/30 text-base focus:outline-none focus:border-brand-gold/60 focus:bg-white/10 focus:ring-2 focus:ring-brand-gold/20 transition-all shadow-xl shadow-black/20"/>
+                <button type="submit"
+                        class="absolute right-2 px-6 py-2 rounded-xl bg-brand-gold/80 hover:bg-brand-gold text-white text-sm font-semibold transition-all hover:scale-105 shrink-0">
+                    Filter
+                </button>
+            </form>
+        </div>
+    </section>
 
-
-            <button type="submit"
-                    class="px-5 py-2 rounded-lg bg-brand-gold/90 hover:bg-brand-gold text-white text-sm font-semibold transition-colors shadow-lg shadow-brand-gold/20">
-                Filter
-            </button>
-        </form>
-
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <!-- ─── Resource grid (HTMX target) ────────────────────────────── -->
         <div id="learning-areas-grid">
             {% include "resources/partials/filter_cards.html" %}
         </div>
-
     </div>
 {% endblock %}

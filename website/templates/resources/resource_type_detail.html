@@ -94,6 +94,7 @@
                 Filter
             </button>
             <button type="button"
+                    onclick="this.closest('form').querySelectorAll('input, select').forEach(el => el.value = '');"
                     hx-get="{% url 'resources:type_detail' resource_type_key %}"
                     hx-push-url="true"
                     hx-target="#resource-grid"

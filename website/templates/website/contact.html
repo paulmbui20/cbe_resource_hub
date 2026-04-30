@@ -12,17 +12,19 @@
     <div class="min-h-screen">
 
         <!-- ── Hero Banner ─────────────────────────────────────────── -->
-        <div class="relative overflow-hidden bg-linear-to-br from-brand-primary/20 via-transparent to-purple-900/20 border-b border-white/10">
-            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(59,130,246,0.15),_transparent_60%)]"></div>
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative">
-                <div class="max-w-2xl">
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-accent text-xs font-semibold mb-6">
-                        <span class="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse"></span>
+        <section class="relative border-b border-white/5 bg-brand-secondary">
+            <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+                <div class="absolute -top-60 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-brand-gold/10 blur-3xl"></div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative text-center">
+                <div class="max-w-2xl mx-auto">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/20 text-brand-gold text-xs font-semibold mb-6">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse"></span>
                         We respond within 24 hours
                     </div>
                     <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-4">
                         Let's <span
-                            class="text-transparent bg-clip-text bg-linear-to-r from-brand-primary to-purple-400">Talk</span>
+                            class="text-transparent bg-clip-text bg-linear-to-r from-brand-gold to-brand-gold/80">Talk</span>
                     </h1>
                     <p class="text-white/60 text-lg leading-relaxed">
                         Have a resource suggestion, partnership inquiry, or just need help?
@@ -30,7 +32,7 @@
                     </p>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- ── Main Content Grid ───────────────────────────────────── -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -131,7 +133,7 @@
                             <div class="pt-2">
                                 <button type="submit"
                                         :disabled="submitting"
-                                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-brand-primary hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold transition-all shadow-lg shadow-brand-primary/30 hover:scale-105 hover:shadow-brand-primary/50">
+                                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-brand-gold/90 hover:bg-brand-gold disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold transition-all shadow-lg shadow-brand-gold/30 hover:scale-105 hover:shadow-brand-gold/50">
                 <span x-show="!submitting">
                   <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -253,16 +255,19 @@
                     </div>
 
                     <!-- Social / Community links -->
-                    <div class="rounded-2xl bg-linear-to-br from-brand-primary/10 to-purple-900/10 border border-white/10 p-6 text-center">
-                        <p class="text-sm text-white/50 mb-3">Join our community of Kenyan educators</p>
-                        <a href="{% url 'resources:list' %}"
-                           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary/20 hover:bg-brand-primary/30 text-brand-accent text-sm font-semibold transition-colors border border-brand-primary/20">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                            Browse Resources
-                        </a>
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-6 text-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-linear-to-b from-brand-gold/10 to-transparent pointer-events-none"></div>
+                        <div class="relative">
+                            <p class="text-sm text-white/50 mb-3">Join our community of Kenyan educators</p>
+                            <a href="{% url 'resources:list' %}"
+                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors border border-white/10">
+                                <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                                Browse Resources
+                            </a>
+                        </div>
                     </div>
 
                 </div>

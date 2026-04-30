@@ -39,7 +39,7 @@ def get_learning_areas() -> QuerySet[LearningArea]:
     key = "resources:learning_areas"
     qs = cache.get(key)
     if qs is None:
-        qs = LearningArea.objects.only("id", "name", "slug").order_by("name")
+        qs = LearningArea.objects.only("id", "name", "slug", "meta_description").order_by("name")
         # Evaluate to a list so the cached object is stable (not a lazy QS)
         qs = list(qs)
         if qs:
@@ -57,7 +57,7 @@ def get_grades() -> QuerySet[Grade]:
     if qs is None:
         qs = list(
             Grade.objects.select_related("level")
-            .only("id", "name", "slug", "order", "level__id", "level__name", "level__order")
+            .only("id", "name", "slug", "meta_description","order", "level__id", "level__name", "level__order")
             .order_by("level__order", "order")
         )
         if qs:
