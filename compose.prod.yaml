@@ -238,7 +238,6 @@ services:
     command:
       - "--cleanup"
       - "--label-enable"
-      - "--rolling-restart"
       - "--interval"
       - "86400"
       - "--notifications"
