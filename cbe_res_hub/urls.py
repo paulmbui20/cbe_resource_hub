@@ -1,5 +1,4 @@
 """cbe_res_hub/urls.py"""
-from __future__ import annotations
 
 import sys
 
@@ -9,6 +8,10 @@ from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 from django.views.generic import TemplateView
+
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail import urls as wagtail_urls
+from wagtail.documents import urls as wagtaildocs_urls
 
 from website.sitemaps import sitemaps as SITEMAPS
 
@@ -39,6 +42,10 @@ urlpatterns = [
     # ── TinyMCE ──────────────────────────────────────────────────────────────
     path("tinymce/", include("tinymce.urls")),
 
+    # ── Wagtail ──────────────────────────────────────────────────────────────
+    path("wagtail-admin/", include(wagtailadmin_urls)),
+    path("documents/", include(wagtaildocs_urls)),
+    path("blog/", include(wagtail_urls)),
 ]
 
 # ── Development only (excludes testing environment)─────────────────────────────

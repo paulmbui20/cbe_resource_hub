@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static wagtailcore_tags wagtailimages_tags %}
 
 {% block title %}Free CBE Learning Resources for Kenyan Students{% endblock %}
 {% block meta_description_value %}Download free CBC curriculum resources for every Kenyan learner — lesson plans, notes,
@@ -312,6 +312,45 @@
             observer.observe(section);
         })();
     </script>
+
+
+    {# ═══════════════════ 5.5 RECENT BLOGS ══════════════════════════════════════ #}
+    {% if recent_blogs %}
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5">
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Latest from the Blog</h2>
+                <p class="text-sm text-white/40 mt-1">News, updates, and educational insights</p>
+            </div>
+            <a href="/blog/" class="text-sm text-brand-gold hover:text-white transition-colors font-medium">View all posts &rarr;</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for post in recent_blogs %}
+                <a href="{% pageurl post %}" class="group bg-white/3 border border-white/8 rounded-2xl overflow-hidden hover:bg-white/5 transition-all flex flex-col hover:shadow-lg hover:shadow-brand-gold/5">
+                    {% if post.specific.main_image %}
+                        {% image post.specific.main_image fill-600x400 as img %}
+                        <div class="aspect-3/2 w-full overflow-hidden">
+                            <img src="{{ img.url }}" alt="{{ img.alt }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        </div>
+                    {% else %}
+                        <div class="aspect-3/2 w-full bg-brand-primary/20 flex items-center justify-center">
+                            <span class="text-white/20 text-xs uppercase tracking-widest">No Image</span>
+                        </div>
+                    {% endif %}
+                    <div class="p-5 flex flex-col flex-1">
+                        <div class="text-[11px] text-brand-gold font-semibold uppercase tracking-wider mb-2">
+                            {{ post.specific.date|date:"F j, Y" }}
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2 group-hover:text-brand-gold transition-colors">{{ post.title }}</h3>
+                        <p class="text-sm text-white/50 line-clamp-2 mb-4 flex-1">
+                            {{ post.specific.intro }}
+                        </p>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 
 
 

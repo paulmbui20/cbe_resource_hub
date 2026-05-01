@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block content %}
+    <section class="relative bg-brand-secondary border-b border-white/5 pt-10 pb-16">
+        <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+            <div class="absolute -top-60 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-brand-gold/10 blur-3xl"></div>
+        </div>
+        
+        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <!-- Breadcrumb -->
+            <nav class="flex items-center justify-center gap-2 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
+                <a href="/" class="hover:text-white transition-colors">Home</a>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <a href="{{ page.get_parent.url }}" class="hover:text-white transition-colors">{{ page.get_parent.title }}</a>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="text-white/70">{{ page.title }}</span>
+            </nav>
+
+            <span class="text-brand-gold font-semibold text-sm tracking-wider uppercase mb-3 block">
+                {{ page.date|date:"F j, Y" }}
+            </span>
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-6">
+                {{ page.title }}
+            </h1>
+            <p class="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
+                {{ page.intro }}
+            </p>
+        </div>
+    </section>
+
+    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {% if page.main_image %}
+            {% image page.main_image fill-1200x600 as img %}
+            <div class="w-full rounded-2xl overflow-hidden mb-12 shadow-2xl">
+                <img src="{{ img.url }}" alt="{{ img.alt }}" class="w-full h-auto object-cover">
+            </div>
+        {% endif %}
+        
+        <article class="prose prose-invert prose-brand max-w-none 
+                        prose-headings:text-white prose-p:text-white/80 prose-a:text-brand-gold 
+                        prose-strong:text-white prose-li:text-white/80">
+            {{ page.body|richtext }}
+        </article>
+    </section>
+{% endblock %}

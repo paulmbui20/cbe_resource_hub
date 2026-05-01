@@ -9,6 +9,8 @@ Inherits everything from base and applies:
   - Elevated log level when DEBUG=True
 
 """
+import ast
+import os
 from urllib.parse import urlparse, parse_qsl
 
 from .base import *  # noqa: F401, F403
@@ -18,9 +20,11 @@ from .base import (
     MAIN_MIDDLEWARE,
     MY_APPS,
     THIRD_PARTY_APPS,
+    WAGTAIL_APPS,
     BASE_DIR,
     DEBUG,
     _cf_settings,
+    require_env,
 )
 
 # ── Local filesystem storage ──────────────────────────────────────────────────
@@ -54,7 +58,7 @@ if ENABLE_SILK:
     LOCAL_MIDDLEWARE.append("silk.middleware.SilkyMiddleware")
     SILKY_PYTHON_PROFILER = True
 
-INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + MY_APPS + LOCAL_APPS
+INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + MY_APPS + WAGTAIL_APPS + LOCAL_APPS
 
 # Disable browser caching so you always see fresh responses locally
 _dev_middleware = list(MAIN_MIDDLEWARE)

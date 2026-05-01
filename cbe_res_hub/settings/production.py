@@ -8,6 +8,7 @@ Inherits everything from base and applies:
   - JSON logging (dev_console handler removed)
 
 """
+import os
 from urllib.parse import urlparse, parse_qsl
 
 import sentry_sdk
@@ -22,6 +23,8 @@ from .base import (
     _private_r2,
     _public_r2,
     _backup_r2,
+    require_env,
+    environment,
 )
 
 # ──────────────────────────────────────────────────────────────────────────────

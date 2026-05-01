@@ -63,6 +63,7 @@ DEFAULT_APPS: list[str] = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "django.contrib.sitemaps",
+    "django.contrib.postgres",
 ]
 
 THIRD_PARTY_APPS: list[str] = [
@@ -94,7 +95,23 @@ MY_APPS: list[str] = [
     "core.apps.CoreConfig",
 ]
 
-INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + MY_APPS
+WAGTAIL_APPS: list[str] = [
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "wagtail.users",
+    "wagtail.snippets",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.admin",
+    "wagtail",
+    "modelcluster",
+    "wagtail.locales",
+]
+
+INSTALLED_APPS: list[str] = DEFAULT_APPS + THIRD_PARTY_APPS + WAGTAIL_APPS + MY_APPS
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 3. MIDDLEWARE
@@ -113,6 +130,7 @@ MAIN_MIDDLEWARE: list[str] = [
     "cbe_res_hub.middleware.ForcePasswordChangeMiddleware",
     "django.middleware.gzip.GZipMiddleware",
     "seo.middleware.SlugRedirectMiddleware",
+    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
 # MIDDLEWARE is overridden in each environment module.
@@ -533,3 +551,13 @@ CONTACT_EMAIL: str = str(contact_email_env_var) if contact_email_env_var else ""
 
 contact_phone_env_var = os.getenv("CONTACT_PHONE")
 CONTACT_PHONE: str = str(contact_phone_env_var) if contact_phone_env_var else ""
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 21. WAGTAIL
+# ──────────────────────────────────────────────────────────────────────────────
+WAGTAIL_SITE_NAME = "CBE Resource Hub"
+WAGTAILADMIN_BASE_URL = SITE_URL
+WAGTAILDOCS_SERVE_METHOD = "direct"
+
+WAGTAILIMAGES_IMAGE_MODEL = 'website.CustomImage'
+WAGTAILDOCS_DOCUMENT_MODEL = 'website.CustomDocument'

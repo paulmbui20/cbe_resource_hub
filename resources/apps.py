@@ -6,4 +6,4 @@ class ResourcesConfig(AppConfig):
     name = "resources"
 
     def ready(self):
-        import resources.signals  # noqa: Registers the signals
+        import resources.signals # noqa: F401

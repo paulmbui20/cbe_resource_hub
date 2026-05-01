@@ -17,7 +17,7 @@ from resources.cache import (
 )
 from resources.models import ResourceItem
 from website.forms import ContactForm, EmailSubscriptionForm
-from website.models import Partner, ContactMessage
+from website.models import Partner, ContactMessage, BlogPage
 
 
 class HomePageView(TemplateView):
@@ -66,6 +66,9 @@ class HomePageView(TemplateView):
             }
             for key, info in RESOURCE_TYPE_INFO.items()
         ]
+
+        # ── Recent Blogs ───────────────────────────────────────────────────
+        context["recent_blogs"] = BlogPage.objects.live().order_by('-first_published_at')[:3]
 
         return context
 

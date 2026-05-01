@@ -9,6 +9,14 @@ Inherits base, then:
 """
 
 from .base import *  # noqa: F401, F403
+from .base import (
+    BASE_DIR,
+    DEFAULT_APPS,
+    MY_APPS,
+    THIRD_PARTY_APPS,
+    WAGTAIL_APPS,
+    MAIN_MIDDLEWARE,
+)
 
 DEBUG = False
 
@@ -33,7 +41,7 @@ CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
 # ── App ordering consistent with original test override ──────────────────────
-INSTALLED_APPS = DEFAULT_APPS + MY_APPS + THIRD_PARTY_APPS
+INSTALLED_APPS = DEFAULT_APPS + MY_APPS + THIRD_PARTY_APPS + WAGTAIL_APPS
 
 # ── Minimal middleware stack ──────────────────────────────────────────────────
 MIDDLEWARE = list(MAIN_MIDDLEWARE)

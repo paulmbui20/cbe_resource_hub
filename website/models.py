@@ -12,6 +12,12 @@ from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
 from tinymce.models import HTMLField
 
+from wagtail.models import Page
+from wagtail.fields import RichTextField
+from wagtail.admin.panels import FieldPanel
+from wagtail.images.models import AbstractImage, AbstractRendition
+from wagtail.documents.models import AbstractDocument
+
 from core.models import TimeStampedModel
 from seo.models import SEOModel, SlugRedirectMixin
 from validators import validate_image_file
@@ -56,8 +62,8 @@ class Partner(SEOModel, SlugRedirectMixin, models.Model):
         upload_to="partners/logos/",
         null=True,
         blank=True,
-        validators=[validate_image_file],
         help_text="Partner logo image (displayed on listings and banners).",
+        validators=[validate_image_file],
     )
     show_as_banner = models.BooleanField(
         default=False,
@@ -113,6 +119,7 @@ class Partner(SEOModel, SlugRedirectMixin, models.Model):
 
 class EmailSubscriber(TimeStampedModel, models.Model):
     full_name = models.CharField(max_length=255, blank=True, default="")
+    full_name = models.CharField(max_length=255, blank=True, default="")
     email = models.EmailField(unique=True)
     opted_out = models.BooleanField(default=False)
 
@@ -123,3 +130,63 @@ class EmailSubscriber(TimeStampedModel, models.Model):
         verbose_name = "Email Subscriber"
         verbose_name_plural = "Email Subscribers"
         ordering = ["-created_at"]
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# WAGTAIL BLOG & MEDIA MODELS
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+class CustomImage(AbstractImage):
+    file = models.ImageField(
+        upload_to="wagtail_images/", storage="public_files", verbose_name="file"
+    )
+
+
+class CustomRendition(AbstractRendition):
+    image = models.ForeignKey(
+        CustomImage, on_delete=models.CASCADE, related_name="renditions"
+    )
+    file = models.ImageField(upload_to="wagtail_renditions/", storage="public_files")
+
+    class Meta:
+        unique_together = (("image", "filter_spec", "focal_point_key"),)
+
+
+class CustomDocument(AbstractDocument):
+    file = models.FileField(
+        upload_to="wagtail_docs/", storage="public_files", verbose_name="file"
+    )
+
+
+class BlogIndexPage(Page):
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        blogpages = self.get_children().live().order_by("-first_published_at")
+        context["blogpages"] = blogpages
+        return context
+
+
+class BlogPage(Page):
+    date = models.DateField("Post date")
+    intro = models.CharField(max_length=250)
+    body = RichTextField(blank=True)
+
+    main_image = models.ForeignKey(
+        "website.CustomImage",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    content_panels = Page.content_panels + [
+        FieldPanel("date"),
+        FieldPanel("main_image"),
+        FieldPanel("intro"),
+        FieldPanel("body", classname="full"),
+    ]
