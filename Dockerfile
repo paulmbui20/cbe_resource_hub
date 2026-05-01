@@ -74,7 +74,7 @@ RUN mkdir -p static && chown -R appuser:appuser /app
 
 COPY --from=builder --chown=appuser:appuser /app /app
 
-RUN chmod +x docker-health-check.py build.sh 2>/dev/null || true
+RUN chmod +x docker-health-check.py build.sh release.sh 2>/dev/null || true
 
 USER appuser
 
