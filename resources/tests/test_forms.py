@@ -8,14 +8,11 @@ Tests for ResourceItemForm:
   - is_free / price coupling reflected in saved record
 """
 
-from django.test import TestCase
-
 from resources.forms import ResourceItemForm
 from resources.tests.base import ResourceBaseTestCase, make_pdf
 
 
 class ResourceItemFormTests(ResourceBaseTestCase):
-
     def _base_data(self, **overrides):
         data = {
             "title": "Form Test Resource",
@@ -43,10 +40,12 @@ class ResourceItemFormTests(ResourceBaseTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("title", form.errors)
 
-    def test_missing_description_is_invalid(self):
-        form = ResourceItemForm(data=self._base_data(description=""), files=self._files())
-        self.assertFalse(form.is_valid())
-        self.assertIn("description", form.errors)
+    def test_missing_description_is_valid(self):
+        form = ResourceItemForm(
+            data=self._base_data(description=""),
+            files=self._files(filename="no_desc.pdf"),
+        )
+        self.assertTrue(form.is_valid(), form.errors)
 
     def test_missing_grade_is_invalid(self):
         data = self._base_data()
@@ -76,7 +75,9 @@ class ResourceItemFormTests(ResourceBaseTestCase):
     # ── Save ──────────────────────────────────────────────────────────────────
 
     def test_valid_form_saves_resource(self):
-        form = ResourceItemForm(data=self._base_data(), files=self._files(filename="save.pdf"))
+        form = ResourceItemForm(
+            data=self._base_data(), files=self._files(filename="save.pdf")
+        )
         self.assertTrue(form.is_valid(), form.errors)
         resource = form.save()
         self.assertIsNotNone(resource.pk)
@@ -100,16 +101,19 @@ class ResourceItemFormTests(ResourceBaseTestCase):
 
     def test_grade_widget_is_select(self):
         from django import forms as dj_forms
+
         form = ResourceItemForm()
         self.assertIsInstance(form.fields["grade"].widget, dj_forms.Select)
 
     def test_learning_area_widget_is_select(self):
         from django import forms as dj_forms
+
         form = ResourceItemForm()
         self.assertIsInstance(form.fields["learning_area"].widget, dj_forms.Select)
 
     def test_is_free_widget_is_checkbox(self):
         from django import forms as dj_forms
+
         form = ResourceItemForm()
         self.assertIsInstance(form.fields["is_free"].widget, dj_forms.CheckboxInput)
 
@@ -117,8 +121,16 @@ class ResourceItemFormTests(ResourceBaseTestCase):
 
     def test_all_expected_fields_present(self):
         form = ResourceItemForm()
-        for field in ["title", "resource_type", "description", "grade",
-                      "learning_area", "academic_session", "file", "is_free"]:
+        for field in [
+            "title",
+            "resource_type",
+            "description",
+            "grade",
+            "learning_area",
+            "academic_session",
+            "file",
+            "is_free",
+        ]:
             self.assertIn(field, form.fields, f"Field '{field}' missing from form")
 
     def test_price_field_not_in_form(self):

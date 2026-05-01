@@ -11,10 +11,13 @@ from django.core.files.storage import storages
 from django.db import models, transaction
 from django.utils.text import slugify
 
-from resources.validators import (
-    validate_image_file_magic,
-    validate_video_file_magic,
-    get_mime_type,
+from validators import (
+    MagicEngine,
+    validate_document_file,
+    validate_video_file,
+    validate_archive_file,
+    validate_audio_file,
+    validate_image_file,
 )
 
 logger = logging.getLogger(__name__)
@@ -25,16 +28,16 @@ def file_upload_path(instance, filename):
     Generate upload path for files with collision prevention.
     """
     # Get extension safely
-    ext = filename.split('.')[-1] if '.' in filename else ''
+    ext = filename.split(".")[-1] if "." in filename else ""
 
     # Safely handle title (limit length and handle empty titles)
-    safe_title = slugify(instance.title or 'file')[:50] or 'untitled'
+    safe_title = slugify(instance.title or "file")[:50] or "untitled"
 
     # Generate unique filename
     filename = f"{safe_title}-{uuid4()}.{ext}" if ext else f"{safe_title}-{uuid4()}"
 
     # Return path (category will be set before this is called)
-    category = getattr(instance, 'file_category', 'other') or 'other'
+    category = getattr(instance, "file_category", "other") or "other"
     return f"files/{category}/{filename}"
 
 
@@ -52,20 +55,16 @@ class PublicFilesStorageCallable:
             return FileSystemStorage()
 
         try:
-            return storages['public_files']
+            return storages["public_files"]
         except (KeyError, AttributeError):
             # Fallback to default storage
-            return storages['default']
+            return storages["default"]
 
     def deconstruct(self):
         """
         Allow Django to serialize this for migrations.
         """
-        return (
-            'files.models.PublicFilesStorageCallable',
-            [],
-            {}
-        )
+        return ("files.models.PublicFilesStorageCallable", [], {})
 
 
 class File(models.Model):
@@ -81,13 +80,22 @@ class File(models.Model):
     title = models.CharField(max_length=255)
     file = models.FileField(
         upload_to=file_upload_path,
-        storage=PublicFilesStorageCallable()
+        storage=PublicFilesStorageCallable(),
+        validators=[
+            validate_document_file,
+            validate_video_file,
+            validate_archive_file,
+            validate_audio_file,
+            validate_image_file,
+        ],
     )
 
     # Auto-detected fields
     mime_type = models.CharField(max_length=100, blank=True)
     extension = models.CharField(max_length=10, blank=True)
-    file_category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="other")
+    file_category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default="other"
+    )
 
     # Size from storage (R2 safe)
     size = models.PositiveIntegerField(default=0)
@@ -106,11 +114,11 @@ class File(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['file_category', '-created']),
-            models.Index(fields=['mime_type']),
-            models.Index(fields=['-created']),
+            models.Index(fields=["file_category", "-created"]),
+            models.Index(fields=["mime_type"]),
+            models.Index(fields=["-created"]),
         ]
-        ordering = ['-created']
+        ordering = ["-created"]
 
     # -----------------------------
     # VALIDATION
@@ -129,9 +137,12 @@ class File(models.Model):
         if not self.mime_type:
             try:
                 sample = self.file.read(32)
-                if hasattr(self.file, 'seek'):
+                if hasattr(self.file, "seek"):
                     self.file.seek(0)
-                self.mime_type = get_mime_type(sample) or mimetypes.guess_type(self.file.name)[0]
+                match = MagicEngine().detect(sample)
+                self.mime_type = (
+                    match.mime if match else None
+                ) or mimetypes.guess_type(self.file.name)[0]
             except Exception as e:
                 logger.warning(f"Could not detect MIME type: {e}")
 
@@ -141,9 +152,9 @@ class File(models.Model):
         if mime:
             try:
                 if mime.startswith("image"):
-                    validate_image_file_magic(self.file)
+                    validate_image_file(self.file)
                 elif mime.startswith("video"):
-                    validate_video_file_magic(self.file)
+                    validate_video_file(self.file)
             except Exception as e:
                 # Re-raise validation errors
                 raise
@@ -165,7 +176,9 @@ class File(models.Model):
             try:
                 self._extract_metadata()
             except Exception as e:
-                logger.error(f"Error extracting metadata for {self.title}: {e}", exc_info=True)
+                logger.error(
+                    f"Error extracting metadata for {self.title}: {e}", exc_info=True
+                )
                 # Don't fail the save, but log the error
 
         # Validate on creation (for programmatic saves that bypass forms)
@@ -190,11 +203,12 @@ class File(models.Model):
         try:
             # Read file head for magic byte detection (32 bytes is sufficient)
             sample = self.file.read(32)
-            if hasattr(self.file, 'seek'):
+            if hasattr(self.file, "seek"):
                 self.file.seek(0)
 
             # Detect MIME type (prioritize magic bytes over extension)
-            detected_mime = get_mime_type(sample)
+            match = MagicEngine().detect(sample)
+            detected_mime = match.mime if match else None
             guessed_mime = mimetypes.guess_type(self.file.name)[0]
             self.mime_type = detected_mime or guessed_mime or "application/octet-stream"
 
@@ -234,11 +248,26 @@ class File(models.Model):
             return "video"
         if mt_lower.startswith("audio"):
             return "audio"
-        if mt_lower in ["application/zip", "application/x-tar", "application/x-rar-compressed",
-                        "application/x-7z-compressed"]:
+        if mt_lower in [
+            "application/zip",
+            "application/x-tar",
+            "application/x-rar-compressed",
+            "application/x-7z-compressed",
+        ]:
             return "archive"
-        if any(x in mt_lower for x in
-               ["pdf", "word", "sheet", "document", "presentation", "msword", "ms-excel", "ms-powerpoint"]):
+        if any(
+            x in mt_lower
+            for x in [
+                "pdf",
+                "word",
+                "sheet",
+                "document",
+                "presentation",
+                "msword",
+                "ms-excel",
+                "ms-powerpoint",
+            ]
+        ):
             return "document"
 
         return "other"
@@ -256,7 +285,7 @@ class File(models.Model):
             img_bytes = self.file.read()
 
             # Seek back to beginning if possible
-            if hasattr(self.file, 'seek'):
+            if hasattr(self.file, "seek"):
                 self.file.seek(0)
 
             # Open with PIL
@@ -266,8 +295,8 @@ class File(models.Model):
             # Store additional metadata if needed
             if not self.metadata:
                 self.metadata = {}
-            self.metadata['format'] = img.format
-            self.metadata['mode'] = img.mode
+            self.metadata["format"] = img.format
+            self.metadata["mode"] = img.mode
 
         except Exception as e:
             logger.warning(f"Could not extract image dimensions: {e}")
@@ -295,7 +324,7 @@ class File(models.Model):
             self.file_hash = sha256.hexdigest()
 
             # Seek back to beginning
-            if hasattr(self.file, 'seek'):
+            if hasattr(self.file, "seek"):
                 self.file.seek(0)
 
         except Exception as e:
@@ -366,7 +395,9 @@ class File(models.Model):
             except Exception as e:
                 # Log error but continue with DB deletion
                 # Orphaned files are better than broken database records
-                logger.error(f"Failed to delete file from storage {name}: {e}", exc_info=True)
+                logger.error(
+                    f"Failed to delete file from storage {name}: {e}", exc_info=True
+                )
 
         # Delete database record
         super().delete(*args, **kwargs)
@@ -391,4 +422,5 @@ class File(models.Model):
     def get_absolute_url(self):
         """Return admin URL for this file."""
         from django.urls import reverse
-        return reverse('admin:files_file_change', args=[self.pk])
+
+        return reverse("admin:files_file_change", args=[self.pk])

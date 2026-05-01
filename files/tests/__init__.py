@@ -1,6 +1,5 @@
-from .test_admin import *
-from .test_integration import *
-from .test_management_commands import *
-from .test_models import *
-from .test_performance import *
-from .test_validators import *
+from .test_admin import *  # noqa: F401
+from .test_integration import *  # noqa: F401
+from .test_management_commands import *  # noqa: F401
+from .test_models import *  # noqa: F401
+from .test_performance import *  # noqa: F401

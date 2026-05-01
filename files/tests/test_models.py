@@ -2,8 +2,9 @@
 Unit tests for File model.
 Tests model creation, metadata extraction, validation, and file operations.
 """
+
 from io import BytesIO
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -19,20 +20,15 @@ class TestFileModelCreation(TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
+            FileFixtures.create_valid_png(), "image/png"
         )
         self.jpeg_file = create_uploaded_file(
-            FileFixtures.create_valid_jpeg(),
-            'image/jpeg'
+            FileFixtures.create_valid_jpeg(), "image/jpeg"
         )
 
     def test_create_file_with_png(self):
         """Should create File instance with PNG image."""
-        file_obj = File.objects.create(
-            title="Test PNG",
-            file=self.png_file
-        )
+        file_obj = File.objects.create(title="Test PNG", file=self.png_file)
 
         self.assertIsNotNone(file_obj.pk)
         self.assertEqual(file_obj.title, "Test PNG")
@@ -42,10 +38,7 @@ class TestFileModelCreation(TestCase):
 
     def test_create_file_with_jpeg(self):
         """Should create File instance with JPEG image."""
-        file_obj = File.objects.create(
-            title="Test JPEG",
-            file=self.jpeg_file
-        )
+        file_obj = File.objects.create(title="Test JPEG", file=self.jpeg_file)
 
         self.assertIsNotNone(file_obj.pk)
         self.assertEqual(file_obj.file_category, "image")
@@ -54,19 +47,13 @@ class TestFileModelCreation(TestCase):
 
     def test_file_size_extracted(self):
         """Should extract file size on save."""
-        file_obj = File.objects.create(
-            title="Test Size",
-            file=self.png_file
-        )
+        file_obj = File.objects.create(title="Test Size", file=self.png_file)
 
         self.assertGreater(file_obj.size, 0)
 
     def test_image_dimensions_extracted(self):
         """Should extract image dimensions for images."""
-        file_obj = File.objects.create(
-            title="Test Dimensions",
-            file=self.png_file
-        )
+        file_obj = File.objects.create(title="Test Dimensions", file=self.png_file)
 
         self.assertIsNotNone(file_obj.width)
         self.assertIsNotNone(file_obj.height)
@@ -75,31 +62,24 @@ class TestFileModelCreation(TestCase):
 
     def test_slug_in_filename(self):
         """Should include slugified title in filename."""
-        file_obj = File.objects.create(
-            title="My Test File!",
-            file=self.png_file
-        )
+        file_obj = File.objects.create(title="My Test File!", file=self.png_file)
 
         self.assertIn("my-test-file", file_obj.file.name.lower())
 
     def test_uuid_in_filename(self):
         """Should include UUID in filename for uniqueness."""
-        file_obj = File.objects.create(
-            title="Test",
-            file=self.png_file
-        )
+        file_obj = File.objects.create(title="Test", file=self.png_file)
 
         # UUID format: 8-4-4-4-12 characters
         filename = file_obj.file.name
         # Should contain a UUID-like pattern
-        self.assertRegex(filename, r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
+        self.assertRegex(
+            filename, r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
+        )
 
     def test_empty_title_handled(self):
         """Should handle empty title gracefully."""
-        file_obj = File.objects.create(
-            title="",
-            file=self.png_file
-        )
+        file_obj = File.objects.create(title="", file=self.png_file)
 
         # Should use 'untitled' or similar
         self.assertIsNotNone(file_obj.file.name)
@@ -107,10 +87,7 @@ class TestFileModelCreation(TestCase):
     def test_long_title_truncated(self):
         """Should truncate very long titles."""
         long_title = "A" * 200
-        file_obj = File.objects.create(
-            title=long_title,
-            file=self.png_file
-        )
+        file_obj = File.objects.create(title=long_title, file=self.png_file)
 
         # Filename should not be excessively long
         filename = file_obj.file.name
@@ -123,60 +100,42 @@ class TestFileModelMetadata(TestCase):
 
     def test_detect_image_category(self):
         """Should categorize image files correctly."""
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
 
         file_obj = File.objects.create(title="Test", file=png_file)
         self.assertEqual(file_obj.file_category, "image")
 
     def test_detect_video_category(self):
         """Should categorize video files correctly."""
-        mp4_file = create_uploaded_file(
-            FileFixtures.create_valid_mp4(),
-            'video/mp4'
-        )
+        mp4_file = create_uploaded_file(FileFixtures.create_valid_mp4(), "video/mp4")
 
         file_obj = File.objects.create(title="Test", file=mp4_file)
         self.assertEqual(file_obj.file_category, "video")
 
     def test_detect_document_category(self):
         """Should categorize document files correctly."""
-        pdf_file = create_uploaded_file(
-            FileFixtures.create_pdf(),
-            'application/pdf'
-        )
+        pdf_file = create_uploaded_file(FileFixtures.create_pdf(), "application/pdf")
 
         file_obj = File.objects.create(title="Test", file=pdf_file)
         self.assertEqual(file_obj.file_category, "document")
 
     def test_detect_archive_category(self):
         """Should categorize archive files correctly."""
-        zip_file = create_uploaded_file(
-            FileFixtures.create_zip(),
-            'application/zip'
-        )
+        zip_file = create_uploaded_file(FileFixtures.create_zip(), "application/zip")
 
         file_obj = File.objects.create(title="Test", file=zip_file)
         self.assertEqual(file_obj.file_category, "archive")
 
     def test_unknown_file_type(self):
         """Should categorize unknown files as 'other'."""
-        text_file = create_uploaded_file(
-            FileFixtures.create_text_file(),
-            'text/plain'
-        )
+        text_file = create_uploaded_file(FileFixtures.create_text_file(), "text/plain")
 
         file_obj = File.objects.create(title="Test", file=text_file)
         self.assertEqual(file_obj.file_category, "other")
 
     def test_metadata_json_field(self):
         """Should store additional metadata in JSON field."""
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
 
         file_obj = File.objects.create(title="Test", file=png_file)
 
@@ -196,16 +155,14 @@ class TestFileModelValidation(TestCase):
         # Create a buffer that's definitely over 1.5MB
         buffer = BytesIO()
         # Write valid JPEG header
-        buffer.write(b'\xff\xd8\xff\xe0')
-        buffer.write(b'\x00\x10JFIF')
+        buffer.write(b"\xff\xd8\xff\xe0")
+        buffer.write(b"\x00\x10JFIF")
         # Fill with data to exceed 1.5MB
-        buffer.write(b'\x00' * (2 * 1024 * 1024))  # 2MB of data
+        buffer.write(b"\x00" * (2 * 1024 * 1024))  # 2MB of data
         buffer.seek(0)
 
         oversized_file = SimpleUploadedFile(
-            "large.jpg",
-            buffer.read(),
-            content_type='image/jpeg'
+            "large.jpg", buffer.read(), content_type="image/jpeg"
         )
 
         file_obj = File(title="Oversized", file=oversized_file)
@@ -216,7 +173,7 @@ class TestFileModelValidation(TestCase):
 
         # Verify it's the right error
         error_message = str(context.exception)
-        self.assertIn('1.5MB', error_message)
+        self.assertIn("1.5 MB limit", error_message)
 
     def test_clean_validates_wrong_magic_bytes(self):
         """Should reject files with wrong magic bytes via clean()."""
@@ -225,13 +182,11 @@ class TestFileModelValidation(TestCase):
 
         # Create a file that claims to be JPEG but has wrong magic bytes
         buffer = BytesIO()
-        buffer.write(b'This is not an image file at all!')
+        buffer.write(b"This is not an image file at all!")
         buffer.seek(0)
 
         fake_file = SimpleUploadedFile(
-            "fake.jpg",
-            buffer.read(),
-            content_type='image/jpeg'
+            "fake.jpg", buffer.read(), content_type="image/jpeg"
         )
 
         file_obj = File(title="Fake", file=fake_file)
@@ -240,14 +195,11 @@ class TestFileModelValidation(TestCase):
             file_obj.clean()
 
         error_message = str(context.exception)
-        self.assertIn('Unsupported image file type', error_message)
+        self.assertIn("could not be identified", error_message)
 
     def test_valid_image_accepted(self):
         """Should accept valid image files."""
-        valid_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        valid_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
 
         try:
             file_obj = File.objects.create(title="Valid", file=valid_file)
@@ -261,10 +213,7 @@ class TestFileModelProperties(TestCase):
 
     def setUp(self):
         """Create a test file."""
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
         self.file_obj = File.objects.create(title="Test", file=png_file)
 
     def test_url_property(self):
@@ -308,14 +257,8 @@ class TestFileModelDeletion(TestCase):
     def test_delete_removes_from_storage(self):
         """Should delete file from storage on model delete."""
         # Use a regular file creation that works
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
         file_obj = File.objects.create(title="Test", file=png_file)
-
-        # Get file name before deletion
-        file_name = file_obj.file.name
 
         # Delete the object
         file_obj.delete()
@@ -325,10 +268,7 @@ class TestFileModelDeletion(TestCase):
 
     def test_delete_with_missing_file(self):
         """Should handle deletion when file is missing from storage."""
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
         file_obj = File.objects.create(title="Test", file=png_file)
 
         try:
@@ -342,10 +282,7 @@ class TestFileExistence(TestCase):
 
     def test_file_exists_returns_true_for_existing(self):
         """Should return True for existing files."""
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
         file_obj = File.objects.create(title="Test", file=png_file)
 
         # Should exist after creation
@@ -354,14 +291,11 @@ class TestFileExistence(TestCase):
     def test_file_exists_returns_false_for_missing(self):
         """Should return False for missing files."""
         # Create file first
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
         file_obj = File.objects.create(title="Test", file=png_file)
 
         # Mock the storage to return False
-        with patch.object(file_obj.file.storage, 'exists', return_value=False):
+        with patch.object(file_obj.file.storage, "exists", return_value=False):
             result = file_obj.file_exists()
             self.assertFalse(result)
 
@@ -371,10 +305,7 @@ class TestFileHash(TestCase):
 
     def test_calculate_file_hash(self):
         """Should calculate SHA256 hash of file."""
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
         file_obj = File(title="Test", file=png_file)
 
         file_obj._calculate_file_hash()
@@ -391,12 +322,10 @@ class TestFileHash(TestCase):
 
         # Create two files with identical content
         file1 = File(
-            title="File1",
-            file=SimpleUploadedFile("test1.png", content, "image/png")
+            title="File1", file=SimpleUploadedFile("test1.png", content, "image/png")
         )
         file2 = File(
-            title="File2",
-            file=SimpleUploadedFile("test2.png", content, "image/png")
+            title="File2", file=SimpleUploadedFile("test2.png", content, "image/png")
         )
 
         file1._calculate_file_hash()
@@ -409,16 +338,14 @@ class TestFileHash(TestCase):
         png_file = File(
             title="PNG",
             file=create_uploaded_file(
-                FileFixtures.create_valid_png(width=50, height=50),
-                'image/png'
-            )
+                FileFixtures.create_valid_png(width=50, height=50), "image/png"
+            ),
         )
         jpeg_file = File(
             title="JPEG",
             file=create_uploaded_file(
-                FileFixtures.create_valid_jpeg(width=50, height=50),
-                'image/jpeg'
-            )
+                FileFixtures.create_valid_jpeg(width=50, height=50), "image/jpeg"
+            ),
         )
 
         png_file._calculate_file_hash()
@@ -434,8 +361,7 @@ class TestFileHash(TestCase):
         png_buffer.seek(0)
 
         file1 = File.objects.create(
-            title="Original",
-            file=SimpleUploadedFile("test1.png", content, "image/png")
+            title="Original", file=SimpleUploadedFile("test1.png", content, "image/png")
         )
         file1._calculate_file_hash()
         file1.save()
@@ -464,14 +390,14 @@ class TestFileModelEdgeCases(TestCase):
         """Should handle corrupted image gracefully."""
         # Create a file that looks like an image but is corrupted
         buffer = BytesIO()
-        buffer.write(b'\x89\x50\x4e\x47\x0d\x0a\x1a\x0a')  # PNG header
-        buffer.write(b'\x00' * 100)  # Invalid PNG data
+        buffer.write(b"\x89\x50\x4e\x47\x0d\x0a\x1a\x0a")  # PNG header
+        buffer.write(b"\x00" * 100)  # Invalid PNG data
         buffer.seek(0)
-        buffer.name = 'corrupted.png'
+        buffer.name = "corrupted.png"
 
         file_obj = File(
             title="Corrupted",
-            file=SimpleUploadedFile("corrupted.png", buffer.read(), "image/png")
+            file=SimpleUploadedFile("corrupted.png", buffer.read(), "image/png"),
         )
 
         # Should save without crashing, dimensions will be None
@@ -482,14 +408,10 @@ class TestFileModelEdgeCases(TestCase):
 
     def test_special_characters_in_title(self):
         """Should handle special characters in title."""
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
 
         file_obj = File.objects.create(
-            title="Test!@#$%^&*()_+{}[]|\\:;<>?,./",
-            file=png_file
+            title="Test!@#$%^&*()_+{}[]|\\:;<>?,./", file=png_file
         )
 
         # Should be slugified properly
@@ -497,15 +419,9 @@ class TestFileModelEdgeCases(TestCase):
 
     def test_unicode_in_title(self):
         """Should handle Unicode characters in title."""
-        png_file = create_uploaded_file(
-            FileFixtures.create_valid_png(),
-            'image/png'
-        )
+        png_file = create_uploaded_file(FileFixtures.create_valid_png(), "image/png")
 
-        file_obj = File.objects.create(
-            title="测试文件 🎉",
-            file=png_file
-        )
+        file_obj = File.objects.create(title="测试文件 🎉", file=png_file)
 
         # Should handle Unicode properly
         self.assertIsNotNone(file_obj.file.name)

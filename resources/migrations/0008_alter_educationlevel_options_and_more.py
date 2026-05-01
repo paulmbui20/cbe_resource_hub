@@ -4,7 +4,7 @@ import django.db.models.functions.text
 import django.utils.timezone
 from django.utils.text import slugify
 
-import resources.validators
+import validators.presets
 import seo.models
 from django.db import migrations, models
 
@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
             name='featured_image',
             field=models.ImageField(blank=True, help_text='Featured image for this page', null=True,
                                     storage=seo.models.PublicFilesStorageCallable(), upload_to='featured_images/%Y/%m/',
-                                    validators=[resources.validators.validate_image_file_magic]),
+                                    validators=[validators.presets.validate_image_file]),
         ),
         migrations.AddField(
             model_name='educationlevel',
@@ -92,7 +92,7 @@ class Migration(migrations.Migration):
             name='featured_image',
             field=models.ImageField(blank=True, help_text='Featured image for this page', null=True,
                                     storage=seo.models.PublicFilesStorageCallable(), upload_to='featured_images/%Y/%m/',
-                                    validators=[resources.validators.validate_image_file_magic]),
+                                    validators=[validators.presets.validate_image_file]),
         ),
         migrations.AddField(
             model_name='grade',
@@ -134,7 +134,7 @@ class Migration(migrations.Migration):
             name='featured_image',
             field=models.ImageField(blank=True, help_text='Featured image for this page', null=True,
                                     storage=seo.models.PublicFilesStorageCallable(), upload_to='featured_images/%Y/%m/',
-                                    validators=[resources.validators.validate_image_file_magic]),
+                                    validators=[validators.presets.validate_image_file]),
         ),
         migrations.AddField(
             model_name='learningarea',

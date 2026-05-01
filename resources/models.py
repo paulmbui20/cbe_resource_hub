@@ -10,7 +10,8 @@ Hierarchy:
 Future-proofed for multivendor marketplace with vendor FK, pricing,
 and download tracking fields.
 """
-from __future__ import annotations
+
+from validators import DeepSignatureValidator
 
 from django.conf import settings
 from django.db import models
@@ -49,7 +50,7 @@ class EducationLevel(SEOModel, SlugRedirectMixin, models.Model):
             models.UniqueConstraint(
                 Lower("name"),
                 name="unique_education_level_name",
-                violation_error_message="Education level name must be unique"
+                violation_error_message="Education level name must be unique",
             )
         ]
 
@@ -67,7 +68,11 @@ class EducationLevel(SEOModel, SlugRedirectMixin, models.Model):
 class GradeManager(models.Manager):
     def get_queryset(self):
         return (
-            super().get_queryset().select_related("level", )
+            super()
+            .get_queryset()
+            .select_related(
+                "level",
+            )
         )
 
 
@@ -141,25 +146,28 @@ class LearningArea(SEOModel, SlugRedirectMixin, models.Model):
 
 
 class ResourcesPublicFilesStorageCallable(PublicFilesStorageCallable):
-
     def deconstruct(self):
         """
         Allow Django to serialize this for migrations.
         """
-        return (
-            'resources.models.ResourcesPublicFilesStorageCallable',
-            [],
-            {}
-        )
+        return ("resources.models.ResourcesPublicFilesStorageCallable", [], {})
 
 
 class ResourceItemManager(models.Manager):
     def get_queryset(self):
         return (
-            super().get_queryset().select_related(
-                "grade", "grade__level", "vendor", "learning_area", "academic_session",
-                "academic_session__current_year", "academic_session__current_term",
-            ).prefetch_related("favorited_by")
+            super()
+            .get_queryset()
+            .select_related(
+                "grade",
+                "grade__level",
+                "vendor",
+                "learning_area",
+                "academic_session",
+                "academic_session__current_year",
+                "academic_session__current_term",
+            )
+            .prefetch_related("favorited_by")
         )
 
 
@@ -173,13 +181,14 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
     Multivendor marketplace fields (vendor, is_free, price, downloads) are
     included now for zero-migration cost when the marketplace is activated.
     """
+
     title: str = models.CharField(max_length=255)
     slug: str = models.SlugField(
         unique=True,
         max_length=265,
         db_index=True,
     )
-    description: str = HTMLField()
+    description: str = HTMLField(default="", blank=True)
 
     # --- Curriculum Classification ---
     grade: Grade = models.ForeignKey(
@@ -197,14 +206,37 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
         on_delete=models.SET_NULL,
         related_name="resources",
         null=True,
-        blank=True
+        blank=True,
     )
 
     # --- File Storage (Cloudflare R2 in production) ---
     file = models.FileField(
         upload_to=file_upload_path,
         storage=ResourcesPublicFilesStorageCallable(),
-        max_length=300
+        max_length=300,
+        validators=[
+            DeepSignatureValidator(
+                allowed_mimetypes={
+                    # Currently Accepted:
+                    # Office Open XML (modern Microsoft Office)
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    # OpenDocument Format (LibreOffice / OpenOffice / Google Docs export)
+                    "application/vnd.oasis.opendocument.text",
+                    "application/vnd.oasis.opendocument.spreadsheet",
+                    "application/vnd.oasis.opendocument.presentation",
+                    # Legacy Microsoft Office (OLE2 compound document)
+                    "application/msword",
+                    "application/vnd.ms-excel",
+                    "application/vnd.ms-powerpoint",
+                    # Other
+                    "application/rtf",
+                    "application/epub+zip",
+                    "application/pdf",
+                }
+            )
+        ],
     )
 
     # --- Multivendor Marketplace Future-Proofing ---
@@ -263,8 +295,8 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
         indexes = [
             models.Index(fields=["grade", "learning_area"]),
             models.Index(fields=["is_free", "-created_at"]),
-            models.Index(fields=['-updated_at']),
-            models.Index(fields=['-resource_type']),
+            models.Index(fields=["-updated_at"]),
+            models.Index(fields=["-resource_type"]),
         ]
 
     def __str__(self) -> str:

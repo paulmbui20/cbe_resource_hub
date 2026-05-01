@@ -44,12 +44,12 @@ class PageAdmin(SEOAdminMixin, admin.ModelAdmin):
     list_filter = ("is_published",)
     search_fields = ("title", "content", "meta_title", "focus_keyword")
     prepopulated_fields = {"slug": ("title",)}
-    readonly_fields = ("created_at", "updated_at", "seo_preview")
+    readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
         ("Page", {"fields": ("title", "slug", "content", "is_published")}),
-        ("Timestamps", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+        (
+            "Timestamps",
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+        ),
     )
-
-    def get_fieldsets(self, request, obj=None):
-        return self.fieldsets + (self.get_seo_fieldset(),)

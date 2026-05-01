@@ -21,7 +21,7 @@ class GradeInline(admin.TabularInline):
 
 @admin.register(Grade)
 class GradeAdmin(SEOAdminMixin, admin.ModelAdmin):
-    list_display = ("name","slug" ,"level", "order")
+    list_display = ("name", "slug", "level", "order")
     list_filter = ("level",)
     prepopulated_fields = {"slug": ("name",)}
 
@@ -72,7 +72,3 @@ class ResourceItemAdmin(SEOAdminMixin, admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
-
-    def get_fieldsets(self, request, obj=None):
-        return self.fieldsets + (self.get_seo_fieldset(),)
-

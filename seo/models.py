@@ -10,7 +10,7 @@ from django.core.files.storage import storages, FileSystemStorage
 from django.db import models
 
 from core.models import TimeStampedModel
-from resources.validators import validate_image_file_magic
+from validators import validate_image_file
 
 
 class PublicFilesStorageCallable:
@@ -26,20 +26,16 @@ class PublicFilesStorageCallable:
             return FileSystemStorage()
 
         try:
-            return storages['public_files']
+            return storages["public_files"]
         except (KeyError, AttributeError):
             # Fallback to default storage
-            return storages['default']
+            return storages["default"]
 
     def deconstruct(self):
         """
         Allow Django to serialize this for migrations.
         """
-        return (
-            'seo.models.PublicFilesStorageCallable',
-            [],
-            {}
-        )
+        return ("seo.models.PublicFilesStorageCallable", [], {})
 
 
 class SEOModel(TimeStampedModel, models.Model):
@@ -47,34 +43,33 @@ class SEOModel(TimeStampedModel, models.Model):
     Abstract base model for SEO fields.
     Inherit this to add SEO capabilities to any model.
     """
+
     featured_image = models.ImageField(
         upload_to="featured_images/%Y/%m/",
         storage=PublicFilesStorageCallable(),
         null=True,
         blank=True,
-        validators=[validate_image_file_magic],
-        help_text="Featured image for this page"
+        validators=[validate_image_file],
+        help_text="Featured image for this page",
     )
     focus_keyword = models.CharField(
         max_length=60,
         blank=True,
-        default='',
-        help_text="Enter the main keyword this page should rank for."
+        default="",
+        help_text="Enter the main keyword this page should rank for.",
     )
     meta_title = models.CharField(
         max_length=60,
         blank=True,
-        help_text="SEO title (60 chars max). Leave blank to auto-generate."
+        help_text="SEO title (60 chars max). Leave blank to auto-generate.",
     )
     meta_description = models.CharField(
         max_length=160,
         blank=True,
-        help_text="SEO description (160 chars max). Leave blank to auto-generate."
+        help_text="SEO description (160 chars max). Leave blank to auto-generate.",
     )
     meta_keywords = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Comma-separated keywords for SEO"
+        max_length=255, blank=True, help_text="Comma-separated keywords for SEO"
     )
 
     class Meta:
@@ -98,16 +93,16 @@ class SEOModel(TimeStampedModel, models.Model):
             return
 
         try:
-            img = Image.open(self.featured_image.open('rb'))
+            img = Image.open(self.featured_image.open("rb"))
 
-            if img.mode in ('RGBA', 'LA', 'P'):
-                rgb_img = Image.new('RGB', img.size, (255, 255, 255))
-                rgb_img.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+            if img.mode in ("RGBA", "LA", "P"):
+                rgb_img = Image.new("RGB", img.size, (255, 255, 255))
+                rgb_img.paste(img, mask=img.split()[-1] if img.mode == "RGBA" else None)
                 img = rgb_img
 
             sizes = [
-                ('small', 329, 439, 80),
-                ('medium', 658, 878, 85),
+                ("small", 329, 439, 80),
+                ("medium", 658, 878, 85),
             ]
 
             base_name = os.path.splitext(self.featured_image.name)[0]
@@ -117,20 +112,18 @@ class SEOModel(TimeStampedModel, models.Model):
                 img_copy.thumbnail((width, height), Image.Resampling.LANCZOS)
 
                 webp_buffer = BytesIO()
-                img_copy.save(webp_buffer, format='WEBP', quality=quality)
+                img_copy.save(webp_buffer, format="WEBP", quality=quality)
                 webp_buffer.seek(0)
                 self.featured_image.storage.save(
-                    f"{base_name}_{size_name}.webp",
-                    ContentFile(webp_buffer.read())
+                    f"{base_name}_{size_name}.webp", ContentFile(webp_buffer.read())
                 )
                 webp_buffer.close()
 
                 jpg_buffer = BytesIO()
-                img_copy.save(jpg_buffer, format='JPEG', quality=quality + 5)
+                img_copy.save(jpg_buffer, format="JPEG", quality=quality + 5)
                 jpg_buffer.seek(0)
                 self.featured_image.storage.save(
-                    f"{base_name}_{size_name}.jpg",
-                    ContentFile(jpg_buffer.read())
+                    f"{base_name}_{size_name}.jpg", ContentFile(jpg_buffer.read())
                 )
                 jpg_buffer.close()
 
@@ -205,11 +198,18 @@ class SEOModel(TimeStampedModel, models.Model):
         old_featured_image = None
 
         if not is_new:
-            old_featured_image = type(self).objects.filter(pk=self.pk).values_list("featured_image", flat=True).first()
+            old_featured_image = (
+                type(self)
+                .objects.filter(pk=self.pk)
+                .values_list("featured_image", flat=True)
+                .first()
+            )
 
         super().save(*args, **kwargs)
 
-        if self.featured_image and (is_new or old_featured_image != self.featured_image.name):
+        if self.featured_image and (
+            is_new or old_featured_image != self.featured_image.name
+        ):
             self.optimize_image()
 
 
@@ -218,37 +218,33 @@ class SlugRedirect(TimeStampedModel, models.Model):
     Stores previous slugs for permanent redirects.
     Indexed for blazingly fast lookups with zero latency impact.
     """
+
     content_type = models.ForeignKey(
-        'contenttypes.ContentType',
-        on_delete=models.CASCADE,
-        db_index=True
+        "contenttypes.ContentType", on_delete=models.CASCADE, db_index=True
     )
     object_id = models.PositiveIntegerField(db_index=True)
-    content_object = GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey("content_type", "object_id")
 
     old_slug = models.SlugField(
         max_length=255,
         unique=True,
         db_index=True,
-        help_text="Previous slug that should redirect"
+        help_text="Previous slug that should redirect",
     )
     new_slug = models.SlugField(
-        max_length=255,
-        db_index=True,
-        help_text="Current slug to redirect to"
+        max_length=255, db_index=True, help_text="Current slug to redirect to"
     )
 
     hit_count = models.PositiveIntegerField(
-        default=0,
-        help_text="Track redirect usage for analytics"
+        default=0, help_text="Track redirect usage for analytics"
     )
 
     class Meta:
         indexes = [
-            models.Index(fields=['old_slug']),  # Primary lookup
-            models.Index(fields=['new_slug']),  # Reverse lookup
-            models.Index(fields=['content_type', 'object_id']),
-            models.Index(fields=['-created_at']),
+            models.Index(fields=["old_slug"]),  # Primary lookup
+            models.Index(fields=["new_slug"]),  # Reverse lookup
+            models.Index(fields=["content_type", "object_id"]),
+            models.Index(fields=["-created_at"]),
         ]
         verbose_name = "Slug Redirect"
         verbose_name_plural = "Slug Redirects"
@@ -263,12 +259,10 @@ class SlugRedirect(TimeStampedModel, models.Model):
         Uses select_related to minimize queries.
         """
         try:
-            redirect = cls.objects.select_related('content_type').get(
-                old_slug=old_slug
-            )
+            redirect = cls.objects.select_related("content_type").get(old_slug=old_slug)
             # Increment hit counter asynchronously (non-blocking)
             cls.objects.filter(pk=redirect.pk).update(
-                hit_count=models.F('hit_count') + 1
+                hit_count=models.F("hit_count") + 1
             )
             return redirect.new_slug
         except cls.DoesNotExist:
@@ -298,13 +292,12 @@ class SlugRedirect(TimeStampedModel, models.Model):
         existing_redirects_to_old = cls.objects.filter(new_slug=old_slug)
         for redirect in existing_redirects_to_old:
             redirect.new_slug = new_slug
-            redirect.save(update_fields=['new_slug', 'updated_at'])
+            redirect.save(update_fields=["new_slug", "updated_at"])
 
         # 4: Check if this redirect already exists in reverse
         # Delete the reverse redirect to prevent circular loops
         reverse_redirect = cls.objects.filter(
-            old_slug=new_slug,
-            new_slug=old_slug
+            old_slug=new_slug, new_slug=old_slug
         ).first()
         if reverse_redirect:
             reverse_redirect.delete()
@@ -314,10 +307,10 @@ class SlugRedirect(TimeStampedModel, models.Model):
         redirect, created = cls.objects.update_or_create(
             old_slug=old_slug,
             defaults={
-                'content_type': content_type,
-                'object_id': instance.pk,
-                'new_slug': new_slug,
-            }
+                "content_type": content_type,
+                "object_id": instance.pk,
+                "new_slug": new_slug,
+            },
         )
 
         return redirect
@@ -333,17 +326,18 @@ class SlugRedirect(TimeStampedModel, models.Model):
         # Delete redirects where this slug is the old_slug
         old_redirects = cls.objects.filter(old_slug=slug)
         for r in old_redirects:
-            cache.delete(f'slug_redirect_{r.old_slug}')
+            cache.delete(f"slug_redirect_{r.old_slug}")
         old_redirects.delete()
 
         # Delete redirects where this slug is the new_slug
         new_redirects = cls.objects.filter(new_slug=slug)
         for r in new_redirects:
-            cache.delete(f'slug_redirect_{r.old_slug}')
+            cache.delete(f"slug_redirect_{r.old_slug}")
         new_redirects.delete()
 
         # Clear cache for this slug
-        cache.delete(f'slug_redirect_{slug}')
+        cache.delete(f"slug_redirect_{slug}")
 
 
-from .mixins import SlugRedirectMixin  # backward compatibility
+# backward compatibility
+from .mixins import SlugRedirectMixin  #  noqa: F401

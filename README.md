@@ -13,6 +13,7 @@
 ## ✨ Features
 
 - **Multivendor Marketplace** — Educators can register as Content Creators and upload resources
+- **Wagtail CMS Blog** — Integrated powerful blogging engine with `/wagtail-admin/` panel and seamlessly styled front-end
 - **CBC Curriculum Aligned** — From Pre-Primary level through Senior School (Grade 12) level, all standard learning
   areas
 - **Custom Admin Panel** — Fully branded management UI (no Django Admin dependency)
@@ -23,6 +24,7 @@
 - **Interactive DataTables** — Client-side search, sort, and pagination across all admin lists
 - **Bulk User Management** — Multi-select enable/disable users with self-protection guard
 - **File Storage** — Cloudflare R2 (S3-compatible) in production; local filesystem in development
+- **Deep File Validation** — Magic/mimetype signature scanning via the `validators` package to rigorously enforce uploaded file integrity
 - **Built-in Rate Limiting** — `django-smart-ratelimit` + `django-axes` brute-force protection
 - **Performance** — Query profiling via Silk, async-ready with Django 6 ASGI
 - **Global Toast Notifications** — Alpine.js system auto-fires Django messages; also JS-dispatchable from any page
@@ -411,9 +413,11 @@ Visit: http://localhost:8000
 | -------------------------------- | ------------------------------------------------------------------- |
 | `/`                              | Public homepage — live search, resource type cards, stats, partners |
 | `/resources/`                    | Searchable & filterable resource catalogue                          |
+| `/blog/`                         | Public blog page powered by Wagtail                                 |
 | `/resources/type/<type>/`        | SEO-optimised resource type landing page                            |
 | `/contact/`                      | Contact form                                                        |
 | `/management/`                   | Custom admin panel (Admin/Superuser only)                           |
+| `/wagtail-admin/`                | Wagtail CMS administrative dashboard                                |
 | `/accounts/login/`               | Email login page                                                    |
 | `/accounts/signup/`              | Registration                                                        |
 | `/accounts/social/login/google/` | Google OAuth entry                                                  |
@@ -728,6 +732,8 @@ This project is licensed under the **MIT License** — see the [LICENSE](./LICEN
 
 - [Django](https://djangoproject.com) — the web framework
 - [django-allauth](https://allauth.org) — authentication
+- [Wagtail CMS](https://wagtail.org) — blog and content management
+- [validators](https://pypi.org/project/validators/) & [python-magic](https://pypi.org/project/python-magic/) — file validation
 - [TinyMCE](https://tiny.cloud) — rich text editor
 - [Alpine.js](https://alpinejs.dev) — reactive frontend
 - [HTMX](https://htmx.org) — server-driven interactivity

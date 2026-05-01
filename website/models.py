@@ -5,8 +5,6 @@ Stores submitted contact form messages so admins can read and manage
 them from the custom management panel.
 """
 
-from __future__ import annotations
-
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils.html import strip_tags
@@ -22,6 +20,7 @@ from wagtail.documents.models import AbstractDocument
 
 from core.models import TimeStampedModel
 from seo.models import SEOModel, SlugRedirectMixin
+from validators import validate_image_file
 
 
 class ContactMessage(models.Model):
@@ -63,6 +62,7 @@ class Partner(SEOModel, SlugRedirectMixin, models.Model):
         upload_to="partners/logos/",
         null=True,
         blank=True,
+        validators=[validate_image_file],
         help_text="Partner logo image (displayed on listings and banners).",
     )
     show_as_banner = models.BooleanField(

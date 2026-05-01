@@ -92,7 +92,7 @@ class AdminPartnerCreateView(IsAdminMixin, CreateView):
     model = Partner
     template_name = "admin/seo_form.html"
     fields = ["name", "slug", "link", "description", "logo", "show_as_banner", "banner_cta",
-              "meta_title", "meta_description", "meta_keywords", "featured_image"]
+              "focus_keyword", "meta_title", "meta_description", "meta_keywords", "featured_image"]
     success_url = reverse_lazy("management:partner_list")
 
     def get_context_data(self, **kwargs):
@@ -111,7 +111,7 @@ class AdminPartnerUpdateView(IsAdminMixin, UpdateView):
     model = Partner
     template_name = "admin/seo_form.html"
     fields = ["name", "slug", "link", "description", "logo", "show_as_banner", "banner_cta",
-              "meta_title", "meta_description", "meta_keywords", "featured_image"]
+              "focus_keyword", "meta_title", "meta_description", "meta_keywords", "featured_image"]
     success_url = reverse_lazy("management:partner_list")
 
     def get_context_data(self, **kwargs):

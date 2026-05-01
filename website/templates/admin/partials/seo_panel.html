@@ -44,6 +44,7 @@
         Focus Keyword <span class="text-white/20 normal-case font-normal">(optional)</span>
     </label>
     <input type="text" x-model="focusKeyword" @input="updateScore()"
+           x-init="focusKeyword = $el.value"
            id="focusKeyword" name="focus_keyword" value="{{ form.focus_keyword.value|default:'' }}"
            placeholder="e.g. grade 7 mathematics notes"
            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 transition-all">
@@ -58,6 +59,7 @@
     </div>
     <input type="text" name="meta_title" id="id_meta_title"
            x-model="metaTitle" @input="updateScore()"
+           x-init="metaTitle = $el.value"
            value="{{ form.meta_title.value|default:'' }}"
            maxlength="60"
            placeholder="SEO page title (leave blank to auto-generate from page title)"
@@ -79,6 +81,7 @@
     </div>
     <textarea name="meta_description" id="id_meta_description" rows="3"
               x-model="metaDesc" @input="updateScore()"
+              x-init="metaDesc = $el.value"
               placeholder="Compelling search snippet (leave blank to auto-generate)"
               class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 transition-all resize-none">{{ form.meta_description.value|default:'' }}</textarea>
     <!-- Progress bar -->
@@ -173,9 +176,9 @@
 <script>
 function seoPanel() {
   return {
-    metaTitle: document.getElementById('id_meta_title')?.value || '',
-    metaDesc: document.getElementById('id_meta_description')?.value || '',
-    focusKeyword: document.getElementById('focusKeyword')?.value || '',
+    metaTitle: '',
+    metaDesc: '',
+    focusKeyword: '',
     imagePreview: null,
     score: 0,
     scoreLabel: 'Not Set',
