@@ -37,7 +37,7 @@
 
 # ── YAML anchors (avoid repetition) ──────────────────────────────────────────
 
-x-image: &app-image paulmbui/cbe_resource_hub:1.0.2
+x-image: &app-image paulmbui/cbe_resource_hub:1.1.1
 
 x-app-env: &app-env
   env_file: [.env]
@@ -77,17 +77,23 @@ services:
 
 
   # ══════════════════════════════════════════════════════════════════════════
+  # SETUP — Runs migrations and data seeding (runs once)
+  # ══════════════════════════════════════════════════════════════════════════
+  setup:
+    image: *app-image
+    command: ["./release.sh"]
+    <<: [*app-env, *sec, *log]
+    depends_on:
+      redis: {condition: service_healthy}
+    networks:
+      - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  # ══════════════════════════════════════════════════════════════════════════
   # WEB — Gunicorn/Django  ×3 replicas
-  #
-  # Gunicorn: --workers=2 --threads=2  (4 concurrent requests per replica)
-  #
-  # Rolling update (Watchtower):
-  #   replica 1 stops → proxy drains it → new image starts → healthcheck
-  #   passes → proxy resumes routing → repeat for replicas 2 & 3.
-  #
-  # Must use Redis-backed sessions (not DB sessions) for multi‑replica.
-  #   SESSION_ENGINE=django.contrib.sessions.backends.cache
-  #   SESSION_CACHE_ALIAS=default  (pointing to Redis in CACHES setting)
   # ══════════════════════════════════════════════════════════════════════════
   web:
     image: *app-image
@@ -97,7 +103,8 @@ services:
     expose:
       - "8000"
     depends_on:
-      redis:    {condition: service_healthy}
+      redis: {condition: service_healthy}
+      setup: {condition: service_completed_successfully}
     healthcheck:
       test: ["CMD", "python3", "./docker-health-check.py"]
       interval: 30s
