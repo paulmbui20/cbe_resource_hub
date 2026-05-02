@@ -1,3 +1,5 @@
+from website.models import FAQ
+from website.models import Testimonial
 from django.contrib import admin
 
 from seo.admin import SEOAdminMixin
@@ -53,3 +55,24 @@ class EmailSubscriberAdmin(admin.ModelAdmin):
         "email",
     )
     list_filter = ("opted_out", "created_at", "updated_at")
+
+
+@admin.register(Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    list_display = (
+        "author_name",
+        "rating",
+        "body",
+        "is_active",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("rating", "is_active", "created_at", "updated_at")
+    search_fields = ("author_name", "body")
+
+
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ("question", "answer", "is_active", "created_at", "updated_at")
+    list_filter = ("is_active", "created_at", "updated_at")
+    search_fields = ("question", "answer")

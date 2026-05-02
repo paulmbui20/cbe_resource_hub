@@ -5,6 +5,7 @@ Stores submitted contact form messages so admins can read and manage
 them from the custom management panel.
 """
 
+from core.tests import TimeStampedModelTests
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils.html import strip_tags
@@ -138,7 +139,10 @@ class EmailSubscriber(TimeStampedModel, models.Model):
 
 class CustomImage(AbstractImage):
     file = models.ImageField(
-        upload_to="wagtail_images/", storage="public_files", verbose_name="file"
+        upload_to="wagtail_images/",
+        storage="public_files",
+        verbose_name="file",
+        validators=[validate_image_file],
     )
 
 
@@ -146,7 +150,11 @@ class CustomRendition(AbstractRendition):
     image = models.ForeignKey(
         CustomImage, on_delete=models.CASCADE, related_name="renditions"
     )
-    file = models.ImageField(upload_to="wagtail_renditions/", storage="public_files")
+    file = models.ImageField(
+        upload_to="wagtail_renditions/",
+        storage="public_files",
+        validators=[validate_image_file],
+    )
 
     class Meta:
         unique_together = (("image", "filter_spec", "focal_point_key"),)
@@ -154,7 +162,9 @@ class CustomRendition(AbstractRendition):
 
 class CustomDocument(AbstractDocument):
     file = models.FileField(
-        upload_to="wagtail_docs/", storage="public_files", verbose_name="file"
+        upload_to="wagtail_docs/",
+        storage="public_files",
+        verbose_name="file",
     )
 
 
@@ -189,3 +199,53 @@ class BlogPage(Page):
         FieldPanel("intro"),
         FieldPanel("body", classname="full"),
     ]
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SOCIAL PROOF (TESTIMONIALS) AND FAQs MODELS
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+class Testimonial(TimeStampedModel, models.Model):
+    """Social proof testimonial with optional star rating."""
+
+    STARS = [(i, f"{i} star{'s' if i != 1 else ''}") for i in range(1, 6)]
+
+    author_name = models.CharField(max_length=150)
+    author_role = models.CharField(max_length=200, blank=True, default="")
+    author_organization = models.CharField(max_length=200, blank=True, default="")
+    author_avatar = models.ImageField(
+        upload_to="testimonials/avatars/",
+        blank=True,
+        help_text="Optional profile photo for the author.",
+        validators=[validate_image_file],
+        null=True,
+    )
+    body = models.TextField()
+    rating = models.PositiveSmallIntegerField(choices=STARS, default=5)
+    is_featured = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-created_at", "order"]
+        verbose_name_plural = "Testimonials"
+
+    def __str__(self):
+        return f"{self.author_name} — {self.rating}★"
+
+
+class FAQ(TimeStampedModel, models.Model):
+    """Frequently asked question."""
+
+    question = models.CharField(max_length=500)
+    answer = models.TextField()
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-created_at", "order"]
+        verbose_name_plural = "FAQs"
+
+    def __str__(self):
+        return self.question[:80]
