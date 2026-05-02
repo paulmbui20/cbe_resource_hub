@@ -37,7 +37,7 @@
 
 # ── YAML anchors (avoid repetition) ──────────────────────────────────────────
 
-x-image: &app-image paulmbui/cbe_resource_hub:1.1.1
+x-image: &app-image paulmbui/cbe_resource_hub:1.1
 
 x-app-env: &app-env
   env_file: [.env]
@@ -74,6 +74,8 @@ services:
       - no-new-privileges:true
     networks:
       - backend
+    labels:
+      - "traefik.enable=false"
 
 
   # ══════════════════════════════════════════════════════════════════════════
@@ -91,6 +93,9 @@ services:
       replicas: 1
       restart_policy:
         condition: on-failure
+
+    labels:
+      - "traefik.enable=false"
 
   # ══════════════════════════════════════════════════════════════════════════
   # WEB — Gunicorn/Django  ×3 replicas
@@ -189,6 +194,7 @@ services:
       - backend
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=false"
 
   # ══════════════════════════════════════════════════════════════════════════
   # CELERY BEAT — periodic task scheduler (⚠ replicas must be exactly 1)
@@ -218,6 +224,7 @@ services:
       - backend
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=false"
 
   # ══════════════════════════════════════════════════════════════════════════
   # WATCHTOWER — automatic rolling image updates
@@ -231,7 +238,6 @@ services:
     command:
       - "--cleanup"
       - "--label-enable"
-      - "--rolling-restart"
       - "--interval"
       - "86400"
       - "--notifications"
@@ -243,6 +249,8 @@ services:
         condition: service_healthy
       celery_beat:
         condition: service_healthy
+    labels:
+      - "traefik.enable=false"
 
 # ── Volumes ───────────────────────────────────────────────────────────────────
 volumes:
@@ -256,11 +264,8 @@ networks:
 
   backend:
     # Internal mesh: web ↔ redis ↔ celery.
-    # No direct outbound internet from this network (unless a container is
-    # also attached to another network). This keeps your data‑plane traffic
-    # isolated.
+    # This network allows outbound traffic to reach the external database.
     driver: bridge
-    internal: true
 
 
 # docker pull paulmbui/cbe_resource_hub:latest && docker compose -f compose.prod.yaml up

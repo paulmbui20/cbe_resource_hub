@@ -8,6 +8,7 @@ on:
 
 env:
   PYTHON_VERSION: ${{ vars.PYTHON_VERSION || '3.12' }}
+  IMAGE_NAME: docker.io/paulmbui/cbe_resource_hub
 
 jobs:
   ####################################
@@ -15,60 +16,9 @@ jobs:
   ####################################
   tests:
     name: Run Django Tests in Parallel
-    runs-on: ubuntu-latest
-
-    services:
-      redis:
-        image: redis:8-alpine
-        ports: [ "6379:6379" ]
-        options: >-
-          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s
-          --health-retries 5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build test image
-        run: |
-          docker build \
-            -f test/Dockerfile \
-            --build-arg PYTHON_VERSION=${{ env.PYTHON_VERSION }} \
-            -t django-test .
-
-      - name: Run tests in parallel
-        run: |
-          docker run --rm \
-            --network="host" \
-            -e ENVIRONMENT=testing \
-            -e DEBUG=False \
-            -e SECRET_KEY=Uf96gCcdjM5dG0D8tFvgrGRnsRwT1UxKmyqGIM6DffZsncN16TvoGvXtHDLyh1XQ_3tCdgc1NrBL6BGv4hT5hw \
-            -e ALLOWED_HOSTS=localhost,127.0.0.1 \
-            -e CSRF_ORIGINS=http://localhost:8000,http://127.0.0.1:8000 \
-            -e REDIS_URL=redis://localhost:6379 \
-            -e REDIS_HOST=localhost \
-            -e REDIS_PORT=6379 \
-            -e REDIS_PASSWORD= \
-            -e EMAIL_HOST=smtp.gmail.com \
-            -e EMAIL_PORT=587 \
-            -e EMAIL_USE_TLS=True \
-            -e EMAIL_HOST_USER=test@example.com \
-            -e EMAIL_HOST_PASSWORD=test \
-            -e DEFAULT_FROM_EMAIL=test@example.com \
-            -e SITE_URL=http://localhost:8006 \
-            -e SITE_NAME=TestSite \
-            -e GOOGLE_OAUTH_CLIENT_ID=google_oauth_test_client_id \
-            -e GOOGLE_OAUTH_CLIENT_SECRET=google_oauth_test_secret_key \
-            -e SITE_ID=1 \
-            -e ADMIN_NAME=admin \
-            -e ADMIN_EMAIL=admin@gmail.com \
-            -e CONTACT_EMAIL=admin@gmail.com \
-            -e CONTACT_PHONE=+254712345678 \
-            django-test \
-            ./test/test.sh
+    uses: ./.github/workflows/_test.yml
+    with:
+      python-version: ${{ vars.PYTHON_VERSION || '3.12' }}
 
   ####################################
   #      BUILD & PUSH JOB
@@ -93,7 +43,8 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Build & Push unified image
+      - name: Build & Push image
+        id: docker_build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -102,10 +53,10 @@ jobs:
           build-args: |
             PYTHON_VERSION=${{ env.PYTHON_VERSION }}
           tags: |
-            docker.io/paulmbui/cbe_resource_hub:${{ github.sha }}
-            docker.io/paulmbui/cbe_resource_hub:latest
-          cache-from: type=registry,ref=paulmbui/cbe_resource_hub:buildcache
-          cache-to: type=registry,ref=paulmbui/cbe_resource_hub:buildcache,mode=max
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:edge
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
 
       - name: Image digest
         run: echo "Image pushed with digest ${{ steps.docker_build.outputs.digest }}"
