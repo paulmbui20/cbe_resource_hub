@@ -1,0 +1,140 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Testimonials{% endblock %}
+
+{% block admin_content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+    <div>
+      <div class="flex items-center gap-3 mb-1">
+        <div class="p-2 rounded-xl bg-brand-gold/10 border border-brand-gold/20">
+          <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        </div>
+        <h1 class="text-2xl font-bold text-white tracking-tight">Testimonials</h1>
+      </div>
+      <p class="text-white/40 text-sm ml-12">Manage social proof — featured testimonials appear on the public homepage.</p>
+    </div>
+    <a href="{% url 'management:testimonial_add' %}" class="shrink-0 px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-accent text-white font-semibold text-sm transition-all shadow-lg shadow-brand-primary/20 flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add Testimonial
+    </a>
+  </div>
+
+  <!-- Testimonials Table -->
+  <div class="bg-white/3 border border-white/10 rounded-2xl overflow-x-auto">
+    <table id="testimonialsTable" class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-white/10 bg-white/2">
+          <th class="text-left px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">Author</th>
+          <th class="text-left px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">Quote</th>
+          <th class="text-center px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">Rating</th>
+          <th class="text-center px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">Featured</th>
+          <th class="text-center px-4 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">Active</th>
+          <th class="text-right px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-white/40">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        {% for t in testimonials %}
+        <tr class="group hover:bg-white/4 transition-colors">
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+              {% if t.author_avatar %}
+                <img src="{{ t.author_avatar.url }}" class="w-9 h-9 rounded-full object-cover bg-white/5 border border-white/10 shrink-0" alt="{{ t.author_name }}">
+              {% else %}
+                <div class="w-9 h-9 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center shrink-0">
+                  <span class="text-brand-accent font-bold text-sm">{{ t.author_name|first|upper }}</span>
+                </div>
+              {% endif %}
+              <div>
+                <p class="text-white font-semibold text-sm">{{ t.author_name }}</p>
+                {% if t.author_role or t.author_organization %}
+                  <p class="text-white/30 text-xs truncate max-w-[10rem] mt-0.5">{{ t.author_role }}{% if t.author_role and t.author_organization %} · {% endif %}{{ t.author_organization }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td class="px-4 py-4">
+            <p class="text-white/60 text-xs truncate max-w-[18rem]">{{ t.body|truncatewords:18 }}</p>
+          </td>
+          <td class="px-4 py-4 text-center">
+            <span class="text-brand-gold text-xs font-semibold tracking-wide">{{ t.rating }}★</span>
+          </td>
+          <td class="px-4 py-4 text-center">
+            {% if t.is_featured %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-gold/10 text-brand-gold text-xs font-bold border border-brand-gold/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse"></span>Yes
+              </span>
+            {% else %}
+              <span class="inline-flex px-2.5 py-1 rounded-lg bg-white/5 text-white/30 text-xs border border-white/10">No</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-4 text-center">
+            {% if t.is_active %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-accent text-xs font-semibold border border-brand-primary/20">Active</span>
+            {% else %}
+              <span class="inline-flex px-2 py-0.5 rounded-full bg-white/5 text-white/30 text-xs border border-white/10">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <a href="{% url 'management:testimonial_edit' t.pk %}" class="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors" title="Edit">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </a>
+              <button type="button"
+                x-on:click="$dispatch('open-delete-modal', { url: '{% url 'management:testimonial_delete' t.pk %}', name: '{{ t.author_name|escapejs }}' })"
+                class="p-1.5 bg-red-500/5 hover:bg-red-500/10 rounded-lg text-red-400/50 hover:text-red-400 transition-colors" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="px-6 py-16 text-center">
+            <svg class="w-12 h-12 mx-auto text-white/10 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <p class="text-white/30 font-medium">No testimonials yet.</p>
+            <a href="{% url 'management:testimonial_add' %}" class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary/10 border border-brand-primary/20 text-brand-accent text-sm font-medium hover:bg-brand-primary/20 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Add your first testimonial
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if is_paginated %}
+  <div class="mt-6 flex items-center justify-center gap-3">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white text-sm transition-all">← Previous</a>{% endif %}
+    <span class="text-white/30 text-sm px-4 py-2 bg-white/2 rounded-xl border border-white/5">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-accent text-white text-sm font-medium shadow-lg shadow-brand-primary/20 transition-all">Next →</a>{% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('testimonialsTable');
+    if (table && table.querySelector('tbody tr:not([colspan])')) {
+      new simpleDatatables.DataTable(table, {
+        searchable: true,
+        fixedHeight: false,
+        perPage: 20,
+        perPageSelect: [10, 20, 50],
+        labels: {
+          placeholder: 'Search testimonials...',
+          noRows: 'No testimonials found',
+          info: 'Showing {start} to {end} of {rows} testimonials',
+        },
+        columns: [{ select: 5, sortable: false }],
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -7,7 +7,7 @@ from accounts.admin_views import IsAdminMixin
 from accounts.models import CustomUser
 from cms.models import Page
 from resources.models import ResourceItem
-from website.models import ContactMessage, Partner, EmailSubscriber
+from website.models import ContactMessage, Partner, EmailSubscriber, FAQ, Testimonial
 
 
 # ── Dashboard ────────────────────────────────────────────────────────────────
@@ -135,7 +135,7 @@ class AdminPartnerDeleteView(IsAdminMixin, DeleteView):
         return super().form_valid(form)
 
 
-# Email Subscribers
+# ── Email Subscribers ────────────────────────────────────────────────────────
 class AdminEmailSubscribersListView(IsAdminMixin, ListView):
     template_name = "admin/email_subscribers_list.html"
     context_object_name = "email_subscribers"
@@ -207,4 +207,116 @@ class AdminEmailSubscriberDeleteView(IsAdminMixin, DeleteView):
 
     def form_valid(self, form):
         messages.success(self.request, "Email subscriber deleted.")
+        return super().form_valid(form)
+
+
+# ── Testimonials ─────────────────────────────────────────────────────────────
+class AdminTestimonialListView(IsAdminMixin, ListView):
+    model = Testimonial
+    template_name = "admin/testimonial_list.html"
+    context_object_name = "testimonials"
+    paginate_by = 20
+
+
+class AdminTestimonialCreateView(IsAdminMixin, CreateView):
+    model = Testimonial
+    template_name = "admin/generic_form.html"
+    fields = [
+        "author_name", "author_role", "author_organization",
+        "author_avatar", "body", "rating", "is_featured", "is_active", "order",
+    ]
+    success_url = reverse_lazy("management:testimonial_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Add Testimonial"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Testimonials"
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Testimonial from '{form.instance.author_name}' created.")
+        return super().form_valid(form)
+
+
+class AdminTestimonialUpdateView(IsAdminMixin, UpdateView):
+    model = Testimonial
+    template_name = "admin/generic_form.html"
+    fields = [
+        "author_name", "author_role", "author_organization",
+        "author_avatar", "body", "rating", "is_featured", "is_active", "order",
+    ]
+    success_url = reverse_lazy("management:testimonial_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Edit Testimonial: {self.object.author_name}"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Testimonials"
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Testimonial updated.")
+        return super().form_valid(form)
+
+
+class AdminTestimonialDeleteView(IsAdminMixin, DeleteView):
+    model = Testimonial
+    success_url = reverse_lazy("management:testimonial_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Testimonial deleted.")
+        return super().form_valid(form)
+
+
+# ── FAQs ─────────────────────────────────────────────────────────────────────
+class AdminFAQListView(IsAdminMixin, ListView):
+    model = FAQ
+    template_name = "admin/faq_list.html"
+    context_object_name = "faqs"
+    paginate_by = 20
+
+
+class AdminFAQCreateView(IsAdminMixin, CreateView):
+    model = FAQ
+    template_name = "admin/generic_form.html"
+    fields = ["question", "answer", "is_active", "order"]
+    success_url = reverse_lazy("management:faq_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Add FAQ"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "FAQs"
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "FAQ created.")
+        return super().form_valid(form)
+
+
+class AdminFAQUpdateView(IsAdminMixin, UpdateView):
+    model = FAQ
+    template_name = "admin/generic_form.html"
+    fields = ["question", "answer", "is_active", "order"]
+    success_url = reverse_lazy("management:faq_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Edit FAQ: {self.object.question[:50]}"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "FAQs"
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "FAQ updated.")
+        return super().form_valid(form)
+
+
+class AdminFAQDeleteView(IsAdminMixin, DeleteView):
+    model = FAQ
+    success_url = reverse_lazy("management:faq_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "FAQ deleted.")
         return super().form_valid(form)

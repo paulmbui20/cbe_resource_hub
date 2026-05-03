@@ -1,332 +1,1059 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <style>
-        /* Force admin tables to not wrap their text, allowing the overflow-x-auto containers to scroll */
-        table#dataTable th, table#dataTable td, table.w-full th, table.w-full td {
-            white-space: nowrap !important;
+<style>
+    table#dataTable th, table#dataTable td, table.w-full th, table.w-full td {
+        white-space: nowrap !important;
+    }
+
+    /* ══════════════════════════════════════════
+       SIDEBAR CORE
+    ══════════════════════════════════════════ */
+    aside.admin-sidebar {
+        transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+                    transform 0.3s ease;
+        scrollbar-width: none;
+    }
+    aside.admin-sidebar::-webkit-scrollbar { display: none; }
+
+    /* ══════════════════════════════════════════
+       NAV ITEMS
+    ══════════════════════════════════════════ */
+    .sb-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .sb-item svg {
+        transition: transform 0.18s ease, opacity 0.18s ease;
+        flex-shrink: 0;
+    }
+
+    /* ── Expanded hover ── */
+    .sb-item:hover svg { opacity: 1 !important; }
+
+    /* ══════════════════════════════════════════
+       TOOLTIP (collapsed desktop only)
+    ══════════════════════════════════════════ */
+    .sb-tooltip {
+        position: absolute;
+        left: calc(100% + 10px);
+        top: 50%;
+        transform: translateY(-50%) translateX(-6px);
+        background: #0f172a;
+        color: #e2e8f0;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+        padding: 5px 11px;
+        border-radius: 7px;
+        border: 1px solid rgba(255,255,255,0.09);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.3);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        z-index: 9999;
+    }
+    /* Two-layer arrow */
+    .sb-tooltip::before {
+        content: '';
+        position: absolute;
+        right: 100%; top: 50%;
+        transform: translateY(-50%);
+        border: 5px solid transparent;
+        border-right-color: rgba(255,255,255,0.09);
+    }
+    .sb-tooltip::after {
+        content: '';
+        position: absolute;
+        right: calc(100% + 1px); top: 50%;
+        transform: translateY(-50%);
+        border: 4px solid transparent;
+        border-right-color: #0f172a;
+    }
+    .sb-item:hover .sb-tooltip {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+
+    /* ══════════════════════════════════════════
+       COLLAPSED STATE — icon rail
+    ══════════════════════════════════════════ */
+    aside.admin-sidebar[data-collapsed="true"] nav {
+        padding-left: 0;
+        padding-right: 0;
+        align-items: center;
+    }
+
+    /* Center every direct nav child */
+    aside.admin-sidebar[data-collapsed="true"] nav > *,
+    aside.admin-sidebar[data-collapsed="true"] nav > div {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Icon-only pill — generous 40px hit-target centered in the 64px rail */
+    aside.admin-sidebar[data-collapsed="true"] a.sb-item,
+    aside.admin-sidebar[data-collapsed="true"] button.sb-item,
+    aside.admin-sidebar[data-collapsed="true"] .sb-dropdown > button {
+        width: 2.5rem;       /* 40px — comfortably fits a 17px icon */
+        height: 2.5rem;
+        padding: 0;
+        justify-content: center;
+        border-radius: 10px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Hide text labels */
+    aside.admin-sidebar[data-collapsed="true"] .sb-label,
+    aside.admin-sidebar[data-collapsed="true"] .sb-chevron,
+    aside.admin-sidebar[data-collapsed="true"] .sb-section-label,
+    aside.admin-sidebar[data-collapsed="true"] .sb-submenu,
+    aside.admin-sidebar[data-collapsed="true"] kbd { display: none !important; }
+
+    /* Show tooltips when collapsed */
+    aside.admin-sidebar[data-collapsed="true"] .sb-tooltip { display: block; }
+    /* Hide tooltips when expanded */
+    aside.admin-sidebar:not([data-collapsed="true"]) .sb-tooltip { display: none !important; }
+
+    /* Section dots removed — uniform gap-2 in collapsed nav handles visual rhythm */
+
+    /* Active state — glassy pill (collapsed) */
+    aside.admin-sidebar[data-collapsed="true"] a.sb-item[data-active="true"] {
+        background: rgba(255,255,255,0.11) !important;
+        border: 1px solid rgba(255,255,255,0.13) !important;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.25),
+                    inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+    aside.admin-sidebar[data-collapsed="true"] a.sb-item[data-active="true"] svg {
+        filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
+        opacity: 1 !important;
+    }
+    /* Hover glow (collapsed) */
+    aside.admin-sidebar[data-collapsed="true"] a.sb-item:hover,
+    aside.admin-sidebar[data-collapsed="true"] button.sb-item:hover,
+    aside.admin-sidebar[data-collapsed="true"] .sb-dropdown > button:hover {
+        background: rgba(255,255,255,0.08) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    /* ── Collapse toggle / mobile close — display controlled by Tailwind classes ── */
+    .sb-toggle {
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem; height: 1.75rem;
+        border-radius: 7px;
+        border: 1px solid rgba(255,255,255,0.09);
+        background: rgba(255,255,255,0.05);
+        color: rgba(255,255,255,0.5);
+        cursor: pointer;
+        transition: background 0.18s, border-color 0.18s, color 0.18s, box-shadow 0.18s;
+        flex-shrink: 0;
+    }
+    .sb-toggle:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.16);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .sb-toggle svg { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+
+    /* ══════════════════════════════════════════
+       SIDEBAR HEADER
+    ══════════════════════════════════════════ */
+    .sb-header {
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        background: rgba(255,255,255,0.015);
+        flex-shrink: 0;
+    }
+    /* When collapsed — center the toggle */
+    aside.admin-sidebar[data-collapsed="true"] .sb-header {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    aside.admin-sidebar[data-collapsed="true"] .sb-header .sb-brand { display: none; }
+
+    /* ══════════════════════════════════════════
+       SEARCH BAR (expanded only)
+    ══════════════════════════════════════════ */
+    .sb-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.07);
+        background: rgba(255,255,255,0.04);
+        cursor: pointer;
+        transition: background 0.18s, border-color 0.18s;
+        width: 100%;
+    }
+    .sb-search:hover {
+        background: rgba(255,255,255,0.07);
+        border-color: rgba(255,255,255,0.12);
+    }
+
+    /* When collapsed — search becomes icon-only pill (same size as nav items) */
+    aside.admin-sidebar[data-collapsed="true"] .sb-search {
+        width: 2.75rem; height: 2.75rem;
+        padding: 0;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    /* ══════════════════════════════════════════
+       SECTION LABELS (expanded)
+    ══════════════════════════════════════════ */
+    .sb-section-label {
+        font-size: 0.625rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.22);
+        padding: 14px 12px 4px;
+    }
+
+    /* ══════════════════════════════════════════
+       SUBMENU
+    ══════════════════════════════════════════ */
+    .sb-submenu a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        transition: background 0.15s, color 0.15s;
+    }
+    .sb-submenu a .sb-dot {
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.4;
+        flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════
+       COMMAND PALETTE
+    ══════════════════════════════════════════ */
+    #cmd-backdrop {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.68);
+        backdrop-filter: blur(6px);
+        z-index: 9000;
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 12vh;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    #cmd-backdrop.open { display: flex; }
+
+    #cmd-panel {
+        width: 100%;
+        max-width: 560px;
+        background: #0d1117;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+        overflow: hidden;
+        animation: cmdIn 0.15s ease;
+    }
+    @keyframes cmdIn {
+        from { opacity:0; transform: translateY(-8px) scale(0.98); }
+        to   { opacity:1; transform: translateY(0)   scale(1);    }
+    }
+    #cmd-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    #cmd-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #f1f5f9;
+        font-size: 0.9rem;
+        caret-color: currentColor;
+    }
+    #cmd-input::placeholder { color: rgba(255,255,255,0.22); }
+    #cmd-results {
+        max-height: 336px;
+        overflow-y: auto;
+        padding: 6px 0;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+    #cmd-results::-webkit-scrollbar { width: 4px; }
+    #cmd-results::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .cmd-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 16px;
+        cursor: pointer;
+        transition: background 0.1s;
+        text-decoration: none;
+        color: rgba(255,255,255,0.55);
+        font-size: 0.84rem;
+    }
+    .cmd-item:hover, .cmd-item.active {
+        background: rgba(255,255,255,0.06);
+        color: #fff;
+    }
+    .cmd-item.active { background: rgba(255,255,255,0.08); color:#fff; }
+    .cmd-icon {
+        width: 30px; height: 30px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.1s;
+    }
+    .cmd-item.active .cmd-icon { background: rgba(255,255,255,0.1); }
+    .cmd-meta { font-size: 0.7rem; color: rgba(255,255,255,0.25); margin-top: 1px; }
+    .cmd-arrow { margin-left: auto; opacity: 0; color: rgba(255,255,255,0.3); transition: opacity 0.1s; }
+    .cmd-item.active .cmd-arrow { opacity: 1; }
+    .cmd-empty { padding: 40px 16px; text-align: center; color: rgba(255,255,255,0.2); font-size:0.84rem; }
+    #cmd-footer {
+        padding: 8px 16px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        gap: 16px;
+        font-size: 0.65rem;
+        color: rgba(255,255,255,0.2);
+        font-family: ui-monospace, monospace;
+    }
+    #cmd-footer kbd {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.3);
+        font-size: 0.6rem;
+        margin-right: 3px;
+    }
+</style>
+
+<!-- ══════════════════════════════════════════
+     ALPINE ROOT
+══════════════════════════════════════════ -->
+<div x-data="{
+        adminSidebarOpen: false,
+        sidebarCollapsed: localStorage.getItem('adminSidebarCollapsed') === 'true',
+        toggleCollapse() {
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+            localStorage.setItem('adminSidebarCollapsed', this.sidebarCollapsed);
         }
-    </style>
-    <div x-data="{ adminSidebarOpen: false }" class="relative flex w-full">
+     }"
+     class="relative flex w-full">
 
-        <!-- Backing mobile mask -->
-        <div x-cloak x-show="adminSidebarOpen" class="fixed inset-0 bg-black/60 z-30 lg:hidden"
-             x-on:click="adminSidebarOpen = false" x-transition.opacity></div>
+    <!-- Mobile backdrop -->
+    <div x-cloak x-show="adminSidebarOpen"
+         class="fixed inset-0 bg-black/60 z-30 lg:hidden"
+         x-on:click="adminSidebarOpen = false"
+         x-transition.opacity></div>
 
-        <!-- Fixed Left Sidebar -->
-        <aside
-                x-cloak
-                :class="adminSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-                class="fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-64 xl:w-72 bg-brand-secondary border-r border-white/10 overflow-y-auto transition-transform duration-300 shadow-2xl">
+    <!-- ══════════════════════════════════════
+         SIDEBAR
+    ══════════════════════════════════════ -->
+    <aside
+        x-cloak
+        :class="adminSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+        :style="sidebarCollapsed ? 'width:4rem' : 'width:16rem'"
+        :data-collapsed="sidebarCollapsed ? 'true' : 'false'"
+        class="admin-sidebar fixed top-16 left-0 z-40 h-[calc(100vh-4rem)]
+               bg-brand-secondary border-r border-white/[0.07]
+               shadow-[4px_0_32px_rgba(0,0,0,0.35)]
+               flex flex-col">
 
-            <!-- Sidebar Header (Mobile Close) -->
-            <div class="p-5 flex items-center justify-between border-b border-white/10 lg:hidden">
-                <span class="text-white font-bold text-lg tracking-wide uppercase">Admin Panel</span>
-                <button x-on:click="adminSidebarOpen = false"
-                        class="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/70 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
+        <!-- Header -->
+        <div class="sb-header px-4 py-3 flex items-center gap-2 sticky top-0 z-10"
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'justify-between'">
 
-            <!-- Sidebar Navigation -->
-            <nav class="p-4 flex flex-col gap-1.5 min-h-[calc(100vh-80px)]">
+            <!-- Brand — hidden when collapsed via Alpine -->
+            <span class="text-white/85 font-semibold text-xs tracking-widest uppercase select-none"
+                  x-show="!sidebarCollapsed" x-transition.opacity.duration.150ms>
+                Admin Panel
+            </span>
 
-                <a href="{% url 'accounts:dashboard' %}"
-                   class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/5 transition-colors mb-4 border border-white/5">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    Back to Hub
-                </a>
+            <!-- Mobile close: only shows on small screens (flex on mobile, hidden on lg+) -->
+            <button x-on:click="adminSidebarOpen = false"
+                    class="sb-toggle flex lg:hidden">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
 
-                <!-- Shared Admin Links -->
-                <a href="{% url 'management:dashboard' %}"
-                   class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if request.resolver_match.url_name == 'dashboard' %}bg-brand-primary text-white shadow-lg{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                    <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                    </svg>
-                    Dashboard
-                </a>
-
-                {% if request.user.is_superuser or request.user.role == 'admin' %}
-
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-white/30 pt-4 pb-2 px-4">Content</p>
-
-                    <a href="{% url 'management:resource_list' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'resource' in request.resolver_match.url_name %}bg-brand-primary/10 text-brand-primary border border-brand-primary/20{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                        Resources
-                    </a>
-
-                    <a href="{% url 'management:file_list' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'file' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        Media Library
-                    </a>
-
-                    <a href="{% url 'management:page_list' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'page' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        Pages
-                    </a>
-
-                    <!-- Nested Dropdown for Curriculum -->
-                    <div x-data="{ curriculumOpen: {% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}true{% else %}false{% endif %} }"
-                         class="space-y-1">
-                        <button x-on:click="curriculumOpen = !curriculumOpen"
-                                class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium {% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                                </svg>
-                                Curriculum
-                            </div>
-                            <svg class="w-4 h-4 transition-transform duration-200"
-                                 :class="curriculumOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                                 viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-
-                        <!-- Submenu -->
-                        <div x-show="curriculumOpen" x-transition.opacity class="pl-11 pr-2 space-y-1 py-1" x-cloak>
-                            <a href="{% url 'management:level_list' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if 'level' in request.resolver_match.url_name %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                                Education Levels
-                            </a>
-                            <a href="{% url 'management:grade_list' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if 'grade' in request.resolver_match.url_name %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                                Grades
-                            </a>
-                            <a href="{% url 'management:learningarea_list' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if 'learningarea' in request.resolver_match.url_name %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                                Learning Areas
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Nested Dropdown for Academic Sessions -->
-                    <div x-data="{ academicSessionOpen: {% if 'year' in request.resolver_match.url_name or 'term' in request.resolver_match.url_name or 'academic_session' in request.resolver_match.url_name %}true{% else %}false{% endif %} }"
-                         class="space-y-1">
-                        <button x-on:click="academicSessionOpen = !academicSessionOpen"
-                                class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium {% if 'year' in request.resolver_match.url_name or 'term' in request.resolver_match.url_name or 'academic_session' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                                </svg>
-                                Academic Session
-                            </div>
-                            <svg class="w-4 h-4 transition-transform duration-200"
-                                 :class="academicSessionOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                                 viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-
-                        <!-- Submenu -->
-                        <div x-show="academicSessionOpen" x-transition.opacity class="pl-11 pr-2 space-y-1 py-1" x-cloak>
-                            <a href="{% url 'management:year_list' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if 'year' in request.resolver_match.url_name %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                               Years
-                            </a>
-                            <a href="{% url 'management:term_list' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if 'term' in request.resolver_match.url_name %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                                Terms
-                            </a>
-                            <a href="{% url 'management:academic_session_list' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if 'academic_session' in request.resolver_match.url_name %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                                Academic Sessions
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Nested Dropdown for Menus -->
-                    <div x-data="{ menuOpen: {% if 'menu' in request.resolver_match.url_name %}true{% else %}false{% endif %} }"
-                         class="space-y-1">
-                        <button x-on:click="menuOpen = !menuOpen"
-                                class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium {% if 'menu' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M4 6h16M4 12h16M4 18h16"></path>
-                                </svg>
-                                Menu Management
-                            </div>
-                            <svg class="w-4 h-4 transition-transform duration-200" :class="menuOpen ? 'rotate-180' : ''"
-                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-
-                        <!-- Submenu -->
-                        <div x-show="menuOpen" x-transition.opacity class="pl-11 pr-2 space-y-1 py-1" x-cloak>
-                            <a href="{% url 'management:menu_list' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if request.resolver_match.url_name == 'menu_list' %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                                Manage Menus
-                            </a>
-                            <a href="{% url 'management:menuitem_list' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if request.resolver_match.url_name == 'menuitem_list' %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                                Menu Items
-                            </a>
-                        </div>
-                    </div>
-
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-white/30 pt-4 pb-2 px-4">SEO</p>
-
-                    <!-- Nested Dropdown for Menus -->
-                    <div x-data="{ seoAuditOpen: {% if 'seo' in request.resolver_match.url_name %}true{% else %}false{% endif %} }"
-                         class="space-y-1">
-                        <button x-on:click="seoAuditOpen = !seoAuditOpen"
-                                class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium {% if 'seo' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M4 6h16M4 12h16M4 18h16"></path>
-                                </svg>
-                                SEO Audit
-                            </div>
-                            <svg class="w-4 h-4 transition-transform duration-200"
-                                 :class="seoAuditOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                                 viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-
-                        <!-- Submenu -->
-                        <div x-show="seoAuditOpen" x-transition.opacity class="pl-11 pr-2 space-y-1 py-1" x-cloak>
-                            <a href="{% url 'management:pages_seo_audit' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if request.resolver_match.url_name == 'pages_seo_audit' %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                                Pages SEO Audit
-                            </a>
-                            <a href="{% url 'management:resources_seo_audit' %}"
-                               class="block px-3 py-2 rounded-lg text-sm {% if request.resolver_match.url_name == 'resources_seo_audit' %}text-white bg-white/5{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                                Resources SEO Audit
-                            </a>
-                        </div>
-                    </div>
-
-
-                    <a href="{% url 'management:seo_redirect_list' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'seo_redirect' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                        </svg>
-                        Slug Redirects
-                    </a>
-
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-white/30 pt-4 pb-2 px-4">Partners</p>
-
-                    <a href="{% url 'management:partner_list' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'partner' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                        Partners
-                    </a>
-
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-white/30 pt-4 pb-2 px-4">System</p>
-
-                    <a href="{% url 'management:user_list' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'user' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>
-                        Users
-                    </a>
-
-                    <a href="{% url 'management:contact_list' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'contact' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-                        </svg>
-                        Contacts
-                    </a>
-
-                    <a href="{% url 'management:email_subscribers' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'notification' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                        </svg>
-                        Email Subscribers
-                    </a>
-
-                    <a href="{% url 'management:notification_list' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'notification' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                        </svg>
-                        Notifications
-                    </a>
-
-                    <a href="{% url 'management:settings_list' %}"
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium {% if 'setting' in request.resolver_match.url_name %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} transition-colors">
-                        <svg class="w-5 h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                        Settings
-                    </a>
-
-                    <div class="mt-auto px-4 pb-4 pt-10">
-                        <a href="{% url 'admin:index' %}"
-                           class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-colors">
-                            Native Admin Setup
-                        </a>
-                    </div>
-                {% endif %}
-
-            </nav>
-        </aside>
-
-        <!-- Main Content Wrapper -->
-        <div class="flex-1 transition-all duration-300 lg:ml-64 xl:ml-72 min-w-0 w-full overflow-hidden">
-            <!-- Hamburger Trigger + Page Title -->
-            <div class="lg:hidden flex items-center justify-between px-4 border-b border-white/10 sticky top-5 bg-brand-secondary z-30">
-                <h2 class="text-white font-bold tracking-tight">Admin Console</h2>
-                <button x-on:click="adminSidebarOpen = true"
-                        class="p-2 -mr-2 bg-white/5 rounded-lg text-white hover:bg-white/10 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Inject Admin Layout Views -->
-            {% block admin_content %}{% endblock %}
+            <!-- Desktop collapse toggle: hidden on mobile, flex on lg+ -->
+            <button x-on:click="toggleCollapse()"
+                    class="sb-toggle hidden lg:flex"
+                    :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+                <svg class="w-3.5 h-3.5"
+                     :class="sidebarCollapsed ? 'rotate-180' : ''"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                </svg>
+            </button>
         </div>
 
+        <!-- Navigation (scrollable) -->
+        <nav class="flex-1 overflow-y-auto overflow-x-hidden py-3 flex flex-col"
+             :class="sidebarCollapsed ? 'px-2 gap-2 items-center' : 'px-3 gap-0.5'">
+
+            <!-- Search / Command palette trigger -->
+            <button onclick="cmdOpen()"
+                    class="sb-item sb-search mb-3">
+                <svg class="w-3.5 h-3.5 shrink-0 text-white/35" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <span class="sb-label flex-1 text-left text-xs text-white/30 tracking-wide">Quick search…</span>
+                <kbd class="sb-label hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-mono
+                            text-white/20 bg-white/5 border border-white/10">⌘K</kbd>
+                <span class="sb-tooltip">Search <span style="opacity:.55">⌘K</span></span>
+            </button>
+
+            <!-- Dashboard -->
+            <a href="{% url 'management:dashboard' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if request.resolver_match.url_name == 'dashboard' %}
+                          bg-brand-primary text-white shadow-lg shadow-brand-primary/20
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if request.resolver_match.url_name == 'dashboard' %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-85" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="sb-label">Dashboard</span>
+                <span class="sb-tooltip">Dashboard</span>
+            </a>
+
+            {% if request.user.is_superuser or request.user.role == 'admin' %}
+
+            <!-- ── CONTENT ── -->
+            <p class="sb-section-label" x-show="!sidebarCollapsed" x-transition.opacity.duration.100ms>Content</p>
+
+            <a href="{% url 'management:resource_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'resource' in request.resolver_match.url_name %}
+                          bg-brand-primary/10 text-brand-primary border border-brand-primary/20
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'resource' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="sb-label">Resources</span>
+                <span class="sb-tooltip">Resources</span>
+            </a>
+
+            <a href="{% url 'management:file_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'file' in request.resolver_match.url_name %}
+                          bg-white/10 text-white border border-white/10
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'file' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span class="sb-label">Media Library</span>
+                <span class="sb-tooltip">Media Library</span>
+            </a>
+
+            <a href="{% url 'management:page_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'page' in request.resolver_match.url_name %}
+                          bg-white/10 text-white border border-white/10
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'page' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span class="sb-label">Pages</span>
+                <span class="sb-tooltip">Pages</span>
+            </a>
+
+            <!-- Curriculum dropdown -->
+            <div class="sb-dropdown"
+                 x-data="{ open: {% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}true{% else %}false{% endif %} }">
+                <!-- When collapsed: acts as a link to first child; when expanded: toggles submenu -->
+                <a x-show="sidebarCollapsed"
+                   href="{% url 'management:level_list' %}"
+                   class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                          {% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}
+                              bg-white/10 text-white border border-white/10
+                          {% else %}
+                              text-white/65 hover:text-white hover:bg-white/5
+                          {% endif %}"
+                   data-active="{% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    <span class="sb-tooltip">Curriculum</span>
+                </a>
+                <button x-show="!sidebarCollapsed"
+                        x-on:click="open = !open"
+                        class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                               {% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}
+                                   bg-white/10 text-white border border-white/10
+                               {% else %}
+                                   text-white/65 hover:text-white hover:bg-white/5
+                               {% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    <span class="sb-label flex-1 text-left">Curriculum</span>
+                    <svg class="sb-chevron w-3.5 h-3.5 shrink-0 opacity-40 transition-transform duration-200"
+                         :class="open ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="sb-submenu pl-8 pr-1 space-y-0.5" x-show="open && !sidebarCollapsed" x-transition.opacity x-cloak>
+                    <a href="{% url 'management:level_list' %}"
+                       class="{% if 'level' in request.resolver_match.url_name %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Education Levels
+                    </a>
+                    <a href="{% url 'management:grade_list' %}"
+                       class="{% if 'grade' in request.resolver_match.url_name %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Grades
+                    </a>
+                    <a href="{% url 'management:learningarea_list' %}"
+                       class="{% if 'learningarea' in request.resolver_match.url_name %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Learning Areas
+                    </a>
+                </div>
+            </div>
+
+            <!-- Academic Session dropdown -->
+            <div class="sb-dropdown"
+                 x-data="{ open: {% if 'year' in request.resolver_match.url_name or 'term' in request.resolver_match.url_name or 'academic_session' in request.resolver_match.url_name %}true{% else %}false{% endif %} }">
+                <a x-show="sidebarCollapsed"
+                   href="{% url 'management:year_list' %}"
+                   class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                          {% if 'year' in request.resolver_match.url_name or 'term' in request.resolver_match.url_name or 'academic_session' in request.resolver_match.url_name %}
+                              bg-white/10 text-white border border-white/10
+                          {% else %}
+                              text-white/65 hover:text-white hover:bg-white/5
+                          {% endif %}"
+                   data-active="{% if 'year' in request.resolver_match.url_name or 'term' in request.resolver_match.url_name or 'academic_session' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="sb-tooltip">Academic</span>
+                </a>
+                <button x-show="!sidebarCollapsed"
+                        x-on:click="open = !open"
+                        class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                               {% if 'year' in request.resolver_match.url_name or 'term' in request.resolver_match.url_name or 'academic_session' in request.resolver_match.url_name %}
+                                   bg-white/10 text-white border border-white/10
+                               {% else %}
+                                   text-white/65 hover:text-white hover:bg-white/5
+                               {% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="sb-label flex-1 text-left">Academic Session</span>
+                    <svg class="sb-chevron w-3.5 h-3.5 shrink-0 opacity-40 transition-transform duration-200"
+                         :class="open ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="sb-submenu pl-8 pr-1 space-y-0.5" x-show="open && !sidebarCollapsed" x-transition.opacity x-cloak>
+                    <a href="{% url 'management:year_list' %}"
+                       class="{% if 'year' in request.resolver_match.url_name %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Years
+                    </a>
+                    <a href="{% url 'management:term_list' %}"
+                       class="{% if 'term' in request.resolver_match.url_name %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Terms
+                    </a>
+                    <a href="{% url 'management:academic_session_list' %}"
+                       class="{% if 'academic_session' in request.resolver_match.url_name %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Academic Sessions
+                    </a>
+                </div>
+            </div>
+
+            <!-- Menu Management dropdown -->
+            <div class="sb-dropdown"
+                 x-data="{ open: {% if 'menu' in request.resolver_match.url_name %}true{% else %}false{% endif %} }">
+                <a x-show="sidebarCollapsed"
+                   href="{% url 'management:menu_list' %}"
+                   class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                          {% if 'menu' in request.resolver_match.url_name %}
+                              bg-white/10 text-white border border-white/10
+                          {% else %}
+                              text-white/65 hover:text-white hover:bg-white/5
+                          {% endif %}"
+                   data-active="{% if 'menu' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                    <span class="sb-tooltip">Menus</span>
+                </a>
+                <button x-show="!sidebarCollapsed"
+                        x-on:click="open = !open"
+                        class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                               {% if 'menu' in request.resolver_match.url_name %}
+                                   bg-white/10 text-white border border-white/10
+                               {% else %}
+                                   text-white/65 hover:text-white hover:bg-white/5
+                               {% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                    <span class="sb-label flex-1 text-left">Menu Management</span>
+                    <svg class="sb-chevron w-3.5 h-3.5 shrink-0 opacity-40 transition-transform duration-200"
+                         :class="open ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="sb-submenu pl-8 pr-1 space-y-0.5" x-show="open && !sidebarCollapsed" x-transition.opacity x-cloak>
+                    <a href="{% url 'management:menu_list' %}"
+                       class="{% if request.resolver_match.url_name == 'menu_list' %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Manage Menus
+                    </a>
+                    <a href="{% url 'management:menuitem_list' %}"
+                       class="{% if request.resolver_match.url_name == 'menuitem_list' %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Menu Items
+                    </a>
+                </div>
+            </div>
+
+            <!-- ── SEO ── -->
+            <p class="sb-section-label" x-show="!sidebarCollapsed" x-transition.opacity.duration.100ms>SEO</p>
+
+            <!-- SEO Audit dropdown -->
+            <div class="sb-dropdown"
+                 x-data="{ open: {% if 'seo' in request.resolver_match.url_name %}true{% else %}false{% endif %} }">
+                <a x-show="sidebarCollapsed"
+                   href="{% url 'management:pages_seo_audit' %}"
+                   class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                          {% if 'seo' in request.resolver_match.url_name %}
+                              bg-white/10 text-white border border-white/10
+                          {% else %}
+                              text-white/65 hover:text-white hover:bg-white/5
+                          {% endif %}"
+                   data-active="{% if 'seo' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <span class="sb-tooltip">SEO Audit</span>
+                </a>
+                <button x-show="!sidebarCollapsed"
+                        x-on:click="open = !open"
+                        class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                               {% if 'seo' in request.resolver_match.url_name %}
+                                   bg-white/10 text-white border border-white/10
+                               {% else %}
+                                   text-white/65 hover:text-white hover:bg-white/5
+                               {% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <span class="sb-label flex-1 text-left">SEO Audit</span>
+                    <svg class="sb-chevron w-3.5 h-3.5 shrink-0 opacity-40 transition-transform duration-200"
+                         :class="open ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="sb-submenu pl-8 pr-1 space-y-0.5" x-show="open && !sidebarCollapsed" x-transition.opacity x-cloak>
+                    <a href="{% url 'management:pages_seo_audit' %}"
+                       class="{% if request.resolver_match.url_name == 'pages_seo_audit' %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Pages SEO Audit
+                    </a>
+                    <a href="{% url 'management:resources_seo_audit' %}"
+                       class="{% if request.resolver_match.url_name == 'resources_seo_audit' %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Resources SEO Audit
+                    </a>
+                </div>
+            </div>
+
+            <a href="{% url 'management:seo_redirect_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'seo_redirect' in request.resolver_match.url_name %}
+                          bg-white/10 text-white border border-white/10
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'seo_redirect' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                </svg>
+                <span class="sb-label">Slug Redirects</span>
+                <span class="sb-tooltip">Slug Redirects</span>
+            </a>
+
+            <!-- ── SOCIAL PROOF ── -->
+            <p class="sb-section-label" x-show="!sidebarCollapsed" x-transition.opacity.duration.100ms>Social Proof</p>
+
+            <a href="{% url 'management:partner_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'partner' in request.resolver_match.url_name %}
+                          bg-white/10 text-white border border-white/10
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'partner' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <span class="sb-label">Partners</span>
+                <span class="sb-tooltip">Partners</span>
+            </a>
+
+            <a href="{% url 'management:testimonial_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'testimonial' in request.resolver_match.url_name %}
+                          bg-brand-primary/10 text-brand-accent border border-brand-primary/20
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'testimonial' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                <span class="sb-label">Testimonials</span>
+                <span class="sb-tooltip">Testimonials</span>
+            </a>
+
+            <a href="{% url 'management:faq_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'faq' in request.resolver_match.url_name %}
+                          bg-brand-primary/10 text-brand-accent border border-brand-primary/20
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'faq' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="sb-label">FAQs</span>
+                <span class="sb-tooltip">FAQs</span>
+            </a>
+
+            <!-- ── SYSTEM ── -->
+            <p class="sb-section-label" x-show="!sidebarCollapsed" x-transition.opacity.duration.100ms>System</p>
+
+            <a href="{% url 'management:user_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'user' in request.resolver_match.url_name %}
+                          bg-white/10 text-white border border-white/10
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'user' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <span class="sb-label">Users</span>
+                <span class="sb-tooltip">Users</span>
+            </a>
+
+            <a href="{% url 'management:contact_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'contact' in request.resolver_match.url_name %}
+                          bg-white/10 text-white border border-white/10
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'contact' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                </svg>
+                <span class="sb-label">Contacts</span>
+                <span class="sb-tooltip">Contacts</span>
+            </a>
+
+            <a href="{% url 'management:email_subscribers' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'email_subscriber' in request.resolver_match.url_name %}
+                          bg-white/10 text-white border border-white/10
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'email_subscriber' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <span class="sb-label">Email Subscribers</span>
+                <span class="sb-tooltip">Subscribers</span>
+            </a>
+
+            <a href="{% url 'management:notification_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'notification' in request.resolver_match.url_name %}
+                          bg-white/10 text-white border border-white/10
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'notification' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="sb-label">Notifications</span>
+                <span class="sb-tooltip">Notifications</span>
+            </a>
+
+            <a href="{% url 'management:settings_list' %}"
+               class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                      {% if 'setting' in request.resolver_match.url_name %}
+                          bg-white/10 text-white border border-white/10
+                      {% else %}
+                          text-white/65 hover:text-white hover:bg-white/5
+                      {% endif %}"
+               data-active="{% if 'setting' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="sb-label">Settings</span>
+                <span class="sb-tooltip">Settings</span>
+            </a>
+
+            {% endif %}
+
+            <!-- Footer: Native Admin -->
+            <div class="mt-auto pt-4">
+                <div class="h-px bg-white/[0.07] mb-3 mx-1"></div>
+                <a href="{% url 'admin:index' %}"
+                   class="sb-item gap-3 px-3 py-2 rounded-xl text-xs font-medium
+                          text-white/25 hover:text-white/55 hover:bg-white/4 transition-all duration-200"
+                   data-active="false">
+                    <svg class="w-3.5 h-3.5 shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                    <span class="sb-label">Native Admin</span>
+                    <span class="sb-tooltip">Native Admin</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main content -->
+    <div class="flex-1 min-w-0 w-full overflow-hidden max-lg:!ml-0"
+         style="transition: margin-left 0.26s cubic-bezier(0.4,0,0.2,1)"
+         :style="sidebarCollapsed ? 'margin-left:4rem' : 'margin-left:16rem'">
+
+        <!-- Mobile bar -->
+        <div class="lg:hidden flex items-center justify-between px-4 py-3
+                    border-b border-white/10 sticky top-0 bg-brand-secondary z-30">
+            <h2 class="text-white font-bold tracking-tight text-sm">Admin Console</h2>
+            <button x-on:click="adminSidebarOpen = true"
+                    class="p-2 -mr-2 rounded-lg text-white/70 hover:text-white hover:bg-white/8 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+
+        {% block admin_content %}{% endblock %}
     </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     COMMAND PALETTE (vanilla JS — no Alpine dep)
+══════════════════════════════════════════ -->
+<div id="cmd-backdrop" role="dialog" aria-modal="true" aria-label="Command palette">
+    <div id="cmd-panel">
+        <div id="cmd-input-wrap">
+            <svg class="w-4 h-4 text-white/35 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input id="cmd-input" type="text" placeholder="Search admin pages…" autocomplete="off" spellcheck="false">
+            <kbd>Esc</kbd>
+        </div>
+        <div id="cmd-results"></div>
+        <div id="cmd-footer">
+            <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+            <span><kbd>↵</kbd> open</span>
+            <span><kbd>Esc</kbd> close</span>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    /* ── Nav registry ── */
+    const NAV = [
+        { label: 'Dashboard',           section: '',             url: '{% url "management:dashboard" %}',              icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+        { label: 'Resources',           section: 'Content',      url: '{% url "management:resource_list" %}',           icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
+        { label: 'Media Library',       section: 'Content',      url: '{% url "management:file_list" %}',               icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
+        { label: 'Pages',               section: 'Content',      url: '{% url "management:page_list" %}',               icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+        { label: 'Education Levels',    section: 'Curriculum',   url: '{% url "management:level_list" %}',              icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+        { label: 'Grades',              section: 'Curriculum',   url: '{% url "management:grade_list" %}',              icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+        { label: 'Learning Areas',      section: 'Curriculum',   url: '{% url "management:learningarea_list" %}',       icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+        { label: 'Years',               section: 'Academic',     url: '{% url "management:year_list" %}',               icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+        { label: 'Terms',               section: 'Academic',     url: '{% url "management:term_list" %}',               icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+        { label: 'Academic Sessions',   section: 'Academic',     url: '{% url "management:academic_session_list" %}',   icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+        { label: 'Manage Menus',        section: 'CMS',          url: '{% url "management:menu_list" %}',               icon: 'M4 6h16M4 12h16M4 18h16' },
+        { label: 'Menu Items',          section: 'CMS',          url: '{% url "management:menuitem_list" %}',           icon: 'M4 6h16M4 12h16M4 18h16' },
+        { label: 'Pages SEO Audit',     section: 'SEO',          url: '{% url "management:pages_seo_audit" %}',         icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
+        { label: 'Resources SEO Audit', section: 'SEO',          url: '{% url "management:resources_seo_audit" %}',     icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
+        { label: 'Slug Redirects',      section: 'SEO',          url: '{% url "management:seo_redirect_list" %}',       icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
+        { label: 'Partners',            section: 'Social Proof', url: '{% url "management:partner_list" %}',            icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+        { label: 'Testimonials',        section: 'Social Proof', url: '{% url "management:testimonial_list" %}',        icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+        { label: 'FAQs',                section: 'Social Proof', url: '{% url "management:faq_list" %}',                icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+        { label: 'Users',               section: 'System',       url: '{% url "management:user_list" %}',               icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
+        { label: 'Contacts',            section: 'System',       url: '{% url "management:contact_list" %}',            icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z' },
+        { label: 'Email Subscribers',   section: 'System',       url: '{% url "management:email_subscribers" %}',       icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+        { label: 'Notifications',       section: 'System',       url: '{% url "management:notification_list" %}',       icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
+        { label: 'Settings',            section: 'System',       url: '{% url "management:settings_list" %}',           icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
+    ];
+
+    const backdrop = document.getElementById('cmd-backdrop');
+    const input    = document.getElementById('cmd-input');
+    const results  = document.getElementById('cmd-results');
+    let cursor     = 0;
+    let filtered   = [...NAV];
+
+    /* ── Open / Close ── */
+    window.cmdOpen = function () {
+        backdrop.classList.add('open');
+        input.value = '';
+        filtered = [...NAV];
+        cursor = 0;
+        render();
+        requestAnimationFrame(() => input.focus());
+    };
+    function cmdClose() {
+        backdrop.classList.remove('open');
+        input.blur();
+    }
+
+    /* ── Keyboard shortcuts ── */
+    document.addEventListener('keydown', function (e) {
+        const mac = navigator.platform.toUpperCase().includes('MAC');
+        if ((mac ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            backdrop.classList.contains('open') ? cmdClose() : cmdOpen();
+            return;
+        }
+        if (!backdrop.classList.contains('open')) return;
+        if (e.key === 'Escape')       { e.preventDefault(); cmdClose(); }
+        if (e.key === 'ArrowDown')    { e.preventDefault(); moveCursor(1); }
+        if (e.key === 'ArrowUp')      { e.preventDefault(); moveCursor(-1); }
+        if (e.key === 'Enter')        { e.preventDefault(); navigate(); }
+        if (e.key === 'Tab')          { e.preventDefault(); moveCursor(e.shiftKey ? -1 : 1); }
+    });
+
+    /* ── Backdrop click ── */
+    backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) cmdClose();
+    });
+
+    /* ── Input filter ── */
+    input.addEventListener('input', function () {
+        const q = input.value.toLowerCase().trim();
+        filtered = q ? NAV.filter(n =>
+            n.label.toLowerCase().includes(q) ||
+            n.section.toLowerCase().includes(q)
+        ) : [...NAV];
+        cursor = 0;
+        render();
+    });
+
+    /* ── Render results ── */
+    function render() {
+        if (filtered.length === 0) {
+            results.innerHTML = `<div class="cmd-empty">No results for "<strong style="color:rgba(255,255,255,.45)">${escHtml(input.value)}</strong>"</div>`;
+            return;
+        }
+        results.innerHTML = filtered.map((item, i) => `
+            <a href="${escHtml(item.url)}"
+               class="cmd-item${i === cursor ? ' active' : ''}"
+               data-idx="${i}">
+                <span class="cmd-icon">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px;color:rgba(255,255,255,.5)">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${escHtml(item.icon)}"/>
+                    </svg>
+                </span>
+                <span style="flex:1;min-width:0">
+                    <span style="display:block;font-weight:500;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(item.label)}</span>
+                    ${item.section ? `<span class="cmd-meta">${escHtml(item.section)}</span>` : ''}
+                </span>
+                <svg class="cmd-arrow" style="width:14px;height:14px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        `).join('');
+
+        /* Click to navigate */
+        results.querySelectorAll('.cmd-item').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor = +el.dataset.idx;
+                highlightCursor();
+            });
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = el.href;
+            });
+        });
+
+        scrollToCursor();
+    }
+
+    function moveCursor(dir) {
+        cursor = Math.max(0, Math.min(filtered.length - 1, cursor + dir));
+        highlightCursor();
+        scrollToCursor();
+    }
+    function highlightCursor() {
+        results.querySelectorAll('.cmd-item').forEach((el, i) => {
+            el.classList.toggle('active', i === cursor);
+        });
+    }
+    function scrollToCursor() {
+        const el = results.querySelectorAll('.cmd-item')[cursor];
+        el && el.scrollIntoView({ block: 'nearest' });
+    }
+    function navigate() {
+        if (filtered[cursor]) window.location.href = filtered[cursor].url;
+    }
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+})();
+</script>
 {% endblock %}

@@ -427,3 +427,187 @@ class AdminEmailSubscriberDeleteViewTests(WebsiteBaseTestCase):
             reverse("management:email_subscribers_delete", kwargs={"pk": 99999})
         )
         self.assertEqual(r.status_code, 404)
+
+
+# ── AdminTestimonialListView ───────────────────────────────────────────────────
+
+class AdminTestimonialListViewTests(WebsiteBaseTestCase):
+
+    def setUp(self):
+        self.login_as_admin()
+        from website.models import Testimonial
+        self.testimonial = Testimonial.objects.create(
+            author_name="Jane Doe", body="Great platform!", rating=5
+        )
+
+    def test_returns_200(self):
+        r = self.client.get(reverse("management:testimonial_list"))
+        self.assertEqual(r.status_code, 200)
+
+    def test_uses_correct_template(self):
+        self.assertTemplateUsed(
+            self.client.get(reverse("management:testimonial_list")),
+            "admin/testimonial_list.html",
+        )
+
+    def test_context_has_testimonials(self):
+        r = self.client.get(reverse("management:testimonial_list"))
+        self.assertIn("testimonials", r.context)
+
+
+class AdminTestimonialCreateViewTests(WebsiteBaseTestCase):
+
+    def setUp(self):
+        self.login_as_admin()
+        self.url = reverse("management:testimonial_add")
+
+    def test_get_returns_200(self):
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+
+    def test_valid_post_creates_testimonial(self):
+        from website.models import Testimonial
+        self.client.post(self.url, data={
+            "author_name": "Test Author", "body": "Amazing!", "rating": 5,
+            "is_featured": False, "is_active": True, "order": 0,
+        })
+        self.assertTrue(Testimonial.objects.filter(author_name="Test Author").exists())
+
+    def test_valid_post_redirects(self):
+        r = self.client.post(self.url, data={
+            "author_name": "Redirect Author", "body": "Great!", "rating": 4,
+            "is_featured": False, "is_active": True, "order": 0,
+        })
+        self.assertRedirects(r, reverse("management:testimonial_list"))
+
+
+class AdminTestimonialUpdateViewTests(WebsiteBaseTestCase):
+
+    def setUp(self):
+        self.login_as_admin()
+        from website.models import Testimonial
+        self.obj = Testimonial.objects.create(author_name="Old Name", body="Old body", rating=3)
+        self.url = reverse("management:testimonial_edit", kwargs={"pk": self.obj.pk})
+
+    def test_get_returns_200(self):
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+
+    def test_valid_post_updates(self):
+        self.client.post(self.url, data={
+            "author_name": "New Name", "body": "New body", "rating": 5,
+            "is_featured": False, "is_active": True, "order": 0,
+        })
+        self.obj.refresh_from_db()
+        self.assertEqual(self.obj.author_name, "New Name")
+
+    def test_nonexistent_returns_404(self):
+        r = self.client.get(reverse("management:testimonial_edit", kwargs={"pk": 99999}))
+        self.assertEqual(r.status_code, 404)
+
+
+class AdminTestimonialDeleteViewTests(WebsiteBaseTestCase):
+
+    def setUp(self):
+        self.login_as_admin()
+        from website.models import Testimonial
+        self.obj = Testimonial.objects.create(author_name="Delete Me", body="body", rating=5)
+        self.url = reverse("management:testimonial_delete", kwargs={"pk": self.obj.pk})
+
+    def test_post_deletes(self):
+        from website.models import Testimonial
+        self.client.post(self.url)
+        self.assertFalse(Testimonial.objects.filter(pk=self.obj.pk).exists())
+
+    def test_post_redirects(self):
+        r = self.client.post(self.url)
+        self.assertRedirects(r, reverse("management:testimonial_list"))
+
+
+# ── AdminFAQListView ───────────────────────────────────────────────────────────
+
+class AdminFAQListViewTests(WebsiteBaseTestCase):
+
+    def setUp(self):
+        self.login_as_admin()
+        from website.models import FAQ
+        self.faq = FAQ.objects.create(question="What is CBC?", answer="Competency Based Curriculum.")
+
+    def test_returns_200(self):
+        r = self.client.get(reverse("management:faq_list"))
+        self.assertEqual(r.status_code, 200)
+
+    def test_uses_correct_template(self):
+        self.assertTemplateUsed(
+            self.client.get(reverse("management:faq_list")),
+            "admin/faq_list.html",
+        )
+
+    def test_context_has_faqs(self):
+        r = self.client.get(reverse("management:faq_list"))
+        self.assertIn("faqs", r.context)
+
+
+class AdminFAQCreateViewTests(WebsiteBaseTestCase):
+
+    def setUp(self):
+        self.login_as_admin()
+        self.url = reverse("management:faq_add")
+
+    def test_get_returns_200(self):
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+
+    def test_valid_post_creates_faq(self):
+        from website.models import FAQ
+        self.client.post(self.url, data={
+            "question": "New FAQ question?", "answer": "Answer here.",
+            "is_active": True, "order": 1,
+        })
+        self.assertTrue(FAQ.objects.filter(question="New FAQ question?").exists())
+
+    def test_valid_post_redirects(self):
+        r = self.client.post(self.url, data={
+            "question": "Another FAQ?", "answer": "Yes.",
+            "is_active": True, "order": 2,
+        })
+        self.assertRedirects(r, reverse("management:faq_list"))
+
+
+class AdminFAQUpdateViewTests(WebsiteBaseTestCase):
+
+    def setUp(self):
+        self.login_as_admin()
+        from website.models import FAQ
+        self.obj = FAQ.objects.create(question="Old Q?", answer="Old A.")
+        self.url = reverse("management:faq_edit", kwargs={"pk": self.obj.pk})
+
+    def test_get_returns_200(self):
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+
+    def test_valid_post_updates(self):
+        self.client.post(self.url, data={
+            "question": "Updated Q?", "answer": "Updated A.",
+            "is_active": True, "order": 0,
+        })
+        self.obj.refresh_from_db()
+        self.assertEqual(self.obj.question, "Updated Q?")
+
+    def test_nonexistent_returns_404(self):
+        r = self.client.get(reverse("management:faq_edit", kwargs={"pk": 99999}))
+        self.assertEqual(r.status_code, 404)
+
+
+class AdminFAQDeleteViewTests(WebsiteBaseTestCase):
+
+    def setUp(self):
+        self.login_as_admin()
+        from website.models import FAQ
+        self.obj = FAQ.objects.create(question="Delete Me?", answer="Yes.")
+        self.url = reverse("management:faq_delete", kwargs={"pk": self.obj.pk})
+
+    def test_post_deletes(self):
+        from website.models import FAQ
+        self.client.post(self.url)
+        self.assertFalse(FAQ.objects.filter(pk=self.obj.pk).exists())
+
+    def test_post_redirects(self):
+        r = self.client.post(self.url)
+        self.assertRedirects(r, reverse("management:faq_list"))
