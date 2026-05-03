@@ -208,6 +208,8 @@ class BlogPage(Page):
 class Testimonial(TimeStampedModel, models.Model):
     """Social proof testimonial with optional star rating."""
 
+    __test__ = False  # Prevent pytest from collecting this as a test class
+
     STARS = [(i, f"{i} star{'s' if i != 1 else ''}") for i in range(1, 6)]
 
     author_name = models.CharField(max_length=150)

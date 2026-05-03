@@ -451,6 +451,175 @@
     </section>
 
 
+    {# ═══════════ TESTIMONIALS SLIDER ════════════════════════════════════════════ #}
+    {% if homepage_testimonials %}
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5"
+             x-data="{
+                 current: 0,
+                 total: {{ homepage_testimonials|length }},
+                 next() { this.current = (this.current + 1) % this.total; },
+                 prev() { this.current = (this.current - 1 + this.total) % this.total; },
+                 interval: null,
+                 start() { this.interval = setInterval(() => this.next(), 5000); },
+                 stop()  { clearInterval(this.interval); }
+             }"
+             x-init="start()"
+             @mouseenter="stop()" @mouseleave="start()">
+
+        <!-- Section header -->
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-white/25 mb-2">Community Voices</p>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    What Our Users Say
+                </h2>
+            </div>
+            <a href="{% url 'testimonials' %}"
+               class="shrink-0 text-sm text-white/35 hover:text-white transition-colors flex items-center gap-1">
+                All testimonials
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Slides -->
+        <div class="relative overflow-hidden">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {% for t in homepage_testimonials %}
+                <article
+                    x-show="current === {{ forloop.counter0 }} || current === {{ forloop.counter0|add:'-1'|default:'current' }} || total <= 3"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 translate-y-4"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    class="flex flex-col gap-4 p-6 rounded-2xl bg-white/[0.025] hover:bg-white/[0.04]
+                           border border-white/8 hover:border-white/16 transition-all duration-300 group">
+
+                    <!-- Stars -->
+                    <div class="flex gap-0.5" aria-label="{{ t.rating }} out of 5 stars">
+                        {% for i in "12345" %}
+                        <svg class="w-3.5 h-3.5 {% if forloop.counter <= t.rating %}text-brand-gold{% else %}text-white/12{% endif %}"
+                             fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        {% endfor %}
+                        {% if t.is_featured %}
+                        <span class="ml-1.5 text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/10 border border-brand-gold/20 text-brand-gold font-bold uppercase tracking-wider">Featured</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Quote -->
+                    <blockquote class="text-white/60 text-sm leading-relaxed flex-1 italic group-hover:text-white/70 transition-colors">
+                        &ldquo;{{ t.body|truncatechars:180 }}&rdquo;
+                    </blockquote>
+
+                    <!-- Author -->
+                    <footer class="flex items-center gap-3 pt-3 border-t border-white/6 mt-auto">
+                        {% if t.author_avatar %}
+                        <img src="{{ t.author_avatar.url }}" alt="{{ t.author_name }}"
+                             class="w-9 h-9 rounded-full object-cover ring-2 ring-white/10 shrink-0">
+                        {% else %}
+                        <div class="w-9 h-9 rounded-full bg-linear-to-br from-brand-primary/30 to-brand-accent/20
+                                    flex items-center justify-center text-sm font-bold text-brand-primary shrink-0">
+                            {{ t.author_name|first|upper }}
+                        </div>
+                        {% endif %}
+                        <div class="min-w-0">
+                            <p class="text-white font-semibold text-sm truncate">{{ t.author_name }}</p>
+                            {% if t.author_role or t.author_organization %}
+                            <p class="text-white/35 text-xs truncate">
+                                {{ t.author_role }}{% if t.author_role and t.author_organization %} · {% endif %}{{ t.author_organization }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </footer>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Dot indicators (only needed if > 3 testimonials) -->
+        {% if homepage_testimonials|length > 3 %}
+        <div class="flex items-center justify-center gap-2 mt-8">
+            {% for t in homepage_testimonials %}
+            <button @click="current = {{ forloop.counter0 }}"
+                    class="w-2 h-2 rounded-full transition-all duration-200"
+                    :class="current === {{ forloop.counter0 }} ? 'bg-brand-primary w-5' : 'bg-white/20 hover:bg-white/40'"
+                    aria-label="Go to testimonial {{ forloop.counter }}"></button>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+
+    {# ═══════════ FAQs PREVIEW ════════════════════════════════════════════════════ #}
+    {% if homepage_faqs %}
+    <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5"
+             x-data="{ open: null }">
+
+        <!-- Section header -->
+        <div class="text-center mb-10">
+            <p class="text-xs font-bold uppercase tracking-widest text-white/25 mb-2">Help Centre</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-3">
+                Frequently Asked Questions
+            </h2>
+            <p class="text-white/40 text-sm">Quick answers to the most common questions about CBE Resource Hub.</p>
+        </div>
+
+        <!-- Accordion -->
+        <div class="space-y-3">
+            {% for faq in homepage_faqs %}
+            <div class="group border border-white/8 hover:border-white/14 rounded-2xl
+                        bg-white/[0.025] hover:bg-white/[0.04]
+                        overflow-hidden transition-all duration-200">
+
+                <button x-on:click="open = open === {{ forloop.counter }} ? null : {{ forloop.counter }}"
+                        :aria-expanded="open === {{ forloop.counter }}"
+                        class="w-full flex items-center justify-between gap-4 px-6 py-5 text-left">
+                    <span class="text-white/85 font-semibold text-sm leading-snug pr-2"
+                          :class="open === {{ forloop.counter }} ? 'text-white' : ''">
+                        {{ faq.question }}
+                    </span>
+                    <span class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center
+                                 bg-white/5 transition-colors"
+                          :class="open === {{ forloop.counter }} ? 'bg-brand-primary/15 text-brand-primary' : 'text-white/40'">
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200"
+                             :class="open === {{ forloop.counter }} ? 'rotate-180' : ''"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </span>
+                </button>
+
+                <div x-show="open === {{ forloop.counter }}"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-cloak>
+                    <div class="px-6 pb-6 border-t border-white/6">
+                        <p class="pt-4 text-white/55 text-sm leading-relaxed">{{ faq.answer|linebreaksbr }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- See all FAQs link -->
+        <div class="text-center mt-8">
+            <a href="{% url 'faqs' %}"
+               class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-white/10 bg-white/5
+                      hover:bg-white/10 hover:border-white/20 text-white/60 hover:text-white text-sm font-medium transition-all">
+                View all FAQs
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+    {% endif %}
+
+
     {# ═══════════════════ 7. CTA STRIP ══════════════════════════════════════════ #}
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div class="relative rounded-3xl overflow-hidden bg-linear-to-br from-brand-gold/25 to-brand-secondary border border-brand-gold/20 p-10 text-center">

@@ -9,14 +9,14 @@ Tests for ContactMessage, Partner, and EmailSubscriber models:
   - EmailSubscriber: email unique, opted_out defaults False, __str__
 """
 
-from website.models import ContactMessage, Partner, EmailSubscriber
+from website.models import ContactMessage, Partner, EmailSubscriber, FAQ, Testimonial
 from website.tests.base import WebsiteBaseTestCase
 
 
 # ── ContactMessage ─────────────────────────────────────────────────────────────
 
-class ContactMessageModelTests(WebsiteBaseTestCase):
 
+class ContactMessageModelTests(WebsiteBaseTestCase):
     def test_created(self):
         self.assertIsNotNone(self.contact_msg.pk)
 
@@ -62,8 +62,8 @@ class ContactMessageModelTests(WebsiteBaseTestCase):
 
 # ── Partner ────────────────────────────────────────────────────────────────────
 
-class PartnerModelTests(WebsiteBaseTestCase):
 
+class PartnerModelTests(WebsiteBaseTestCase):
     def test_created(self):
         self.assertIsNotNone(self.partner.pk)
 
@@ -124,8 +124,8 @@ class PartnerModelTests(WebsiteBaseTestCase):
 
 # ── EmailSubscriber ────────────────────────────────────────────────────────────
 
-class EmailSubscriberModelTests(WebsiteBaseTestCase):
 
+class EmailSubscriberModelTests(WebsiteBaseTestCase):
     def test_created(self):
         self.assertIsNotNone(self.subscriber.pk)
 
@@ -149,3 +149,66 @@ class EmailSubscriberModelTests(WebsiteBaseTestCase):
         s2 = EmailSubscriber.objects.create(email="new_sub@example.com")
         pks = list(EmailSubscriber.objects.values_list("pk", flat=True))
         self.assertGreater(pks.index(s1.pk), pks.index(s2.pk))
+
+
+# ── FAQ ────────────────────────────────────────────────────────────────────────
+
+
+class FAQModelTests(WebsiteBaseTestCase):
+    def test_created(self):
+        faq = FAQ.objects.create(question="Q?", answer="A")
+        self.assertIsNotNone(faq.pk)
+
+    def test_str_returns_truncated_question(self):
+
+        long_q = "A" * 100
+        faq = FAQ.objects.create(question=long_q, answer="A")
+        self.assertEqual(str(faq), long_q[:80])
+
+    def test_defaults(self):
+
+        faq = FAQ.objects.create(question="Q?", answer="A")
+        self.assertTrue(faq.is_active)
+        self.assertEqual(faq.order, 0)
+
+    def test_ordering(self):
+
+        faq1 = FAQ.objects.create(question="Q1?", answer="A", order=1)
+        faq2 = FAQ.objects.create(question="Q2?", answer="A", order=0)
+        # Should be ordered by -created_at, order
+        pks = list(FAQ.objects.values_list("pk", flat=True))
+        self.assertEqual(pks[0], faq2.pk)
+        self.assertEqual(pks[1], faq1.pk)
+
+
+# ── Testimonial ────────────────────────────────────────────────────────────────
+
+
+class TestimonialModelTests(WebsiteBaseTestCase):
+    def test_created(self):
+
+        t = Testimonial.objects.create(author_name="A", body="B")
+        self.assertIsNotNone(t.pk)
+
+    def test_str_format(self):
+
+        t = Testimonial.objects.create(author_name="John Doe", body="Great!", rating=4)
+        self.assertEqual(str(t), "John Doe — 4★")
+
+    def test_defaults(self):
+
+        t = Testimonial.objects.create(author_name="A", body="B")
+        self.assertEqual(t.rating, 5)
+        self.assertFalse(t.is_featured)
+        self.assertTrue(t.is_active)
+        self.assertEqual(t.order, 0)
+        self.assertEqual(t.author_role, "")
+        self.assertEqual(t.author_organization, "")
+
+    def test_ordering(self):
+
+        t1 = Testimonial.objects.create(author_name="A1", body="B", order=2)
+        t2 = Testimonial.objects.create(author_name="A2", body="B", order=1)
+        pks = list(Testimonial.objects.values_list("pk", flat=True))
+        self.assertEqual(pks[0], t2.pk)
+        self.assertEqual(pks[1], t1.pk)

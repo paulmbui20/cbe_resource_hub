@@ -30,13 +30,10 @@ class HomePageView(TemplateView):
         # Both QSs go through ResourceItemManager which already applies
         # select_related("grade", "grade__level", "vendor", "learning_area", …)
         # so no N+1 hits when templates access .grade.name / .learning_area.name.
-        context["featured_resources"] = (
-            ResourceItem.objects.filter(is_free=True)[:8]
-        )
-        context["popular_resources"] = (
-            ResourceItem.objects.filter(is_free=True)
-            .order_by("-downloads")[:8]
-        )
+        context["featured_resources"] = ResourceItem.objects.filter(is_free=True)[:8]
+        context["popular_resources"] = ResourceItem.objects.filter(
+            is_free=True
+        ).order_by("-downloads")[:8]
 
         # ── Stats strip (2 DB queries total, or 0 when cached) ────────────
         # get_home_stats() returns total_resources, total_downloads,
@@ -55,6 +52,7 @@ class HomePageView(TemplateView):
 
         # ── Resource type cards (counts come from the cached stats block) ──
         from resources.views import RESOURCE_TYPE_INFO
+
         type_counts = stats["resource_type_counts"]
         context["resource_type_cards"] = [
             {
@@ -67,11 +65,20 @@ class HomePageView(TemplateView):
             for key, info in RESOURCE_TYPE_INFO.items()
         ]
 
-        # ── Recent Blogs ───────────────────────────────────────────────────
-        context["recent_blogs"] = BlogPage.objects.live().order_by('-first_published_at')[:3]
+        # ── Recent Blogs ──────────────────────────────────────────────────────────
+        context["recent_blogs"] = BlogPage.objects.live().order_by(
+            "-first_published_at"
+        )[:3]
+
+        # ── Homepage FAQs (up to 5 active, ordered by order then newest) ───────────────
+        context["homepage_faqs"] = FAQ.objects.filter(is_active=True)[:5]
+
+        # ── Homepage testimonials (featured first, up to 6) ────────────────────────
+        context["homepage_testimonials"] = Testimonial.objects.filter(is_active=True)[
+            :6
+        ]
 
         return context
-
 
 
 class ContactView(FormView):
@@ -163,6 +170,7 @@ def email_subscription(request):
 
 class PartnerListView(TemplateView):
     """Public page listing all partners."""
+
     template_name = "website/partners.html"
 
     def get_context_data(self, **kwargs):
@@ -173,21 +181,23 @@ class PartnerListView(TemplateView):
 
 class FAQPageView(TemplateView):
     """Public FAQ page — all active FAQs ordered by `order` then newest."""
+
     template_name = "website/faqs.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["faqs"] = FAQ.objects.filter(is_active=True).order_by("order", "-created_at")
+        context["faqs"] = FAQ.objects.filter(is_active=True)
         return context
 
 
 class TestimonialsPageView(TemplateView):
     """Public testimonials page — featured first, then all active entries."""
+
     template_name = "website/testimonials.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        qs = Testimonial.objects.filter(is_active=True).order_by("-is_featured", "order", "-created_at")
+        qs = Testimonial.objects.filter(is_active=True)
         context["testimonials"] = qs
         context["featured"] = qs.filter(is_featured=True)[:3]
         return context

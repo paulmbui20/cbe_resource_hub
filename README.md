@@ -415,6 +415,8 @@ Visit: http://localhost:8000
 | `/resources/`                    | Searchable & filterable resource catalogue                          |
 | `/blog/`                         | Public blog page powered by Wagtail                                 |
 | `/resources/type/<type>/`        | SEO-optimised resource type landing page                            |
+| `/faqs/`                         | Public frequently asked questions with instant search               |
+| `/testimonials/`                 | Public testimonials & reviews page                                  |
 | `/contact/`                      | Contact form                                                        |
 | `/management/`                   | Custom admin panel (Admin/Superuser only)                           |
 | `/wagtail-admin/`                | Wagtail CMS administrative dashboard                                |

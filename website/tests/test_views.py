@@ -12,19 +12,20 @@ Tests for all public website views:
   Health check endpoints: health/, health/live/, health/ready/ return 200
 """
 
+import json
+
 from unittest.mock import patch
 
 from django.core.cache import cache
-from django.urls import reverse
 
-from website.models import ContactMessage, EmailSubscriber, Partner
+from website.models import ContactMessage, EmailSubscriber, Partner, FAQ, Testimonial
 from website.tests.base import WebsiteBaseTestCase
 
 
 # ── HomePageView ───────────────────────────────────────────────────────────────
 
-class HomePageViewTests(WebsiteBaseTestCase):
 
+class HomePageViewTests(WebsiteBaseTestCase):
     URL = "/"
 
     def setUp(self):
@@ -87,6 +88,7 @@ class HomePageViewTests(WebsiteBaseTestCase):
 
     def test_total_resources_count_correct(self):
         from resources.models import ResourceItem
+
         expected = ResourceItem.objects.count()
         r = self.client.get(self.URL)
         self.assertEqual(r.context["total_resources"], expected)
@@ -98,8 +100,8 @@ class HomePageViewTests(WebsiteBaseTestCase):
 
 # ── ContactView ────────────────────────────────────────────────────────────────
 
-class ContactViewTests(WebsiteBaseTestCase):
 
+class ContactViewTests(WebsiteBaseTestCase):
     URL = "/contact/"
 
     def _valid_post(self, **overrides):
@@ -164,9 +166,9 @@ class ContactViewTests(WebsiteBaseTestCase):
 
     @patch("website.views.notify_contact_form")
     def test_message_stored_with_correct_fields(self, mock_notify):
-        self.client.post(self.URL, data=self._valid_post(
-            name="Stored Name", subject="Stored Sub"
-        ))
+        self.client.post(
+            self.URL, data=self._valid_post(name="Stored Name", subject="Stored Sub")
+        )
         msg = ContactMessage.objects.filter(name="Stored Name").first()
         self.assertIsNotNone(msg)
         self.assertEqual(msg.subject, "Stored Sub")
@@ -174,8 +176,8 @@ class ContactViewTests(WebsiteBaseTestCase):
 
 # ── email_subscription view ────────────────────────────────────────────────────
 
-class EmailSubscriptionViewTests(WebsiteBaseTestCase):
 
+class EmailSubscriptionViewTests(WebsiteBaseTestCase):
     URL = "/email-subscription/"
 
     def test_post_valid_returns_htmx_partial(self):
@@ -185,7 +187,9 @@ class EmailSubscriptionViewTests(WebsiteBaseTestCase):
 
     def test_post_valid_saves_subscriber(self):
         self.client.post(self.URL, data={"email": "saved_sub@example.com"})
-        self.assertTrue(EmailSubscriber.objects.filter(email="saved_sub@example.com").exists())
+        self.assertTrue(
+            EmailSubscriber.objects.filter(email="saved_sub@example.com").exists()
+        )
 
     def test_post_invalid_returns_form_partial(self):
         r = self.client.post(self.URL, data={"email": "not-an-email"})
@@ -214,8 +218,8 @@ class EmailSubscriptionViewTests(WebsiteBaseTestCase):
 
 # ── PartnerListView ────────────────────────────────────────────────────────────
 
-class PartnerListViewTests(WebsiteBaseTestCase):
 
+class PartnerListViewTests(WebsiteBaseTestCase):
     URL = "/partners/"
 
     def test_returns_200(self):
@@ -242,8 +246,8 @@ class PartnerListViewTests(WebsiteBaseTestCase):
 
 # ── Health check endpoints ─────────────────────────────────────────────────────
 
-class HealthCheckViewTests(WebsiteBaseTestCase):
 
+class HealthCheckViewTests(WebsiteBaseTestCase):
     def test_health_check_returns_200(self):
         r = self.client.get("/health/")
         self.assertEqual(r.status_code, 200)
@@ -257,10 +261,161 @@ class HealthCheckViewTests(WebsiteBaseTestCase):
         self.assertEqual(r.status_code, 200)
 
     def test_health_returns_json(self):
-        import json
+
         r = self.client.get("/health/")
         try:
             data = json.loads(r.content)
             self.assertIn("status", data)
         except Exception:
             pass  # May return other format — just ensure 200
+
+
+# ── FAQPageView ────────────────────────────────────────────────────────────────
+
+
+class FAQPageViewTests(WebsiteBaseTestCase):
+    URL = "/faqs/"
+
+    def setUp(self):
+
+        self.active_faq = FAQ.objects.create(
+            question="What is CBC?",
+            answer="Competency Based Curriculum.",
+            is_active=True,
+            order=1,
+        )
+        self.inactive_faq = FAQ.objects.create(
+            question="Hidden question?",
+            answer="Should not appear.",
+            is_active=False,
+            order=2,
+        )
+
+    def test_returns_200(self):
+        self.assertEqual(self.client.get(self.URL).status_code, 200)
+
+    def test_uses_correct_template(self):
+        self.assertTemplateUsed(self.client.get(self.URL), "website/faqs.html")
+
+    def test_context_has_faqs(self):
+        r = self.client.get(self.URL)
+        self.assertIn("faqs", r.context)
+
+    def test_only_active_faqs_in_context(self):
+        r = self.client.get(self.URL)
+        faqs = list(r.context["faqs"])
+        self.assertIn(self.active_faq, faqs)
+        self.assertNotIn(self.inactive_faq, faqs)
+
+    def test_faqs_ordered_by_order_field(self):
+
+        FAQ.objects.create(question="First?", answer="Yes", is_active=True, order=0)
+        r = self.client.get(self.URL)
+        faqs = list(r.context["faqs"])
+        orders = [f.order for f in faqs]
+        self.assertEqual(orders, sorted(orders))
+
+
+# ── TestimonialsPageView ───────────────────────────────────────────────────────
+
+
+class TestimonialsPageViewTests(WebsiteBaseTestCase):
+    URL = "/testimonials/"
+
+    def setUp(self):
+
+        self.active = Testimonial.objects.create(
+            author_name="Jane Teacher",
+            body="Great resource hub!",
+            rating=5,
+            is_active=True,
+            is_featured=False,
+        )
+        self.featured = Testimonial.objects.create(
+            author_name="John Educator",
+            body="Absolutely love it.",
+            rating=5,
+            is_active=True,
+            is_featured=True,
+        )
+        self.inactive = Testimonial.objects.create(
+            author_name="Hidden User",
+            body="Should not appear.",
+            rating=3,
+            is_active=False,
+        )
+
+    def test_returns_200(self):
+        self.assertEqual(self.client.get(self.URL).status_code, 200)
+
+    def test_uses_correct_template(self):
+        self.assertTemplateUsed(self.client.get(self.URL), "website/testimonials.html")
+
+    def test_context_has_testimonials(self):
+        r = self.client.get(self.URL)
+        self.assertIn("testimonials", r.context)
+
+    def test_context_has_featured(self):
+        r = self.client.get(self.URL)
+        self.assertIn("featured", r.context)
+
+    def test_only_active_in_context(self):
+        r = self.client.get(self.URL)
+        all_t = list(r.context["testimonials"])
+        self.assertIn(self.active, all_t)
+        self.assertIn(self.featured, all_t)
+        self.assertNotIn(self.inactive, all_t)
+
+    def test_featured_in_featured_context(self):
+        r = self.client.get(self.URL)
+        featured = list(r.context["featured"])
+        self.assertIn(self.featured, featured)
+        self.assertNotIn(self.inactive, featured)
+
+    def test_featured_items_appear_first(self):
+        r = self.client.get(self.URL)
+        testimonials = list(r.context["testimonials"])
+        # Featured entries should come before non-featured
+        featured_indices = [i for i, t in enumerate(testimonials) if t.is_featured]
+        non_featured_indices = [
+            i for i, t in enumerate(testimonials) if not t.is_featured
+        ]
+        if featured_indices and non_featured_indices:
+            self.assertLess(max(featured_indices), min(non_featured_indices))
+
+
+# ── HomePageView – FAQ/Testimonial context ─────────────────────────────────────
+
+
+class HomePageFAQTestimonialContextTests(WebsiteBaseTestCase):
+    """Ensure the homepage exposes homepage_faqs and homepage_testimonials."""
+
+    URL = "/"
+
+    def setUp(self):
+        cache.clear()
+        for i in range(7):
+            FAQ.objects.create(question=f"Q{i}?", answer="A", is_active=True, order=i)
+        for i in range(8):
+            Testimonial.objects.create(
+                author_name=f"Author {i}", body="Body", rating=5, is_active=True
+            )
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_homepage_faqs_in_context(self):
+        r = self.client.get(self.URL)
+        self.assertIn("homepage_faqs", r.context)
+
+    def test_homepage_faqs_capped_at_5(self):
+        r = self.client.get(self.URL)
+        self.assertLessEqual(len(list(r.context["homepage_faqs"])), 5)
+
+    def test_homepage_testimonials_in_context(self):
+        r = self.client.get(self.URL)
+        self.assertIn("homepage_testimonials", r.context)
+
+    def test_homepage_testimonials_capped_at_6(self):
+        r = self.client.get(self.URL)
+        self.assertLessEqual(len(list(r.context["homepage_testimonials"])), 6)

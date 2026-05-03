@@ -2,6 +2,8 @@ from website.tests.test_models import (
     ContactMessageModelTests,
     PartnerModelTests,
     EmailSubscriberModelTests,
+    FAQModelTests,
+    TestimonialModelTests,
 )
 from website.tests.test_forms import ContactFormTests, EmailSubscriptionFormTests
 from website.tests.test_views import (
@@ -10,6 +12,9 @@ from website.tests.test_views import (
     EmailSubscriptionViewTests,
     PartnerListViewTests,
     HealthCheckViewTests,
+    FAQPageViewTests,
+    TestimonialsPageViewTests,
+    HomePageFAQTestimonialContextTests,
 )
 from website.tests.test_admin_views import (
     AdminWebsiteAccessControlTests,
@@ -52,6 +57,8 @@ __all__ = [
     "ContactMessageModelTests",
     "PartnerModelTests",
     "EmailSubscriberModelTests",
+    "FAQModelTests",
+    "TestimonialModelTests",
     # Forms
     "ContactFormTests",
     "EmailSubscriptionFormTests",
@@ -61,6 +68,9 @@ __all__ = [
     "EmailSubscriptionViewTests",
     "PartnerListViewTests",
     "HealthCheckViewTests",
+    "FAQPageViewTests",
+    "TestimonialsPageViewTests",
+    "HomePageFAQTestimonialContextTests",
     # Admin views
     "AdminWebsiteAccessControlTests",
     "AdminDashboardViewTests",
