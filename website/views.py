@@ -17,7 +17,7 @@ from resources.cache import (
 )
 from resources.models import ResourceItem
 from website.forms import ContactForm, EmailSubscriptionForm
-from website.models import Partner, ContactMessage, BlogPage
+from website.models import Partner, ContactMessage, BlogPage, FAQ, Testimonial
 
 
 class HomePageView(TemplateView):
@@ -168,4 +168,26 @@ class PartnerListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["partners"] = Partner.objects.all().order_by("name")
+        return context
+
+
+class FAQPageView(TemplateView):
+    """Public FAQ page — all active FAQs ordered by `order` then newest."""
+    template_name = "website/faqs.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["faqs"] = FAQ.objects.filter(is_active=True).order_by("order", "-created_at")
+        return context
+
+
+class TestimonialsPageView(TemplateView):
+    """Public testimonials page — featured first, then all active entries."""
+    template_name = "website/testimonials.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        qs = Testimonial.objects.filter(is_active=True).order_by("-is_featured", "order", "-created_at")
+        context["testimonials"] = qs
+        context["featured"] = qs.filter(is_featured=True)[:3]
         return context

@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Frequently Asked Questions — CBE Resource Hub{% endblock %}
+{% block meta_description %}Find answers to the most common questions about the CBE Resource Hub — curriculum resources, uploads, access, and more.{% endblock %}
+
+{% block content %}
+
+<!-- Schema.org FAQ structured data -->
+{% if faqs %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in faqs %}
+    {
+      "@type": "Question",
+      "name": "{{ faq.question|escapejs }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ faq.answer|striptags|escapejs }}"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
+
+<!-- ── Hero ── -->
+<section class="relative border-b border-white/5 bg-brand-secondary overflow-hidden">
+    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div class="absolute -top-56 left-1/2 -translate-x-1/2 w-[860px] h-[460px] rounded-full bg-brand-primary/8 blur-3xl"></div>
+        <div class="absolute top-0 right-0 w-72 h-72 rounded-full bg-brand-accent/5 blur-3xl"></div>
+    </div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-sm font-semibold mb-6">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Help Centre
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4">
+            Frequently Asked Questions
+        </h1>
+        <p class="text-white/55 text-lg max-w-2xl mx-auto leading-relaxed">
+            Everything you need to know about CBE Resource Hub — curriculum materials, access, uploads, and more.
+        </p>
+    </div>
+</section>
+
+<!-- ── FAQ Body ── -->
+<section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+         x-data="{
+             query: '',
+             open: null,
+             toggle(i) { this.open = this.open === i ? null : i; }
+         }">
+
+    {% if faqs %}
+
+    <!-- Search -->
+    <div class="relative mb-10">
+        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input x-model="query"
+               type="search"
+               placeholder="Search questions…"
+               class="w-full pl-11 pr-4 py-3 rounded-2xl bg-white/4 border border-white/10
+                      focus:border-brand-primary/50 focus:bg-white/6 focus:outline-none
+                      text-white placeholder-white/25 text-sm transition-all duration-200">
+    </div>
+
+    <!-- Accordion -->
+    <div class="space-y-3">
+        {% for faq in faqs %}
+        <div x-show="!query || '{{ faq.question|lower|escapejs }}'.includes(query.toLowerCase()) || '{{ faq.answer|striptags|lower|escapejs }}'.includes(query.toLowerCase())"
+             class="group border border-white/8 hover:border-white/14 rounded-2xl
+                    bg-white/[0.025] hover:bg-white/[0.04]
+                    overflow-hidden transition-all duration-200">
+
+            <button id="faq-btn-{{ forloop.counter }}"
+                    x-on:click="toggle({{ forloop.counter }})"
+                    :aria-expanded="open === {{ forloop.counter }}"
+                    aria-controls="faq-body-{{ forloop.counter }}"
+                    class="w-full flex items-center justify-between gap-4 px-6 py-5 text-left">
+                <span class="text-white/85 font-semibold text-sm sm:text-base leading-snug pr-2"
+                      :class="open === {{ forloop.counter }} ? 'text-white' : ''">
+                    {{ faq.question }}
+                </span>
+                <span class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center
+                             bg-white/5 group-hover:bg-white/8 transition-colors"
+                      :class="open === {{ forloop.counter }} ? 'bg-brand-primary/15 text-brand-primary' : 'text-white/40'">
+                    <svg class="w-3.5 h-3.5 transition-transform duration-200"
+                         :class="open === {{ forloop.counter }} ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </span>
+            </button>
+
+            <div id="faq-body-{{ forloop.counter }}"
+                 x-show="open === {{ forloop.counter }}"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 -translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 x-cloak
+                 role="region"
+                 :aria-labelledby="'faq-btn-{{ forloop.counter }}'">
+                <div class="px-6 pb-6 border-t border-white/6">
+                    <div class="pt-4 text-white/55 text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
+                        {{ faq.answer|linebreaksbr }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- No search results -->
+        <div x-show="query && !document.querySelector('[x-show*=\'query\']:not([style*=\'display: none\'])')"
+             class="text-center py-12 text-white/25 text-sm">
+            No questions match "<span class="text-white/40" x-text="query"></span>" — try a different keyword.
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-20">
+        <svg class="w-16 h-16 text-white/10 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-white/30 font-medium">No FAQs published yet. Check back soon.</p>
+    </div>
+    {% endif %}
+
+    <!-- CTA -->
+    <div class="mt-16 text-center">
+        <div class="inline-block bg-white/[0.025] border border-white/8 rounded-3xl p-8 max-w-md mx-auto">
+            <div class="w-10 h-10 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Still have questions?</h3>
+            <p class="text-white/40 text-sm mb-5">Our team is happy to help. Drop us a message and we'll get back to you.</p>
+            <a href="{% url 'contact' %}"
+               class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary text-white font-semibold text-sm
+                      hover:bg-brand-primary/90 transition-all shadow-lg shadow-brand-primary/20">
+                Contact Us
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
