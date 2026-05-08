@@ -5,7 +5,7 @@
   <li>
     <a href="{{ r.get_absolute_url }}"
        class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
-      <div class="w-8 h-8 rounded-lg bg-brand-primary/10 flex items-center justify-center text-brand-accent/70 shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-brand-gold/10 flex items-center justify-center text-brand-gold/70 shrink-0">
         {% if r.resource_type == 'lesson_plan' %}
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
         {% elif r.resource_type == 'exam' %}
@@ -21,17 +21,17 @@
         {% endif %}
       </div>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-white group-hover:text-brand-accent transition-colors truncate">{{ r.title }}</p>
+        <p class="text-sm font-medium text-white group-hover:text-brand-gold transition-colors truncate">{{ r.title }}</p>
         <p class="text-xs text-white/40 mt-0.5 truncate">{{ r.grade.level.name }} › {{ r.grade.name }} · {{ r.learning_area.name }}</p>
       </div>
-      <span class="ml-auto shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-brand-primary/15 text-brand-accent font-medium whitespace-nowrap">{{ r.get_resource_type_display }}</span>
+      <span class="ml-auto shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/15 text-brand-gold font-medium whitespace-nowrap">{{ r.get_resource_type_display }}</span>
     </a>
   </li>
   {% endfor %}
   {% if page_obj.paginator.count > 6 %}
   <li>
     <a href="{% url 'resources:list' %}?q={{ search_query|urlencode }}"
-       class="flex items-center justify-center gap-1 px-4 py-3 text-sm text-brand-accent hover:text-white hover:bg-white/5 transition-colors font-medium">
+       class="flex items-center justify-center gap-1 px-4 py-3 text-sm text-brand-gold hover:text-white hover:bg-white/5 transition-colors font-medium">
       See all {{ page_obj.paginator.count }} results
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
     </a>
