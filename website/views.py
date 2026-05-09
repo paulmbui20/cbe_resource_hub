@@ -4,6 +4,9 @@ website/views.py
 Public-facing homepage and contact page views.
 """
 
+from website.cache import get_partners
+from website.cache import get_faqs
+from website.cache import get_testimonials
 from django.contrib import messages
 from django.shortcuts import render
 from django.urls import reverse
@@ -17,7 +20,7 @@ from resources.cache import (
 )
 from resources.models import ResourceItem
 from website.forms import ContactForm, EmailSubscriptionForm
-from website.models import Partner, ContactMessage, BlogPage, FAQ, Testimonial
+from website.models import ContactMessage, BlogPage
 
 
 class HomePageView(TemplateView):
@@ -71,12 +74,10 @@ class HomePageView(TemplateView):
         )[:3]
 
         # ── Homepage FAQs (up to 5 active, ordered by order then newest) ───────────────
-        context["homepage_faqs"] = FAQ.objects.filter(is_active=True)[:5]
+        context["homepage_faqs"] = get_faqs()[:5]
 
         # ── Homepage testimonials (featured first, up to 6) ────────────────────────
-        context["homepage_testimonials"] = Testimonial.objects.filter(is_active=True)[
-            :6
-        ]
+        context["homepage_testimonials"] = get_testimonials()[:6]
 
         return context
 
@@ -175,7 +176,7 @@ class PartnerListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["partners"] = Partner.objects.all().order_by("name")
+        context["partners"] = get_partners()
         return context
 
 
@@ -186,18 +187,16 @@ class FAQPageView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["faqs"] = FAQ.objects.filter(is_active=True)
+        context["faqs"] = get_faqs()
         return context
 
 
 class TestimonialsPageView(TemplateView):
-    """Public testimonials page — featured first, then all active entries."""
+    """Public testimonials page"""
 
     template_name = "website/testimonials.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        qs = Testimonial.objects.filter(is_active=True)
-        context["testimonials"] = qs
-        context["featured"] = qs.filter(is_featured=True)[:3]
+        context["testimonials"] = get_testimonials()
         return context
