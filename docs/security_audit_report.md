@@ -106,8 +106,9 @@ To prevent Cross-Site Scripting (XSS) from rich-text fields (TinyMCE), a sanitiz
 5. **Database Migration**: Applied migrations to reflect the change in field classes.
 
 **Verification:**
-Confirmed via testing that:
+Confirmed via an automated test suite (`website/tests/test_sanitization.py`) that:
 
 - `<script>` and `<iframe>` tags are stripped along with their content.
-- Inline event handlers like `onerror` are removed from allowed tags like `<img>`.
-- Safe formatting tags like `<b>`, `<i>`, `<u>` are preserved.
+- Inline event handlers like `onerror` and `onclick` are removed from allowed tags like `<img>` and `<div>`.
+- Safe formatting tags like `<b>`, `<i>`, `<u>`, `<h1>`, `<a>`, `<table>`, etc. are perfectly preserved.
+- Global `NH3_LINK_REL` securely enforces `noopener noreferrer nofollow` attributes on all outgoing links to prevent Reverse Tabnabbing.
