@@ -2482,6 +2482,9 @@
     font-size: var(--text-xs);
     line-height: var(--tw-leading, var(--text-xs--line-height));
   }
+  .text-\[0\.7rem\] {
+    font-size: 0.7rem;
+  }
   .text-\[0\.65rem\] {
     font-size: 0.65rem;
   }
@@ -3634,6 +3637,34 @@
       }
     }
   }
+  .hover\:border-\[\#25D366\]\/50 {
+    &:hover {
+      @media (hover: hover) {
+        border-color: color-mix(in oklab, #25D366 50%, transparent);
+      }
+    }
+  }
+  .hover\:border-\[\#0088cc\]\/50 {
+    &:hover {
+      @media (hover: hover) {
+        border-color: color-mix(in oklab, #0088cc 50%, transparent);
+      }
+    }
+  }
+  .hover\:border-\[\#1877F2\]\/50 {
+    &:hover {
+      @media (hover: hover) {
+        border-color: color-mix(in oklab, #1877F2 50%, transparent);
+      }
+    }
+  }
+  .hover\:border-\[\#E4405F\]\/50 {
+    &:hover {
+      @media (hover: hover) {
+        border-color: color-mix(in oklab, #E4405F 50%, transparent);
+      }
+    }
+  }
   .hover\:border-brand-gold\/30 {
     &:hover {
       @media (hover: hover) {
@@ -3761,6 +3792,34 @@
         @supports (color: color-mix(in lab, red, red)) {
           border-color: color-mix(in oklab, var(--color-white) 15%, transparent);
         }
+      }
+    }
+  }
+  .hover\:bg-\[\#25D366\]\/10 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(in oklab, #25D366 10%, transparent);
+      }
+    }
+  }
+  .hover\:bg-\[\#0088cc\]\/10 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(in oklab, #0088cc 10%, transparent);
+      }
+    }
+  }
+  .hover\:bg-\[\#1877F2\]\/10 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(in oklab, #1877F2 10%, transparent);
+      }
+    }
+  }
+  .hover\:bg-\[\#E4405F\]\/10 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(in oklab, #E4405F 10%, transparent);
       }
     }
   }
@@ -4150,6 +4209,34 @@
         @supports (color: color-mix(in lab, red, red)) {
           background-color: color-mix(in oklab, var(--color-white) 9%, transparent);
         }
+      }
+    }
+  }
+  .hover\:text-\[\#25D366\] {
+    &:hover {
+      @media (hover: hover) {
+        color: #25D366;
+      }
+    }
+  }
+  .hover\:text-\[\#0088cc\] {
+    &:hover {
+      @media (hover: hover) {
+        color: #0088cc;
+      }
+    }
+  }
+  .hover\:text-\[\#1877F2\] {
+    &:hover {
+      @media (hover: hover) {
+        color: #1877F2;
+      }
+    }
+  }
+  .hover\:text-\[\#E4405F\] {
+    &:hover {
+      @media (hover: hover) {
+        color: #E4405F;
       }
     }
   }
@@ -4683,6 +4770,26 @@
     &:focus-visible {
       --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
       box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+    }
+  }
+  .focus-visible\:ring-\[\#25D366\] {
+    &:focus-visible {
+      --tw-ring-color: #25D366;
+    }
+  }
+  .focus-visible\:ring-\[\#0088cc\] {
+    &:focus-visible {
+      --tw-ring-color: #0088cc;
+    }
+  }
+  .focus-visible\:ring-\[\#1877F2\] {
+    &:focus-visible {
+      --tw-ring-color: #1877F2;
+    }
+  }
+  .focus-visible\:ring-\[\#E4405F\] {
+    &:focus-visible {
+      --tw-ring-color: #E4405F;
     }
   }
   .focus-visible\:ring-brand-gold {

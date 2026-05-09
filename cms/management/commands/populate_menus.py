@@ -31,20 +31,22 @@ EDUCATION_LEVELS = EducationLevel.objects.filter()
 PRIMARY_ITEMS = [
     ("Home", "/", 0),
     ("Resources", "/resources/", 10),
-    ("Learning Areas", reverse("resources:learning_areas_list"), 30),
+    ("Subjects", reverse("resources:learning_areas_list"), 30),
     ("Grades", reverse("resources:grade_list"), 31),
     ("Sessions", reverse("resources:academic_session_list"), 32),
+    ("Blog", "/blog/", 33),
 ]
 
 # Items added only to the footer Quick Links column.
 FOOTER_ONLY_ITEMS: list[tuple[str, str, int]] = [
-    ("Contact Us", "/contact/", 33),
-    ("Learning Areas", reverse("resources:learning_areas_list"), 34),
-    ("Grades", reverse("resources:grade_list"), 35),
-    ("Sessions", reverse("resources:academic_session_list"), 36),
-    ("Partners", "/partners/", 37),
-    ("FAQs", "/faqs/", 38),
-    ("Testimonials", "/testimonials/", 39),
+    ("Contact Us", "/contact/", 34),
+    ("Subjects", reverse("resources:learning_areas_list"), 35),
+    ("Grades", reverse("resources:grade_list"), 36),
+    ("Sessions", reverse("resources:academic_session_list"), 37),
+    ("Blog", "/blog/", 38),
+    ("Partners", "/partners/", 39),
+    ("FAQs", "/faqs/", 40),
+    ("Testimonials", "/testimonials/", 41),
 ]
 
 
@@ -128,6 +130,26 @@ class Command(BaseCommand):
                 title=label,
                 defaults={"url": url, "order": order},
             )
+
+        # ── 7. "Education Levels" parent + education_level children (footer) ──────
+        education_levels_footer, _ = MenuItem.objects.get_or_create(
+            menu=footer_menu,
+            parent=None,
+            title="Levels",
+            defaults={"url": "#", "order": 20},
+        )
+        if EDUCATION_LEVELS.exists():
+            for order, education_level in enumerate(EDUCATION_LEVELS):
+                url = reverse(
+                    "resources:education_level_details",
+                    kwargs={"slug": education_level.slug},
+                )
+                MenuItem.objects.get_or_create(
+                    menu=footer_menu,
+                    parent=education_levels_footer,
+                    title=education_level.name,
+                    defaults={"url": url, "order": order},
+                )
 
         # ── Summary ───────────────────────────────────────────────────────
         h_count = MenuItem.objects.filter(menu=header_menu).count()

@@ -19,6 +19,7 @@ from core.fields import SafeHTMLField
 from wagtail.models import Page
 from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel
+from wagtail.snippets.models import register_snippet
 from wagtail.images.models import AbstractImage, AbstractRendition, Image
 from wagtail.documents.models import AbstractDocument, Document
 
@@ -197,16 +198,58 @@ class BlogIndexPage(Page):
 
         tag = request.GET.get("tag")
         if tag:
-            blogpages = BlogPage.objects.filter(
-                tags__name=tag,
-                live=True,
-            ).order_by("-first_published_at")
+            blogpages = (
+                BlogPage.objects.filter(
+                    tags__name=tag,
+                    live=True,
+                )
+                .select_related("main_image", "author", "author__image")
+                .prefetch_related("tags")
+                .order_by("-first_published_at")
+            )
         else:
-            blogpages = self.get_children().live().order_by("-first_published_at")
+            blogpages = (
+                BlogPage.objects.child_of(self)
+                .live()
+                .select_related("main_image", "author", "author__image")
+                .prefetch_related("tags")
+                .order_by("-first_published_at")
+            )
 
         context = super().get_context(request)
         context["blogpages"] = blogpages
         return context
+
+
+@register_snippet
+class BlogAuthor(models.Model):
+    """An author for blog posts."""
+
+    name = models.CharField(max_length=255)
+    role = models.CharField(max_length=255, blank=True)
+    bio = models.TextField(blank=True)
+    image = models.ForeignKey(
+        "website.CustomImage",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    facebook = models.URLField(blank=True)
+    twitter = models.URLField(blank=True)
+    linkedin = models.URLField(blank=True)
+    instagram = models.URLField(blank=True)
+    email = models.EmailField(blank=True)
+
+    website = models.URLField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Blog Author"
+        verbose_name_plural = "Blog Authors"
 
 
 class BlogPage(Page):
@@ -215,6 +258,15 @@ class BlogPage(Page):
     date = models.DateField("Post date", default=date.today)
     intro = models.CharField(max_length=250, blank=True, default="")
     body = RichTextField(blank=True, default="")
+    views = models.PositiveIntegerField(default=0, editable=False)
+
+    author = models.ForeignKey(
+        "BlogAuthor",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="blog_posts",
+    )
 
     main_image = models.ForeignKey(
         "website.CustomImage",
@@ -226,12 +278,39 @@ class BlogPage(Page):
     tags = ClusterTaggableManager(through="BlogTag", blank=True)
 
     content_panels = Page.content_panels + [
+        FieldPanel("author"),
         FieldPanel("date"),
         FieldPanel("main_image"),
         FieldPanel("intro"),
         FieldPanel("body", classname="full"),
         FieldPanel("tags", widget=TagWidget),
     ]
+
+    def serve(self, request):
+        # Efficiently increment view count
+        BlogPage.objects.filter(pk=self.pk).update(views=models.F("views") + 1)
+        return super().serve(request)
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        
+        # Re-fetch the page with optimizations to avoid N+1 in templates
+        # We use .get() to ensure we have the prefetched data on the object
+        optimized_page = BlogPage.objects.filter(pk=self.pk).select_related(
+            "author", "author__image", "main_image"
+        ).prefetch_related("tags").first()
+
+        if optimized_page:
+            context["page"] = optimized_page
+            # Cache tags and parent to avoid repeated queries in template
+            context["tags"] = optimized_page.tags.all()
+            context["parent"] = optimized_page.get_parent()
+            
+            # Pre-calculate siblings
+            context["prev_post"] = optimized_page.get_prev_sibling()
+            context["next_post"] = optimized_page.get_next_sibling()
+        
+        return context
 
 
 class BlogTag(TaggedItemBase):
