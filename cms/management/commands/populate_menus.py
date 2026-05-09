@@ -33,15 +33,15 @@ PRIMARY_ITEMS = [
     ("Resources", "/resources/", 10),
     ("Learning Areas", reverse("resources:learning_areas_list"), 30),
     ("Grades", reverse("resources:grade_list"), 31),
-    ("Years & Terms", reverse("resources:academic_session_list"), 32),
-    ("Contact", "/contact/", 33),
+    ("Sessions", reverse("resources:academic_session_list"), 32),
 ]
 
 # Items added only to the footer Quick Links column.
 FOOTER_ONLY_ITEMS: list[tuple[str, str, int]] = [
+    ("Contact Us", "/contact/", 33),
     ("Learning Areas", reverse("resources:learning_areas_list"), 34),
     ("Grades", reverse("resources:grade_list"), 35),
-    ("Years & Terms", reverse("resources:academic_session_list"), 36),
+    ("Sessions", reverse("resources:academic_session_list"), 36),
     ("Partners", "/partners/", 37),
     ("FAQs", "/faqs/", 38),
     ("Testimonials", "/testimonials/", 39),
@@ -88,7 +88,7 @@ class Command(BaseCommand):
         education_levels_header, _ = MenuItem.objects.get_or_create(
             menu=header_menu,
             parent=None,
-            title="Education Levels",
+            title="Levels",
             defaults={"url": "#", "order": 20},
         )
         if EDUCATION_LEVELS.exists():

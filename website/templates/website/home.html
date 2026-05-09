@@ -8,11 +8,18 @@
 {% block content %}
 
     {# ═══════════════════ 1. HERO ════════════════════════════════════════════════ #}
-    <section class="relative">
+    <section class="relative -mt-16 pt-28 p-4">
+        {# Hero Background Image #}
+        <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <img src="{% static 'images/cbe-resource-hub-hero.webp' %}" alt="" fetchpriority="high"
+                 class="w-full h-full object-cover opacity-[0.15] md:opacity-[0.25]" />
+            <div class="absolute inset-0 bg-linear-to-b from-brand-secondary/20 via-brand-secondary/80 to-brand-secondary"></div>
+        </div>
+
         {# Ambient glow #}
         <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-            <div class="absolute -top-60 left-1/2 -translate-x-1/2 w-225 h-125 rounded-full bg-brand-gold/15 blur-3xl"></div>
-            <div class="absolute top-20 right-0 w-72 h-72 rounded-full bg-brand-gold/10 blur-3xl"></div>
+            <div class="absolute -top-60 left-1/2 -translate-x-1/2 w-[225%] md:w-225 h-125 rounded-full bg-brand-gold/15 blur-3xl mix-blend-screen"></div>
+            <div class="absolute top-20 right-0 w-72 h-72 rounded-full bg-brand-gold/10 blur-3xl mix-blend-screen"></div>
         </div>
 
         <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center">
