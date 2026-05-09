@@ -110,18 +110,10 @@
                                                 :aria-label="'{{ item.title }} submenu'"
                                                 @keydown.escape.window="open = false; $el.closest('li').querySelector('button').focus()"
                                                 class="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-52 origin-top
-                                                       rounded-xl border border-white/[0.1] bg-brand-secondary/[0.97]
-                                                       backdrop-blur-xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7),0_0_0_0.5px_rgba(255,255,255,0.05)]
-                                                       py-1.5 z-50"
+                                                       rounded-xl border border-white/[0.1] bg-brand-secondary/95
+                                                       backdrop-blur-3xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7),0_0_0_0.5px_rgba(255,255,255,0.05)]
+                                                       py-1.5 z-[100]"
                                             >
-                                                <div
-                                                    aria-hidden="true"
-                                                    class="absolute -top-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5
-                                                           rotate-45 rounded-[2px]
-                                                           bg-brand-secondary border-l border-t border-white/[0.1]
-                                                           pointer-events-none"
-                                                ></div>
-
                                                 {% for child in item.children.all %}
                                                     <a
                                                         href="{{ child.url }}"
@@ -205,10 +197,10 @@
                             aria-label="Account options"
                             @keydown.escape.window="open = false; $el.closest('[x-data]').querySelector('button').focus()"
                             class="absolute top-full right-0 mt-2.5 w-52 origin-top-right
-                                   rounded-xl border border-white/[0.1] bg-brand-secondary/[0.97]
-                                   backdrop-blur-xl
+                                   rounded-xl border border-white/[0.1] bg-brand-secondary/95
+                                   backdrop-blur-3xl
                                    shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7),0_0_0_0.5px_rgba(255,255,255,0.05)]
-                                   py-1.5 z-50"
+                                   py-1.5 z-[100]"
                         >
                             <div class="px-4 py-2.5 border-b border-white/[0.06]" role="none">
                                 <p class="text-xs text-white/40 truncate">{{ user.email }}</p>
