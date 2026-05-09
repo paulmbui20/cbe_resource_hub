@@ -18,8 +18,17 @@ class AdminPageListView(IsAdminMixin, ListView):
 class AdminPageCreateView(IsAdminMixin, CreateView):
     model = Page
     template_name = "admin/seo_form.html"
-    fields = ["title", "slug", "content", "is_published",
-              "focus_keyword", "meta_title", "meta_description", "meta_keywords", "featured_image"]
+    fields = [
+        "title",
+        "slug",
+        "content",
+        "is_published",
+        "focus_keyword",
+        "meta_title",
+        "meta_description",
+        "meta_keywords",
+        "featured_image",
+    ]
     success_url = reverse_lazy("management:page_list")
 
     def get_context_data(self, **kwargs):
@@ -37,8 +46,17 @@ class AdminPageCreateView(IsAdminMixin, CreateView):
 class AdminPageUpdateView(IsAdminMixin, UpdateView):
     model = Page
     template_name = "admin/seo_form.html"
-    fields = ["title", "slug", "content", "is_published",
-              "focus_keyword", "meta_title", "meta_description", "meta_keywords", "featured_image"]
+    fields = [
+        "title",
+        "slug",
+        "content",
+        "is_published",
+        "focus_keyword",
+        "meta_title",
+        "meta_description",
+        "meta_keywords",
+        "featured_image",
+    ]
     success_url = reverse_lazy("management:page_list")
 
     def get_context_data(self, **kwargs):
@@ -134,7 +152,12 @@ class AdminMenuItemListView(IsAdminMixin, ListView):
         "add_url": "management:menuitem_add",
         "edit_url": "management:menuitem_edit",
         "delete_url": "management:menuitem_delete",
-        "columns": [("Title", "title"), ("Menu", "menu"), ("URL", "url"), ("Order", "order")]
+        "columns": [
+            ("Title", "title"),
+            ("Menu", "menu"),
+            ("URL", "url"),
+            ("Order", "order"),
+        ],
     }
 
 
@@ -153,6 +176,8 @@ class AdminMenuItemCreateView(IsAdminMixin, CreateView):
                 {"value": "/resources/", "label": "All Resources"},
                 {"value": "/contact/", "label": "Contact Page"},
                 {"value": "/partners/", "label": "Partners"},
+                {"value": "/faqs/", "label": "FAQs"},
+                {"value": "/testimonials/", "label": "Testimonials"},
             ]
         }
         return context
@@ -215,16 +240,31 @@ class AdminSiteSettingsCreateView(IsAdminMixin, CreateView):
         context["datalists"] = {
             "setting_keys_list": [
                 {"value": "site_name", "label": "Appears in title bar and headers"},
-                {"value": "meta_description", "label": "Default fallback meta description for SEO"},
-                {"value": "meta_keywords", "label": "Main Meta keywords for SEO on public facing routes"},
+                {
+                    "value": "meta_description",
+                    "label": "Default fallback meta description for SEO",
+                },
+                {
+                    "value": "meta_keywords",
+                    "label": "Main Meta keywords for SEO on public facing routes",
+                },
                 {"value": "contact_email", "label": "Public support email address"},
                 {"value": "contact_phone", "label": "Public contact phone number"},
                 {"value": "social_facebook", "label": "Facebook page URL"},
                 {"value": "social_twitter", "label": "Twitter profile URL"},
                 {"value": "social_instagram", "label": "Instagram profile URL"},
-                {"value": "google_oauth_client_id", "label": "Google OAuth Client ID for login"},
-                {"value": "site_indexing", "label": "Toggle search engine indexing (true/false)"},
-                {"value": "site_logo_url", "label": "Enter the full url of the site logo"},
+                {
+                    "value": "google_oauth_client_id",
+                    "label": "Google OAuth Client ID for login",
+                },
+                {
+                    "value": "site_indexing",
+                    "label": "Toggle search engine indexing (true/false)",
+                },
+                {
+                    "value": "site_logo_url",
+                    "label": "Enter the full url of the site logo",
+                },
             ]
         }
         return context
@@ -247,15 +287,27 @@ class AdminSiteSettingsUpdateView(IsAdminMixin, UpdateView):
         context["datalists"] = {
             "setting_keys_list": [
                 {"value": "site_name", "label": "Appears in title bar and headers"},
-                {"value": "meta_description", "label": "Default fallback meta description for SEO"},
-                {"value": "meta_keywords", "label": "Main Meta keywords for SEO on public facing routes"},
+                {
+                    "value": "meta_description",
+                    "label": "Default fallback meta description for SEO",
+                },
+                {
+                    "value": "meta_keywords",
+                    "label": "Main Meta keywords for SEO on public facing routes",
+                },
                 {"value": "contact_email", "label": "Public support email address"},
                 {"value": "contact_phone", "label": "Public contact phone number"},
                 {"value": "social_facebook", "label": "Facebook page URL"},
                 {"value": "social_twitter", "label": "Twitter profile URL"},
                 {"value": "social_instagram", "label": "Instagram profile URL"},
-                {"value": "google_oauth_client_id", "label": "Google OAuth Client ID for login"},
-                {"value": "site_indexing", "label": "Toggle search engine indexing (true/false)"},
+                {
+                    "value": "google_oauth_client_id",
+                    "label": "Google OAuth Client ID for login",
+                },
+                {
+                    "value": "site_indexing",
+                    "label": "Toggle search engine indexing (true/false)",
+                },
             ]
         }
         return context

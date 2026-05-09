@@ -21,8 +21,7 @@ from cms.models import Menu, MenuItem
 from resources.models import ResourceItem, EducationLevel
 
 RESOURCE_TYPES = [
-    (key, label)
-    for key, label in ResourceItem._meta.get_field("resource_type").choices
+    (key, label) for key, label in ResourceItem._meta.get_field("resource_type").choices
 ]
 
 EDUCATION_LEVELS = EducationLevel.objects.filter()
@@ -44,6 +43,8 @@ FOOTER_ONLY_ITEMS: list[tuple[str, str, int]] = [
     ("Grades", reverse("resources:grade_list"), 35),
     ("Years & Terms", reverse("resources:academic_session_list"), 36),
     ("Partners", "/partners/", 37),
+    ("FAQs", "/faqs/", 38),
+    ("Testimonials", "/testimonials/", 39),
 ]
 
 
@@ -92,7 +93,10 @@ class Command(BaseCommand):
         )
         if EDUCATION_LEVELS.exists():
             for order, education_level in enumerate(EDUCATION_LEVELS):
-                url = reverse("resources:education_level_details", kwargs={"slug": education_level.slug})
+                url = reverse(
+                    "resources:education_level_details",
+                    kwargs={"slug": education_level.slug},
+                )
                 MenuItem.objects.get_or_create(
                     menu=header_menu,
                     parent=education_levels_header,
