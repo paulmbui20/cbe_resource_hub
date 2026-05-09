@@ -60,7 +60,7 @@
               <div>
                 <p class="text-white font-semibold text-sm">{{ t.author_name }}</p>
                 {% if t.author_role or t.author_organization %}
-                  <p class="text-white/30 text-xs truncate max-w-[10rem] mt-0.5">{{ t.author_role }}{% if t.author_role and t.author_organization %} · {% endif %}{{ t.author_organization }}</p>
+                  <p class="text-white/30 text-xs truncate max-w-40 mt-0.5">{{ t.author_role }}{% if t.author_role and t.author_organization %} · {% endif %}{{ t.author_organization }}</p>
                 {% endif %}
               </div>
             </div>

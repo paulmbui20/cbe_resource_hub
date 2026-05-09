@@ -34,7 +34,7 @@
           hx-push-url="true"
           hx-target="#resource-grid"
           hx-swap="innerHTML"
-          class="mb-4 grid grid-cols-2 md:grid-cols-5 gap-2 items-end justify-between">
+          class="mb-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 items-end justify-between">
 
         <!-- Search -->
         <div class="">
@@ -42,6 +42,21 @@
             <input id="id_q" type="search" name="q" value="{{ search_query }}"
                    placeholder="e.g. Integrated Science Notes…"
                    class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-gold transition"/>
+        </div>
+
+        <!-- Academic Session -->
+        <div class="">
+            <label for="id_academic_session" class="block text-xs text-white/50 mb-1">Session</label>
+            <select id="id_academic_session" name="academic_session"
+                    class="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition">
+                <option value="">All Sessions</option>
+                {% for session in all_academic_sessions %}
+                    <option value="{{ session.pk }}"
+                            {% if current_academic_session == session.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ session.current_year.year }} - Term {{ session.current_term.term_number }}
+                    </option>
+                {% endfor %}
+            </select>
         </div>
 
         <!-- Education Level -->

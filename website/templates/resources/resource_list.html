@@ -29,7 +29,7 @@
                   hx-push-url="true"
                   hx-target="#resource-grid"
                   hx-swap="innerHTML"
-                  class="grid grid-cols-2 md:grid-cols-6 gap-2 items-end justify-between bg-white/5 border border-white/10 p-4 rounded-2xl shadow-xl">
+                  class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 items-end justify-between bg-white/5 border border-white/10 p-4 rounded-2xl shadow-xl">
 
                 <!-- Search -->
                 <div class="">
@@ -79,6 +79,21 @@
                             <option value="{{ area.pk }}"
                                     {% if current_area == area.pk|stringformat:"s" %}selected{% endif %}>
                                 {{ area.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Academic Session -->
+                <div class="">
+                    <label for="id_academic_session" class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">Session</label>
+                    <select id="id_academic_session" name="academic_session"
+                            class="w-full rounded-xl bg-black/20 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-gold transition appearance-none">
+                        <option value="">All Sessions</option>
+                        {% for session in all_academic_sessions %}
+                            <option value="{{ session.pk }}"
+                                    {% if current_academic_session == session.pk|stringformat:"s" %}selected{% endif %}>
+                                {{ session.current_year.year }} - Term {{ session.current_term.term_number }}
                             </option>
                         {% endfor %}
                     </select>

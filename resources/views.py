@@ -17,12 +17,24 @@ from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
-from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
+from django.views.generic import (
+    CreateView,
+    UpdateView,
+    DeleteView,
+    DetailView,
+    ListView,
+)
 
 from core.models import AcademicSession
 from .admin_views import VendorRequiredMixin
-from .cache import get_learning_areas, get_grades, get_resource_types, get_education_levels, \
-    get_slug_based_object_or_404_with_cache, get_academic_sessions
+from .cache import (
+    get_learning_areas,
+    get_grades,
+    get_resource_types,
+    get_education_levels,
+    get_slug_based_object_or_404_with_cache,
+    get_academic_sessions,
+)
 from .forms import ResourceItemForm
 from .models import EducationLevel, LearningArea, ResourceItem, Grade
 
@@ -48,9 +60,9 @@ class ResourceListView(ListView):
         eliminating N+1 database hits when the template accesses
         resource.grade.name, resource.grade.level.name, resource.learning_area.name.
         """
-        qs: QuerySet[ResourceItem] = (
-            ResourceItem.objects.filter(is_free=True)  # default: show free resources; extend for marketplace
-        )
+        qs: QuerySet[ResourceItem] = ResourceItem.objects.filter(
+            is_free=True
+        )  # default: show free resources; extend for marketplace
 
         # --- Optional filtering via GET params ---
         grade_id = self.request.GET.get("grade")
@@ -58,6 +70,7 @@ class ResourceListView(ListView):
         resource_type = str(resource_type) if resource_type else None
         area_id = self.request.GET.get("area")
         level_id = self.request.GET.get("level")
+        academic_session_id = self.request.GET.get("academic_session")
         q = self.request.GET.get("q")
         q = q.strip() if q else None
 
@@ -67,10 +80,10 @@ class ResourceListView(ListView):
             qs = qs.filter(learning_area_id=area_id)
         if level_id:
             qs = qs.filter(grade__level_id=level_id)
+        if academic_session_id:
+            qs = qs.filter(academic_session_id=academic_session_id)
         if q:
-            qs = qs.filter(
-                Q(title__icontains=q) | Q(description__icontains=q)
-            )
+            qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
         if resource_type:
             qs = qs.filter(resource_type=resource_type)
 
@@ -82,6 +95,7 @@ class ResourceListView(ListView):
         context["grades"] = get_grades()
         context["learning_areas"] = get_learning_areas()
         context["resource_types"] = get_resource_types()
+        context["all_academic_sessions"] = get_academic_sessions()
         context["current_grade"] = self.request.GET.get("grade", "")
         context["current_area"] = self.request.GET.get("area", "")
         context["current_level"] = self.request.GET.get("level", "")
@@ -91,7 +105,9 @@ class ResourceListView(ListView):
 
         # Pre-fetch user favorites to avoid N+1 queries in the template
         if self.request.user.is_authenticated:
-            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+            context["user_favorite_ids"] = set(
+                self.request.user.favorites.values_list("id", flat=True)
+            )
         else:
             context["user_favorite_ids"] = set()
 
@@ -115,6 +131,7 @@ class ResourceDetailView(DetailView):
     """
     Single resource detail page.
     """
+
     model = ResourceItem
     template_name = "resources/resource_detail.html"
     context_object_name = "resource"
@@ -143,12 +160,7 @@ def increment_downloads(request, slug):
         resource_item.increment_downloads()
         resource_item_final_downloads = resource_item.downloads
         message = f"Download incremented from {resource_item_initial_downloads} to {resource_item_final_downloads}"
-        return JsonResponse(
-            {
-                "success": message
-            },
-            status=200
-        )
+        return JsonResponse({"success": message}, status=200)
 
     except ResourceItem.DoesNotExist:
         return JsonResponse({"error": "Resource item not found"}, status=404)
@@ -159,6 +171,7 @@ class ToggleFavoriteView(LoginRequiredMixin, DetailView):
     HTMX endpoint for toggling favorited state of a ResourceItem.
     Returns just the star button partial.
     """
+
     model = ResourceItem
 
     def post(self, request, *args, **kwargs):
@@ -179,42 +192,79 @@ class ToggleFavoriteView(LoginRequiredMixin, DetailView):
             html = render_to_string(
                 "resources/partials/favorite_button.html",
                 {"resource": resource, "is_favorited": is_favorited},
-                request=request
+                request=request,
             )
             return HttpResponse(html)
 
         # Fallback for non-HTMX
         from django.shortcuts import redirect
+
         return redirect(resource.get_absolute_url())
 
 
 # ── Resource Type Detail (SEO landing page per type) ──────────────────────────
 # Map resource_type key → (icon emoji, short description for the landing page)
 RESOURCE_TYPE_INFO: dict[str, dict] = {
-    "lesson_plan": {"icon": "📋", "label": "Lesson Plans",
-                    "desc": "Day-by-day structured teaching blueprints for effective classroom delivery."},
-    "schemes_of_work": {"icon": "📅", "label": "Schemes of Work",
-                        "desc": "Term-long curriculum plans helping teachers cover the full syllabus on time."},
-    "curriculum_design": {"icon": "🗺️", "label": "Curriculum Design",
-                          "desc": "Comprehensive curriculum frameworks and competency-based programme designs."},
-    "record_of_work": {"icon": "📒", "label": "Records of Work",
-                       "desc": "Official records documenting what has been taught in each class and term."},
-    "teachers_guide": {"icon": "📖", "label": "Teachers' Guides",
-                       "desc": "Step-by-step instructional manuals to help educators deliver quality lessons."},
-    "textbook": {"icon": "📚", "label": "Textbooks",
-                 "desc": "Approved learner study books aligned to the latest CBC/CBE curriculum."},
-    "notes": {"icon": "📝", "label": "Notes",
-              "desc": "Concise revision notes and summaries covering key topics in every learning area."},
-    "exam": {"icon": "✏️", "label": "Exams & Past Papers",
-             "desc": "Past examination papers and mock exams to help learners prepare and practice."},
-    "report_card": {"icon": "🗒️", "label": "Report Cards",
-                    "desc": "Official learner assessment and progress report card templates."},
-    "other": {"icon": "📂", "label": "Other Resources",
-              "desc": "Additional CBC-aligned resources that don't fit a specific category above."},
-    "holiday_assignment": {"icon": "📝", "label": "Holiday Assignment",
-                           "desc": "Helpful holiday assignments to keep learner engaged even over the holidays"},
-    "setbook_guide": {"icon": "📝", "label": "Set Book Guide",
-                      "desc": "Set Book Guide"},
+    "lesson_plan": {
+        "icon": "📋",
+        "label": "Lesson Plans",
+        "desc": "Day-by-day structured teaching blueprints for effective classroom delivery.",
+    },
+    "schemes_of_work": {
+        "icon": "📅",
+        "label": "Schemes of Work",
+        "desc": "Term-long curriculum plans helping teachers cover the full syllabus on time.",
+    },
+    "curriculum_design": {
+        "icon": "🗺️",
+        "label": "Curriculum Design",
+        "desc": "Comprehensive curriculum frameworks and competency-based programme designs.",
+    },
+    "record_of_work": {
+        "icon": "📒",
+        "label": "Records of Work",
+        "desc": "Official records documenting what has been taught in each class and term.",
+    },
+    "teachers_guide": {
+        "icon": "📖",
+        "label": "Teachers' Guides",
+        "desc": "Step-by-step instructional manuals to help educators deliver quality lessons.",
+    },
+    "textbook": {
+        "icon": "📚",
+        "label": "Textbooks",
+        "desc": "Approved learner study books aligned to the latest CBC/CBE curriculum.",
+    },
+    "notes": {
+        "icon": "📝",
+        "label": "Notes",
+        "desc": "Concise revision notes and summaries covering key topics in every learning area.",
+    },
+    "exam": {
+        "icon": "✏️",
+        "label": "Exams & Past Papers",
+        "desc": "Past examination papers and mock exams to help learners prepare and practice.",
+    },
+    "report_card": {
+        "icon": "🗒️",
+        "label": "Report Cards",
+        "desc": "Official learner assessment and progress report card templates.",
+    },
+    "other": {
+        "icon": "📂",
+        "label": "Other Resources",
+        "desc": "Additional CBC-aligned resources that don't fit a specific category above.",
+    },
+    "holiday_assignment": {
+        "icon": "📝",
+        "label": "Holiday Assignment",
+        "desc": "Helpful holiday assignments to keep learner engaged even over the holidays",
+    },
+    "setbook_guide": {
+        "icon": "📝",
+        "label": "Set Book Guide",
+        "desc": "Set Book Guide",
+    },
 }
 
 
@@ -224,6 +274,7 @@ class ResourceTypeDetailView(ListView):
 
     URL: /resources/type/<resource_type>/
     """
+
     template_name = "resources/resource_type_detail.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
@@ -232,13 +283,12 @@ class ResourceTypeDetailView(ListView):
     def get_queryset(self) -> QuerySet[ResourceItem]:
         self.resource_type = self.kwargs["resource_type"]
 
-        qs: QuerySet[ResourceItem] = (
-            ResourceItem.objects
-            .filter(resource_type=self.resource_type, is_free=True)
+        qs: QuerySet[ResourceItem] = ResourceItem.objects.filter(
+            resource_type=self.resource_type, is_free=True
         )
 
         q = self.request.GET.get("q")
-        q = q.strip() if q else ''
+        q = q.strip() if q else ""
 
         learning_area_id = self.request.GET.get("learning_area")
         learning_area_id = int(learning_area_id) if learning_area_id else None
@@ -246,11 +296,11 @@ class ResourceTypeDetailView(ListView):
         grade_id = int(grade_id) if grade_id else None
         education_level_id = self.request.GET.get("education_level")
         education_level_id = int(education_level_id) if education_level_id else None
+        academic_session_id = self.request.GET.get("academic_session")
+        academic_session_id = int(academic_session_id) if academic_session_id else None
 
         if q:
-            qs = qs.filter(
-                Q(title__icontains=q) | Q(description__icontains=q)
-            )
+            qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
         if learning_area_id:
             qs = qs.filter(learning_area_id=learning_area_id)
         if grade_id:
@@ -259,30 +309,45 @@ class ResourceTypeDetailView(ListView):
         if education_level_id:
             qs = qs.filter(grade__level__id=education_level_id)
 
+        if academic_session_id:
+            qs = qs.filter(academic_session_id=academic_session_id)
+
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        info = RESOURCE_TYPE_INFO.get(self.resource_type,
-                                      {"icon": "📂", "label": self.resource_type.replace("_", " ").title(), "desc": ""})
+        info = RESOURCE_TYPE_INFO.get(
+            self.resource_type,
+            {
+                "icon": "📂",
+                "label": self.resource_type.replace("_", " ").title(),
+                "desc": "",
+            },
+        )
         context["resource_type_key"] = self.resource_type
         context["resource_type_label"] = info["label"]
         context["resource_type_icon"] = info["icon"]
         context["resource_type_desc"] = info["desc"]
         # For related types sidebar / cross-links
         context["all_resource_types"] = RESOURCE_TYPE_INFO
-        context['current_learning_area'] = self.request.GET.get("learning_area", '')
-        context['current_education_level'] = self.request.GET.get("education_level", '')
-        context['current_grade'] = self.request.GET.get("grade", '')
-        context['search_query'] = self.request.GET.get("q", '')
+        context["current_learning_area"] = self.request.GET.get("learning_area", "")
+        context["current_education_level"] = self.request.GET.get("education_level", "")
+        context["current_grade"] = self.request.GET.get("grade", "")
+        context["current_academic_session"] = self.request.GET.get(
+            "academic_session", ""
+        )
+        context["search_query"] = self.request.GET.get("q", "")
         context["education_levels"] = get_education_levels()
         context["grades"] = get_grades()
         context["learning_areas"] = get_learning_areas()
         context["resource_types"] = get_resource_types()
+        context["all_academic_sessions"] = get_academic_sessions()
 
         # Pre-fetch user favorites to avoid N+1 queries in the template
         if self.request.user.is_authenticated:
-            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+            context["user_favorite_ids"] = set(
+                self.request.user.favorites.values_list("id", flat=True)
+            )
         else:
             context["user_favorite_ids"] = set()
 
@@ -304,6 +369,7 @@ class EducationLevelDetailsView(ListView):
     URL: /resources/education-levels/<education_level>/
 
     """
+
     template_name = "resources/education_level_details.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
@@ -311,12 +377,12 @@ class EducationLevelDetailsView(ListView):
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
         self.education_level = self.kwargs["slug"]
-        qs: QuerySet[ResourceItem] = (
-            ResourceItem.objects.filter(grade__level__slug=self.education_level)
+        qs: QuerySet[ResourceItem] = ResourceItem.objects.filter(
+            grade__level__slug=self.education_level
         )
 
         q = self.request.GET.get("q")
-        q = q.strip() if q else ''
+        q = q.strip() if q else ""
 
         learning_area_id = self.request.GET.get("learning_area")
         learning_area_id = int(learning_area_id) if learning_area_id else None
@@ -324,13 +390,13 @@ class EducationLevelDetailsView(ListView):
         grade_id = int(grade_id) if grade_id else None
         education_level_id = self.request.GET.get("education_level")
         education_level_id = int(education_level_id) if education_level_id else None
+        academic_session_id = self.request.GET.get("academic_session")
+        academic_session_id = int(academic_session_id) if academic_session_id else None
         resource_type = self.request.GET.get("resource_type")
         resource_type = str(resource_type) if resource_type else None
 
         if q:
-            qs = qs.filter(
-                Q(title__icontains=q) | Q(description__icontains=q)
-            )
+            qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
         if learning_area_id:
             qs = qs.filter(learning_area_id=learning_area_id)
         if grade_id:
@@ -339,6 +405,9 @@ class EducationLevelDetailsView(ListView):
         if education_level_id:
             qs = qs.filter(grade__level__id=education_level_id)
 
+        if academic_session_id:
+            qs = qs.filter(academic_session_id=academic_session_id)
+
         if resource_type:
             qs = qs.filter(resource_type=resource_type)
 
@@ -346,20 +415,28 @@ class EducationLevelDetailsView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["education_level"] = get_slug_based_object_or_404_with_cache(EducationLevel, self.education_level)
+        context["education_level"] = get_slug_based_object_or_404_with_cache(
+            EducationLevel, self.education_level
+        )
         context["all_education_levels"] = get_education_levels()
         context["grades"] = get_grades()
         context["learning_areas"] = get_learning_areas()
         context["resource_types"] = get_resource_types()
+        context["all_academic_sessions"] = get_academic_sessions()
 
-        context['current_learning_area'] = self.request.GET.get("learning_area", '')
-        context['current_resource_type'] = self.request.GET.get("resource_type", '')
-        context['current_grade'] = self.request.GET.get("grade", '')
-        context['search_query'] = self.request.GET.get("q", '')
+        context["current_learning_area"] = self.request.GET.get("learning_area", "")
+        context["current_resource_type"] = self.request.GET.get("resource_type", "")
+        context["current_grade"] = self.request.GET.get("grade", "")
+        context["current_academic_session"] = self.request.GET.get(
+            "academic_session", ""
+        )
+        context["search_query"] = self.request.GET.get("q", "")
 
         # Pre-fetch user favorites to avoid N+1 queries in the template
         if self.request.user.is_authenticated:
-            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+            context["user_favorite_ids"] = set(
+                self.request.user.favorites.values_list("id", flat=True)
+            )
         else:
             context["user_favorite_ids"] = set()
 
@@ -379,6 +456,7 @@ class LearningAreaDetailsView(ListView):
     SEO-optimized landing page for a specific Learning Area.
     URL: /resources/learning-areas/<learning_area>/
     """
+
     template_name = "resources/learning_area_details.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
@@ -386,45 +464,53 @@ class LearningAreaDetailsView(ListView):
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
         self.learning_area = self.kwargs["slug"]
-        qs = (
-            ResourceItem.objects.filter(learning_area__slug=self.learning_area)
-        )
+        qs = ResourceItem.objects.filter(learning_area__slug=self.learning_area)
 
         q = self.request.GET.get("q")
-        q = q.strip() if q else ''
+        q = q.strip() if q else ""
         resource_type = self.request.GET.get("resource_type")
         resource_type = str(resource_type) if resource_type else None
         education_level_id = self.request.GET.get("education_level")
         education_level_id = int(education_level_id) if education_level_id else None
+        academic_session_id = self.request.GET.get("academic_session")
+        academic_session_id = int(academic_session_id) if academic_session_id else None
 
         if q:
-            qs = qs.filter(
-                Q(title__icontains=q) | Q(description__icontains=q)
-            )
+            qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
         if resource_type:
             qs = qs.filter(resource_type=resource_type)
         if education_level_id:
             qs = qs.filter(grade__level_id=education_level_id)
+        if academic_session_id:
+            qs = qs.filter(academic_session_id=academic_session_id)
 
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["learning_area"] = get_slug_based_object_or_404_with_cache(LearningArea, self.learning_area)
+        context["learning_area"] = get_slug_based_object_or_404_with_cache(
+            LearningArea, self.learning_area
+        )
 
         context["education_levels"] = get_education_levels()
         context["grades"] = get_grades()
         context["learning_areas"] = get_learning_areas()
         context["resource_types"] = get_resource_types()
+        context["all_academic_sessions"] = get_academic_sessions()
 
-        context['current_education_level'] = self.request.GET.get("education_level", '')
-        context['current_resource_type'] = self.request.GET.get("resource_type", '')
-        context['current_grade'] = self.request.GET.get("grade", '')
-        context['search_query'] = self.request.GET.get("q", '')
+        context["current_education_level"] = self.request.GET.get("education_level", "")
+        context["current_resource_type"] = self.request.GET.get("resource_type", "")
+        context["current_grade"] = self.request.GET.get("grade", "")
+        context["current_academic_session"] = self.request.GET.get(
+            "academic_session", ""
+        )
+        context["search_query"] = self.request.GET.get("q", "")
 
         # Pre-fetch user favorites to avoid N+1 queries in the template
         if self.request.user.is_authenticated:
-            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+            context["user_favorite_ids"] = set(
+                self.request.user.favorites.values_list("id", flat=True)
+            )
         else:
             context["user_favorite_ids"] = set()
 
@@ -444,6 +530,7 @@ class GradeDetailsView(ListView):
     SEO-optimized landing page for a specific Grade.
     URL: /resources/grades/<grade>/
     """
+
     template_name = "resources/grade_details.html"
     partial_template_name = "resources/partials/resource_cards.html"
     context_object_name = "resources"
@@ -451,26 +538,26 @@ class GradeDetailsView(ListView):
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
         self.grade = self.kwargs["slug"]
-        qs = (
-            ResourceItem.objects.filter(grade__slug=self.grade)
-        )
+        qs = ResourceItem.objects.filter(grade__slug=self.grade)
 
         q = self.request.GET.get("q")
-        q = q.strip() if q else ''
+        q = q.strip() if q else ""
 
         learning_area_id = self.request.GET.get("learning_area")
         learning_area_id = int(learning_area_id) if learning_area_id else None
         resource_type = self.request.GET.get("resource_type")
         resource_type = str(resource_type) if resource_type else None
+        academic_session_id = self.request.GET.get("academic_session")
+        academic_session_id = int(academic_session_id) if academic_session_id else None
 
         if q:
-            qs = qs.filter(
-                Q(title__icontains=q) | Q(description__icontains=q)
-            )
+            qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
         if learning_area_id:
             qs = qs.filter(learning_area_id=learning_area_id)
         if resource_type:
             qs = qs.filter(resource_type=resource_type)
+        if academic_session_id:
+            qs = qs.filter(academic_session_id=academic_session_id)
 
         return qs
 
@@ -480,14 +567,20 @@ class GradeDetailsView(ListView):
         context["all_grades"] = get_grades()
         context["learning_areas"] = get_learning_areas()
         context["resource_types"] = get_resource_types()
+        context["all_academic_sessions"] = get_academic_sessions()
 
-        context['current_learning_area'] = self.request.GET.get("learning_area", '')
-        context['current_resource_type'] = self.request.GET.get("resource_type", '')
-        context['search_query'] = self.request.GET.get("q", '')
+        context["current_learning_area"] = self.request.GET.get("learning_area", "")
+        context["current_resource_type"] = self.request.GET.get("resource_type", "")
+        context["current_academic_session"] = self.request.GET.get(
+            "academic_session", ""
+        )
+        context["search_query"] = self.request.GET.get("q", "")
 
         # Pre-fetch user favorites to avoid N+1 queries in the template
         if self.request.user.is_authenticated:
-            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+            context["user_favorite_ids"] = set(
+                self.request.user.favorites.values_list("id", flat=True)
+            )
         else:
             context["user_favorite_ids"] = set()
 
@@ -510,24 +603,20 @@ class AcademicSessionDetailView(ListView):
 
     def get_queryset(self) -> QuerySet[ResourceItem]:
         self.academic_session = self.kwargs["slug"]
-        qs = (
-            ResourceItem.objects.filter(academic_session__slug=self.academic_session)
-        )
+        qs = ResourceItem.objects.filter(academic_session__slug=self.academic_session)
 
         q = self.request.GET.get("q")
-        q = q.strip() if q else ''
+        q = q.strip() if q else ""
 
         learning_area_id = self.request.GET.get("learning_area")
         learning_area_id = int(learning_area_id) if learning_area_id else None
         resource_type = self.request.GET.get("resource_type")
         resource_type = str(resource_type) if resource_type else None
-        grade = self.request.GET.get("grade", '')
+        grade = self.request.GET.get("grade", "")
         grade = int(grade) if grade else None
 
         if q:
-            qs = qs.filter(
-                Q(title__icontains=q) | Q(description__icontains=q)
-            )
+            qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
         if learning_area_id:
             qs = qs.filter(learning_area_id=learning_area_id)
         if resource_type:
@@ -539,20 +628,24 @@ class AcademicSessionDetailView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["academic_session"] = get_slug_based_object_or_404_with_cache(AcademicSession, self.academic_session)
+        context["academic_session"] = get_slug_based_object_or_404_with_cache(
+            AcademicSession, self.academic_session
+        )
         context["all_academic_sessions"] = get_academic_sessions()
         context["grades"] = get_grades()
         context["learning_areas"] = get_learning_areas()
         context["resource_types"] = get_resource_types()
 
-        context['current_learning_area'] = self.request.GET.get("learning_area", '')
-        context['current_resource_type'] = self.request.GET.get("resource_type", '')
-        context['current_grade'] = self.request.GET.get("grade", '')
-        context['search_query'] = self.request.GET.get("q", '')
+        context["current_learning_area"] = self.request.GET.get("learning_area", "")
+        context["current_resource_type"] = self.request.GET.get("resource_type", "")
+        context["current_grade"] = self.request.GET.get("grade", "")
+        context["search_query"] = self.request.GET.get("q", "")
 
         # Pre-fetch user favorites to avoid N+1 queries in the template
         if self.request.user.is_authenticated:
-            context["user_favorite_ids"] = set(self.request.user.favorites.values_list("id", flat=True))
+            context["user_favorite_ids"] = set(
+                self.request.user.favorites.values_list("id", flat=True)
+            )
         else:
             context["user_favorite_ids"] = set()
 
@@ -675,8 +768,9 @@ class AcademicSessionListView(ListView):
         if q:
             q_lower = q.lower()
             qs = [
-                s for s in qs 
-                if q_lower in str(s.current_year.year).lower() 
+                s
+                for s in qs
+                if q_lower in str(s.current_year.year).lower()
                 or q_lower in str(s.current_term.term_number).lower()
             ]
         return qs
@@ -721,7 +815,7 @@ class ResourceUpdateView(VendorRequiredMixin, UpdateView):
     def get_queryset(self):
         # Only allow editing own resources, unless admin
         qs = super().get_queryset()
-        if self.request.user.is_superuser or self.request.user.role == 'admin':
+        if self.request.user.is_superuser or self.request.user.role == "admin":
             return qs
         return qs.filter(vendor=self.request.user)
 
@@ -741,7 +835,7 @@ class ResourceDeleteView(VendorRequiredMixin, DeleteView):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.request.user.is_superuser or self.request.user.role == 'admin':
+        if self.request.user.is_superuser or self.request.user.role == "admin":
             return qs
         return qs.filter(vendor=self.request.user)
 

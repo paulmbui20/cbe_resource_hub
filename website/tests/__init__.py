@@ -51,6 +51,7 @@ from website.tests.test_sitemaps import (
     PartnerSitemapTests,
     SitemapsRegistryTests,
 )
+from website.tests.test_cache import CacheInvalidationTests
 
 __all__ = [
     # Models
@@ -104,4 +105,6 @@ __all__ = [
     "EducationLevelSitemapTests",
     "PartnerSitemapTests",
     "SitemapsRegistryTests",
+    # Cache
+    "CacheInvalidationTests",
 ]
