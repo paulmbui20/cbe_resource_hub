@@ -12,7 +12,7 @@ from django.db.models.functions import Lower
 from django.urls import reverse
 from django.utils.html import strip_tags
 from django.utils.text import slugify
-from tinymce.models import HTMLField
+from core.fields import SafeHTMLField
 
 from cms.utils import unique_slug_generator
 from seo.models import SlugRedirectMixin, SEOModel
@@ -157,7 +157,7 @@ class Page(SEOModel, SlugRedirectMixin, models.Model):
         max_length=200,
         help_text="URL-friendly identifier — auto-populated from the title.",
     )
-    content: str = HTMLField(
+    content: str = SafeHTMLField(
         help_text="Page body — supports HTML (wire up TinyMCE in admin).",
     )
     is_published: bool = models.BooleanField(

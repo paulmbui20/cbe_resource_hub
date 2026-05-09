@@ -10,7 +10,7 @@ from django.db.models.functions import Lower
 from django.utils.html import strip_tags
 from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
-from tinymce.models import HTMLField
+from core.fields import SafeHTMLField
 
 from wagtail.models import Page
 from wagtail.fields import RichTextField
@@ -57,7 +57,7 @@ class Partner(SEOModel, SlugRedirectMixin, models.Model):
     name = models.CharField(max_length=255)
     link = models.URLField(null=True, blank=True)
     slug = models.SlugField(max_length=255, null=True, blank=True)
-    description = HTMLField(null=True, blank=True)
+    description = SafeHTMLField(null=True, blank=True)
     logo = models.ImageField(
         upload_to="partners/logos/",
         null=True,

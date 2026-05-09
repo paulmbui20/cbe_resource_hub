@@ -16,6 +16,7 @@ load_dotenv()
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def require_env(name: str, default: str | None = None) -> str:
     """Get an env var or raise RuntimeError if missing and no default given."""
     value = os.getenv(name, default)
@@ -82,6 +83,7 @@ THIRD_PARTY_APPS: list[str] = [
     "axes",
     "django_smart_ratelimit",
     "dbbackup",
+    "django_nh3",
 ]
 
 MY_APPS: list[str] = [
@@ -229,7 +231,9 @@ LOGIN_REDIRECT_URL = "accounts:dashboard"
 LOGOUT_REDIRECT_URL = "/"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -340,16 +344,16 @@ ASGI_APPLICATION = "cbe_res_hub.asgi.application"
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-
     "filters": {
         "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
         "require_debug_true": {"()": "django.utils.log.RequireDebugTrue"},
         "skip_static_requests": {
             "()": "django.utils.log.CallbackFilter",
-            "callback": lambda record: not record.getMessage().startswith("GET /static/"),
+            "callback": lambda record: (
+                not record.getMessage().startswith("GET /static/")
+            ),
         },
     },
-
     "formatters": {
         "verbose": {
             "format": "[{asctime}] {levelname:8} {name:30} {module:15} {funcName:15} {lineno:4d} | {message}",
@@ -372,7 +376,6 @@ LOGGING = {
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
-
     "handlers": {
         "stdout": {
             "level": "INFO",
@@ -424,7 +427,6 @@ LOGGING = {
             "filters": ["require_debug_true"],
         },
     },
-
     "loggers": {
         "": {
             "handlers": ["stdout", "stderr"],
@@ -559,5 +561,100 @@ WAGTAIL_SITE_NAME = "CBE Resource Hub"
 WAGTAILADMIN_BASE_URL = SITE_URL
 WAGTAILDOCS_SERVE_METHOD = "direct"
 
-WAGTAILIMAGES_IMAGE_MODEL = 'website.CustomImage'
-WAGTAILDOCS_DOCUMENT_MODEL = 'website.CustomDocument'
+WAGTAILIMAGES_IMAGE_MODEL = "website.CustomImage"
+WAGTAILDOCS_DOCUMENT_MODEL = "website.CustomDocument"
+
+# ── django-nh3 settings ──────────────────────────────────────────────────
+NH3_ALLOWED_TAGS = {
+    "a",
+    "abbr",
+    "acronym",
+    "address",
+    "area",
+    "article",
+    "aside",
+    "b",
+    "bdi",
+    "bdo",
+    "big",
+    "blockquote",
+    "br",
+    "caption",
+    "center",
+    "cite",
+    "code",
+    "col",
+    "colgroup",
+    "data",
+    "dd",
+    "del",
+    "details",
+    "dfn",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "figcaption",
+    "figure",
+    "footer",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "header",
+    "hgroup",
+    "hr",
+    "i",
+    "img",
+    "ins",
+    "kbd",
+    "li",
+    "map",
+    "mark",
+    "nav",
+    "ol",
+    "p",
+    "pre",
+    "q",
+    "rp",
+    "rt",
+    "ruby",
+    "s",
+    "samp",
+    "section",
+    "small",
+    "span",
+    "strike",
+    "strong",
+    "sub",
+    "summary",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "time",
+    "tr",
+    "tt",
+    "u",
+    "ul",
+    "var",
+    "wbr",
+}
+
+NH3_ALLOWED_ATTRIBUTES = {
+    "*": {"class", "style", "title", "dir", "lang"},
+    "a": {"href", "name", "target", "rel"},
+    "img": {"src", "alt", "width", "height"},
+    "table": {"border", "cellpadding", "cellspacing", "summary"},
+    "th": {"scope", "colspan", "rowspan"},
+    "td": {"colspan", "rowspan"},
+}
+
+NH3_CLEAN_CONTENT_TAGS = {"script", "style"}
+NH3_LINK_REL = "noopener noreferrer nofollow"
+NH3_STRIP_COMMENTS = True

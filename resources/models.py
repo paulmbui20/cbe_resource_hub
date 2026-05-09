@@ -20,7 +20,7 @@ from django.db.models.functions import Lower
 from django.urls import reverse
 from django.utils.html import strip_tags
 from django.utils.text import slugify
-from tinymce.models import HTMLField
+from core.fields import SafeHTMLField
 
 from core.models import AcademicSession
 from resources.utils import PublicFilesStorageCallable, file_upload_path
@@ -188,7 +188,7 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
         max_length=265,
         db_index=True,
     )
-    description: str = HTMLField(default="", blank=True)
+    description: str = SafeHTMLField(default="", blank=True)
 
     # --- Curriculum Classification ---
     grade: Grade = models.ForeignKey(

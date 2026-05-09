@@ -115,6 +115,7 @@ dependencies = [
     "wcwidth==0.6.0",
     "zope-interface==8.2",
     "wagtail>=7.4",
+    "django-nh3>=0.3.1",
 ]
 
 [dependency-groups]
