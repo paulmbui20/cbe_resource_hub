@@ -355,10 +355,6 @@ class TestimonialsPageViewTests(WebsiteBaseTestCase):
         r = self.client.get(self.URL)
         self.assertIn("testimonials", r.context)
 
-    def test_context_has_featured(self):
-        r = self.client.get(self.URL)
-        self.assertIn("featured", r.context)
-
     def test_only_active_in_context(self):
         r = self.client.get(self.URL)
         all_t = list(r.context["testimonials"])
@@ -366,9 +362,9 @@ class TestimonialsPageViewTests(WebsiteBaseTestCase):
         self.assertIn(self.featured, all_t)
         self.assertNotIn(self.inactive, all_t)
 
-    def test_featured_in_featured_context(self):
+    def test_testimonials_in_testimonials_context(self):
         r = self.client.get(self.URL)
-        featured = list(r.context["featured"])
+        featured = list(r.context["testimonials"])
         self.assertIn(self.featured, featured)
         self.assertNotIn(self.inactive, featured)
 
