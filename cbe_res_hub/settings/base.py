@@ -648,7 +648,7 @@ NH3_ALLOWED_TAGS = {
 
 NH3_ALLOWED_ATTRIBUTES = {
     "*": {"class", "style", "title", "dir", "lang"},
-    "a": {"href", "name", "target", "rel"},
+    "a": {"href", "name", "target"},
     "img": {"src", "alt", "width", "height"},
     "table": {"border", "cellpadding", "cellspacing", "summary"},
     "th": {"scope", "colspan", "rowspan"},
@@ -658,3 +658,5 @@ NH3_ALLOWED_ATTRIBUTES = {
 NH3_CLEAN_CONTENT_TAGS = {"script", "style"}
 NH3_LINK_REL = "noopener noreferrer nofollow"
 NH3_STRIP_COMMENTS = True
+
+NH3_ALLOWED_URL_SCHEMES = {"http", "https", "mailto", "tel"}

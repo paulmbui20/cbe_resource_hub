@@ -53,6 +53,8 @@ from website.tests.test_sitemaps import (
 )
 from website.tests.test_cache import CacheInvalidationTests
 
+from website.tests.test_sanitization import SanitizationTests
+
 __all__ = [
     # Models
     "ContactMessageModelTests",
@@ -107,4 +109,6 @@ __all__ = [
     "SitemapsRegistryTests",
     # Cache
     "CacheInvalidationTests",
+    # Sanitization
+    "SanitizationTests",
 ]
