@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static wagtailcore_tags wagtailimages_tags %}
 
-{% block title %}{{ page.title }} | CBE Hub{% endblock %}
+{% block title %}{{ page.title }}{% endblock %}
 
 {# ── SEO & Open Graph ─────────────────────────────────────────────────── #}
 {% block meta_tags %}
@@ -39,7 +39,7 @@
   "image": "{{ request.scheme }}://{{ request.get_host }}{{ og_img.url }}"{% endif %},
   "publisher": {
     "@type": "Organization",
-    "name": "CBE Hub"
+    "name": f"{site_settings.site_name|default:'CBE Resource Hub'}"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -118,7 +118,7 @@
     {# Top brand rule #}
     <div class="flex items-center gap-4 mb-8" aria-hidden="true">
       <div class="h-px bg-linear-to-r from-transparent via-brand-gold/45 to-transparent flex-1"></div>
-      <span class="text-brand-gold/40 text-xs tracking-[0.25em] uppercase font-body font-semibold">CBE Hub</span>
+      <span class="text-brand-gold/40 text-xs tracking-[0.25em] uppercase font-body font-semibold">{{ site_settings.site_name|default:"CBE Resource Hub" }}</span>
       <div class="h-px bg-linear-to-r from-transparent via-brand-gold/45 to-transparent flex-1"></div>
     </div>
 

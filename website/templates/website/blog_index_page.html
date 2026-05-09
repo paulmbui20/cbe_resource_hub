@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static wagtailcore_tags wagtailimages_tags %}
 
-{% block title %}{{ page.title }} | CBE Hub{% endblock %}
+{% block title %}{{ page.title }}{% endblock %}
 
 {# ── SEO meta tags ─────────────────────────────────────────────────────── #}
 {% block meta_tags %}
@@ -53,7 +53,7 @@
     {# Top rule with issue marker #}
     <div class="flex items-center gap-4 pt-8 pb-5">
       <div class="h-px bg-linear-to-r from-transparent via-brand-gold/45 to-transparent flex-1"></div>
-      <span class="text-brand-gold/50 text-xs font-semibold tracking-[0.25em] uppercase font-body">CBE Hub</span>
+      <span class="text-brand-gold/50 text-xs font-semibold tracking-[0.25em] uppercase font-body">{{ site_settings.site_name|default:"CBE Resource Hub" }}</span>
       <div class="h-px bg-linear-to-r from-transparent via-brand-gold/45 to-transparent flex-1"></div>
     </div>
 
