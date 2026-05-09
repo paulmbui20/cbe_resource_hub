@@ -31,6 +31,8 @@ class AdminUserListView(IsAdminMixin, ListView):
         q = self.request.GET.get("q")
         if q:
             qs = qs.filter(email__icontains=q)
+        if not self.request.user.is_superuser:
+            qs = qs.exclude(is_superuser=True)
         return qs
 
 
@@ -76,6 +78,12 @@ class AdminUserUpdateView(IsAdminMixin, UpdateView):
         ctx["cancel_url"] = self.success_url
         return ctx
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_superuser:
+            qs = qs.exclude(is_superuser=True)
+        return qs
+
     def form_valid(self, form):
         message = f"User {self.object.email}  updated successfully."
         subject = "User updated!"
@@ -91,6 +99,12 @@ class AdminUserDeleteView(IsAdminMixin, DeleteView):
     http_method_names = [
         "post",
     ]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_superuser:
+            qs = qs.exclude(is_superuser=True)
+        return qs
 
     def form_valid(self, form):
         message = f"User{self.object.email} deleted permanently."
@@ -118,6 +132,12 @@ class AdminUserBulkToggleView(IsAdminMixin, TemplateView):
             # Guard against disabling self
             if action == "disable" and str(request.user.id) in [str(u) for u in user_ids]:
                 return JsonResponse({"error": "You cannot disable your own account."}, status=403)
+
+            # Guard against modifying superusers if request user is not a superuser
+            if not request.user.is_superuser:
+                superuser_count = CustomUser.objects.filter(id__in=user_ids, is_superuser=True).count()
+                if superuser_count > 0:
+                    return JsonResponse({"error": "You do not have permission to modify superuser accounts."}, status=403)
 
             is_active_val = (action == "enable")
             updated = CustomUser.objects.filter(id__in=user_ids).update(is_active=is_active_val)
