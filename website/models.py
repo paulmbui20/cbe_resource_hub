@@ -5,7 +5,11 @@ Stores submitted contact form messages so admins can read and manage
 them from the custom management panel.
 """
 
+from taggit.forms import TagWidget
+from datetime import date
+
 from django.db import models
+from django.core.files.storage import storages
 from django.db.models.functions import Lower
 from django.utils.html import strip_tags
 from django.utils.text import slugify
@@ -15,8 +19,12 @@ from core.fields import SafeHTMLField
 from wagtail.models import Page
 from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel
-from wagtail.images.models import AbstractImage, AbstractRendition
-from wagtail.documents.models import AbstractDocument
+from wagtail.images.models import AbstractImage, AbstractRendition, Image
+from wagtail.documents.models import AbstractDocument, Document
+
+from taggit.models import TaggedItemBase
+from modelcluster.fields import ParentalKey
+from modelcluster.contrib.taggit import ClusterTaggableManager
 
 from core.models import TimeStampedModel
 from seo.models import SEOModel, SlugRedirectMixin
@@ -139,10 +147,14 @@ class EmailSubscriber(TimeStampedModel, models.Model):
 class CustomImage(AbstractImage):
     file = models.ImageField(
         upload_to="wagtail_images/",
-        storage="public_files",
+        storage=storages["public_files"],
         verbose_name="file",
+        width_field="width",
+        height_field="height",
         validators=[validate_image_file],
     )
+
+    admin_form_fields = Image.admin_form_fields
 
 
 class CustomRendition(AbstractRendition):
@@ -151,7 +163,9 @@ class CustomRendition(AbstractRendition):
     )
     file = models.ImageField(
         upload_to="wagtail_renditions/",
-        storage="public_files",
+        storage=storages["public_files"],
+        width_field="width",
+        height_field="height",
         validators=[validate_image_file],
     )
 
@@ -162,27 +176,45 @@ class CustomRendition(AbstractRendition):
 class CustomDocument(AbstractDocument):
     file = models.FileField(
         upload_to="wagtail_docs/",
-        storage="public_files",
+        storage=storages["public_files"],
         verbose_name="file",
     )
 
+    admin_form_fields = Document.admin_form_fields
+
 
 class BlogIndexPage(Page):
+    """This page is the parent page for all blog pages.
+    It will display all blog pages in a list.
+    Only One such page can be created.
+    """
+
     intro = RichTextField(blank=True)
 
     content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
 
     def get_context(self, request):
+
+        tag = request.GET.get("tag")
+        if tag:
+            blogpages = BlogPage.objects.filter(
+                tags__name=tag,
+                live=True,
+            ).order_by("-first_published_at")
+        else:
+            blogpages = self.get_children().live().order_by("-first_published_at")
+
         context = super().get_context(request)
-        blogpages = self.get_children().live().order_by("-first_published_at")
         context["blogpages"] = blogpages
         return context
 
 
 class BlogPage(Page):
-    date = models.DateField("Post date")
-    intro = models.CharField(max_length=250)
-    body = RichTextField(blank=True)
+    """A single blog post. It will be displayed in a list on the BlogIndexPage."""
+
+    date = models.DateField("Post date", default=date.today)
+    intro = models.CharField(max_length=250, blank=True, default="")
+    body = RichTextField(blank=True, default="")
 
     main_image = models.ForeignKey(
         "website.CustomImage",
@@ -191,13 +223,21 @@ class BlogPage(Page):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    tags = ClusterTaggableManager(through="BlogTag", blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("date"),
         FieldPanel("main_image"),
         FieldPanel("intro"),
         FieldPanel("body", classname="full"),
+        FieldPanel("tags", widget=TagWidget),
     ]
+
+
+class BlogTag(TaggedItemBase):
+    content_object = ParentalKey(
+        "website.BlogPage", on_delete=models.CASCADE, related_name="tagged_items"
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────

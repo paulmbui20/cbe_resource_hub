@@ -1,48 +1,425 @@
 {% extends "base.html" %}
 {% load static wagtailcore_tags wagtailimages_tags %}
 
-{% block title %}{{ page.title }}{% endblock %}
+{% block title %}{{ page.title }} | CBE Hub{% endblock %}
+
+{# ── SEO & Open Graph ─────────────────────────────────────────────────── #}
+{% block meta_tags %}
+<meta name="description" content="{{ page.intro|default:page.body|striptags|truncatechars:160 }}">
+
+{# Open Graph #}
+<meta property="og:type"        content="article">
+<meta property="og:title"       content="{{ page.title }}">
+<meta property="og:description" content="{{ page.intro|default:page.body|striptags|truncatechars:160 }}">
+<meta property="og:url"         content="{{ request.build_absolute_uri }}">
+{% if page.main_image %}
+  {% image page.main_image fill-1200x630 as og_img %}
+  <meta property="og:image"       content="{{ request.scheme }}://{{ request.get_host }}{{ og_img.url }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+{% endif %}
+<meta property="article:published_time" content="{{ page.date|date:'Y-m-d' }}">
+
+{# Twitter Card #}
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="{{ page.title }}">
+<meta name="twitter:description" content="{{ page.intro|default:page.body|striptags|truncatechars:160 }}">
+{% if page.main_image %}
+  <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ og_img.url }}">
+{% endif %}
+
+{# Structured data: Article #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ page.title|escapejs }}",
+  "datePublished": "{{ page.date|date:'Y-m-d' }}",
+  "description": "{{ page.intro|default:page.body|striptags|truncatechars:160|escapejs }}"{% if page.main_image %},
+  "image": "{{ request.scheme }}://{{ request.get_host }}{{ og_img.url }}"{% endif %},
+  "publisher": {
+    "@type": "Organization",
+    "name": "CBE Hub"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ request.build_absolute_uri }}"
+  }
+}
+</script>
+
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
 
 {% block content %}
-    <section class="relative bg-brand-secondary border-b border-white/5 pt-10 pb-16">
-        <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-            <div class="absolute -top-60 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-brand-gold/10 blur-3xl"></div>
-        </div>
-        
-        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <!-- Breadcrumb -->
-            <nav class="flex items-center justify-center gap-2 text-xs text-white/40 mb-6" aria-label="Breadcrumb">
-                <a href="/" class="hover:text-white transition-colors">Home</a>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                <a href="{{ page.get_parent.url }}" class="hover:text-white transition-colors">{{ page.get_parent.title }}</a>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                <span class="text-white/70">{{ page.title }}</span>
-            </nav>
 
-            <span class="text-brand-gold font-semibold text-sm tracking-wider uppercase mb-3 block">
-                {{ page.date|date:"F j, Y" }}
-            </span>
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-6">
-                {{ page.title }}
-            </h1>
-            <p class="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
-                {{ page.intro }}
-            </p>
-        </div>
-    </section>
+{# ── Scoped styles ────────────────────────────────────────────────────── #}
+<style>
+  /* Table of contents */
+  #toc a {
+    display: block;
+    padding: 0.3rem 0;
+    color: rgba(255,255,255,0.45);
+    font-size: 0.8rem;
+    border-left: 2px solid transparent;
+    padding-left: 0.75rem;
+    transition: color 0.2s, border-color 0.2s;
+    text-decoration: none;
+  }
+  #toc a:hover,
+  #toc a.active {
+    color: #f59e0b;
+    border-left-color: #f59e0b;
+  }
 
-    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  /* Fade-in hero text */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero-animate { opacity: 0; animation: fadeInUp 0.6s ease forwards; }
+  .hero-animate:nth-child(1) { animation-delay: 0.05s; }
+  .hero-animate:nth-child(2) { animation-delay: 0.15s; }
+  .hero-animate:nth-child(3) { animation-delay: 0.25s; }
+  .hero-animate:nth-child(4) { animation-delay: 0.35s; }
+</style>
+
+{# ── Reading progress bar ─────────────────────────────────────────────── #}
+<div id="progress-bar" class="fixed top-0 left-0 h-0.5 w-0 bg-linear-to-r from-brand-gold to-brand-accent z-[9999] transition-[width] duration-75 ease-linear" role="progressbar"
+     aria-label="Reading progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+{# ── Skip to content ───────────────────────────────────────────────────── #}
+<a href="#article-content"
+   class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-brand-gold focus:text-brand-secondary focus:px-4 focus:py-2 focus:rounded-lg focus:font-semibold">
+  Skip to article
+</a>
+
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# HERO SECTION                                                          #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+<header class="relative bg-brand-secondary" role="banner">
+
+  {# Atmospheric glows #}
+  <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div class="absolute -top-64 left-1/3 w-[700px] h-[600px] rounded-full bg-brand-gold/7 blur-[130px]"></div>
+    <div class="absolute top-0 right-0 w-[500px] h-[400px] rounded-full bg-brand-primary/8 blur-[110px]"></div>
+    <svg class="absolute inset-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid-dots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+          <circle cx="1.5" cy="1.5" r="1" fill="white"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid-dots)"/>
+    </svg>
+  </div>
+
+  <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14">
+
+    {# Top brand rule #}
+    <div class="flex items-center gap-4 mb-8" aria-hidden="true">
+      <div class="h-px bg-linear-to-r from-transparent via-brand-gold/45 to-transparent flex-1"></div>
+      <span class="text-brand-gold/40 text-xs tracking-[0.25em] uppercase font-body font-semibold">CBE Hub</span>
+      <div class="h-px bg-linear-to-r from-transparent via-brand-gold/45 to-transparent flex-1"></div>
+    </div>
+
+    {# Breadcrumb #}
+    <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 text-xs text-white/40 mb-8 font-body hero-animate">
+      <a href="/"
+         class="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-gold rounded">
+        Home
+      </a>
+      <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <a href="{{ page.get_parent.url }}"
+         class="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-gold rounded">
+        {{ page.get_parent.title }}
+      </a>
+      <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <span class="text-white/70 truncate max-w-[200px]" aria-current="page" title="{{ page.title }}">
+        {{ page.title|truncatechars:40 }}
+      </span>
+    </nav>
+
+    {# Meta row #}
+    <div class="flex flex-wrap items-center gap-3 mb-5 hero-animate">
+      <time class="text-brand-gold font-semibold text-sm tracking-widest uppercase font-body"
+            datetime="{{ page.date|date:'Y-m-d' }}">
+        {{ page.date|date:"F j, Y" }}
+      </time>
+      {% if page.tags.all %}
+        <span class="text-white/20" aria-hidden="true">|</span>
+        {% for tag in page.tags.all %}
+          <a href="{{ page.get_parent.url }}?tag={{ tag.slug }}"
+             class="inline-flex items-center px-[0.7rem] py-[0.22rem] rounded-full text-[0.65rem] font-semibold tracking-[0.08em] uppercase border border-brand-gold/35 text-brand-gold bg-brand-gold/10 hover:bg-brand-gold/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-gold"
+             aria-label="Browse articles tagged: {{ tag }}">
+            {{ tag }}
+          </a>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    {# Headline #}
+    <h1 class="font-editorial text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-white
+               leading-[1.1] tracking-tight mb-6 hero-animate">
+      {{ page.title }}
+    </h1>
+
+    {# Intro / deck #}
+    {% if page.intro %}
+    <p class="text-lg sm:text-xl text-white/65 leading-relaxed max-w-3xl font-body font-light hero-animate">
+      {{ page.intro }}
+    </p>
+    {% endif %}
+
+    {# Bottom rule #}
+    <div class="h-px bg-linear-to-r from-transparent via-brand-gold/45 to-transparent mt-12" aria-hidden="true"></div>
+  </div>
+</header>
+
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# MAIN CONTENT AREA                                                     #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+<main id="article-content" class="bg-brand-secondary" tabindex="-1">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    {# Two-column layout on large screens #}
+    <div class="flex gap-14 items-start">
+
+      {# ── Left: Article ──────────────────────────────────────────────── #}
+      <div class="min-w-0 flex-1">
+
+        {# Hero image #}
         {% if page.main_image %}
-            {% image page.main_image fill-1200x600 as img %}
-            <div class="w-full rounded-2xl overflow-hidden mb-12 shadow-2xl">
-                <img src="{{ img.url }}" alt="{{ img.alt }}" class="w-full h-auto object-cover">
-            </div>
+          {% image page.main_image fill-1200x600 as hero_img %}
+          <figure class="w-full rounded-2xl overflow-hidden mb-12 shadow-2xl shadow-black/50">
+            <img src="{{ hero_img.url }}"
+                 alt="{{ hero_img.alt|default:page.title }}"
+                 class="w-full h-auto object-cover will-change-transform"
+                 width="1200" height="600"
+                 loading="eager" fetchpriority="high">
+          </figure>
         {% endif %}
-        
+
+        {# ── Article body ─────────────────────────────────────────────── #}
         <article class="prose prose-invert prose-brand max-w-none 
-                        prose-headings:text-white prose-p:text-white/80 prose-a:text-brand-gold 
-                        prose-strong:text-white prose-li:text-white/80">
-            {{ page.body|richtext }}
+                        prose-headings:text-white prose-headings:font-editorial prose-p:text-white/80 prose-p:font-light prose-p:leading-relaxed prose-a:text-brand-gold prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-brand-gold/80 prose-strong:text-white prose-li:text-white/80
+                        prose-h2:text-[1.85rem] prose-h2:font-black prose-h3:text-[1.4rem] prose-h3:font-bold
+                        prose-blockquote:border-brand-gold prose-blockquote:bg-brand-gold/5 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-xl prose-blockquote:font-style-italic prose-blockquote:text-white/70
+                        prose-pre:bg-white/5 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl prose-code:text-brand-gold prose-code:bg-brand-gold/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md
+                        prose-img:rounded-xl prose-img:shadow-lg prose-hr:border-white/10 first-letter:text-5xl first-letter:font-editorial first-letter:text-brand-gold first-letter:float-left first-letter:mr-3 first-letter:-mt-1 first-letter:leading-none" id="article-body"
+                 itemscope itemtype="https://schema.org/Article">
+          <meta itemprop="headline"       content="{{ page.title }}">
+          <meta itemprop="datePublished"  content="{{ page.date|date:'Y-m-d' }}">
+
+          {{ page.body|richtext }}
         </article>
-    </section>
+
+        {# ── Tags footer ─────────────────────────────────────────────── #}
+        {% if page.tags.all %}
+        <div class="mt-14 pt-8 border-t border-white/10">
+          <p class="text-xs text-white/30 uppercase tracking-widest font-semibold font-body mb-3">Filed under</p>
+          <div class="flex flex-wrap gap-2" role="list" aria-label="Article tags">
+            {% for tag in page.tags.all %}
+              <a href="{{ page.get_parent.url }}?tag={{ tag.slug }}"
+                 class="inline-flex items-center px-[0.7rem] py-[0.22rem] rounded-full text-[0.65rem] font-semibold tracking-[0.08em] uppercase border border-brand-gold/35 text-brand-gold bg-brand-gold/10 hover:bg-brand-gold/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-gold"
+                 role="listitem"
+                 aria-label="Browse articles tagged: {{ tag }}">
+                {{ tag }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {# ── Share row ────────────────────────────────────────────────── #}
+        <div class="mt-10 pt-8 border-t border-white/10 flex flex-wrap items-center gap-3"
+             aria-label="Share this article">
+          <span class="text-xs text-white/35 uppercase tracking-widest font-semibold font-body mr-1">Share</span>
+
+          {# Twitter/X #}
+          <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ page.title|urlencode }}"
+             target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase border border-white/10 text-white/60 bg-white/5 hover:border-brand-gold/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+             aria-label="Share on X (Twitter)">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.261 5.635L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+            X / Twitter
+          </a>
+
+          {# LinkedIn #}
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri|urlencode }}"
+             target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase border border-white/10 text-white/60 bg-white/5 hover:border-brand-gold/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+             aria-label="Share on LinkedIn">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+            LinkedIn
+          </a>
+
+          {# Copy link #}
+          <button type="button"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase border border-white/10 text-white/60 bg-white/5 hover:border-brand-gold/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+                  aria-label="Copy link to article"
+                  x-data
+                  @click="
+                    navigator.clipboard.writeText(window.location.href)
+                      .then(() => { $el.querySelector('span').textContent = 'Copied!'; setTimeout(() => $el.querySelector('span').textContent = 'Copy Link', 1800); })
+                  ">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <span>Copy Link</span>
+          </button>
+        </div>
+
+        {# ── Navigation: prev / next ───────────────────────────────────── #}
+        {% with page.get_prev_sibling as prev_post %}
+        {% with page.get_next_sibling as next_post %}
+        {% if prev_post or next_post %}
+        <nav aria-label="Article navigation"
+             class="mt-14 pt-8 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {% if prev_post %}
+          <a href="{{ prev_post.url }}"
+             class="group flex items-start gap-3 p-5 rounded-xl bg-white/5 border border-white/10 hover:border-brand-gold/30 hover:bg-white/8 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+             rel="prev"
+             aria-label="Previous article: {{ prev_post.title }}">
+            <svg class="w-5 h-5 text-white/40 group-hover:text-brand-gold transition-colors mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            <div>
+              <span class="block text-xs text-white/35 uppercase tracking-widest font-semibold mb-1 font-body">Previous</span>
+              <span class="text-sm text-white/80 group-hover:text-white transition-colors font-body leading-snug line-clamp-2">{{ prev_post.title }}</span>
+            </div>
+          </a>
+          {% else %}<div></div>{% endif %}
+
+          {% if next_post %}
+          <a href="{{ next_post.url }}"
+             class="group flex items-end gap-3 p-5 rounded-xl bg-white/5 border border-white/10 hover:border-brand-gold/30 hover:bg-white/8 transition-all text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold sm:flex-row-reverse"
+             rel="next"
+             aria-label="Next article: {{ next_post.title }}">
+            <svg class="w-5 h-5 text-white/40 group-hover:text-brand-gold transition-colors mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            <div>
+              <span class="block text-xs text-white/35 uppercase tracking-widest font-semibold mb-1 font-body">Next</span>
+              <span class="text-sm text-white/80 group-hover:text-white transition-colors font-body leading-snug line-clamp-2">{{ next_post.title }}</span>
+            </div>
+          </a>
+          {% endif %}
+        </nav>
+        {% endif %}
+        {% endwith %}
+        {% endwith %}
+
+      </div>{# /article #}
+
+      {# ── Right: Sidebar (lg+ only) ──────────────────────────────────── #}
+      <aside class="hidden lg:block w-64 xl:w-72 shrink-0 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"
+             aria-label="Article sidebar">
+
+        {# Table of Contents #}
+        <div class="bg-white/4 border border-white/10 rounded-2xl p-6 mb-6">
+          <p class="text-xs text-white/35 uppercase tracking-widest font-semibold mb-4 font-body">
+            Contents
+          </p>
+          <nav id="toc" aria-label="Table of contents">
+            <p class="text-xs text-white/25 font-body italic" id="toc-placeholder">
+              Loading contents…
+            </p>
+          </nav>
+        </div>
+
+        {# Article meta card #}
+        <div class="bg-white/4 border border-white/10 rounded-2xl p-6">
+          <p class="text-xs text-white/35 uppercase tracking-widest font-semibold mb-4 font-body">
+            Article Info
+          </p>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-xs text-white/30 font-body mb-0.5">Published</dt>
+              <dd class="text-sm text-white/70 font-body">
+                <time datetime="{{ page.date|date:'Y-m-d' }}">{{ page.date|date:"F j, Y" }}</time>
+              </dd>
+            </div>
+            {% if page.tags.all %}
+            <div>
+              <dt class="text-xs text-white/30 font-body mb-1.5">Topics</dt>
+              <dd class="flex flex-wrap gap-1.5">
+                {% for tag in page.tags.all %}
+                  <a href="{{ page.get_parent.url }}?tag={{ tag.slug }}"
+                     class="inline-flex items-center px-[0.7rem] py-[0.22rem] rounded-full text-[0.65rem] font-semibold tracking-[0.08em] uppercase border border-brand-gold/35 text-brand-gold bg-brand-gold/10 hover:bg-brand-gold/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-gold">
+                    {{ tag }}
+                  </a>
+                {% endfor %}
+              </dd>
+            </div>
+            {% endif %}
+          </dl>
+        </div>
+
+      </aside>
+
+    </div>{# /two-col #}
+  </div>
+</main>
+
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# SCRIPTS                                                               #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+<script>
+(function () {
+  /* ── Reading progress bar ─────────────────────────────────────────── */
+  var bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', function () {
+    var scrolled = window.scrollY;
+    var total = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = total > 0 ? Math.round(scrolled / total * 100) : 0;
+    if (bar) {
+      bar.style.width = pct + '%';
+      bar.setAttribute('aria-valuenow', pct);
+    }
+  }, { passive: true });
+
+  /* ── Auto Table of Contents ───────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+    var articleBody = document.getElementById('article-body');
+    var toc         = document.getElementById('toc');
+    var placeholder = document.getElementById('toc-placeholder');
+    if (!articleBody || !toc) return;
+
+    var headings = articleBody.querySelectorAll('h2, h3');
+    if (headings.length === 0) {
+      if (placeholder) placeholder.textContent = 'No sections found.';
+      return;
+    }
+    if (placeholder) placeholder.remove();
+
+    headings.forEach(function (h, i) {
+      if (!h.id) h.id = 'section-' + i;
+      var a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent;
+      a.style.paddingLeft = h.tagName === 'H3' ? '1.25rem' : '0.75rem';
+      toc.appendChild(a);
+    });
+
+    /* Intersection Observer for active highlight */
+    var links = toc.querySelectorAll('a');
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '0px 0px -60% 0px', threshold: 0 });
+
+    headings.forEach(function (h) { observer.observe(h); });
+  });
+})();
+</script>
+
 {% endblock %}
