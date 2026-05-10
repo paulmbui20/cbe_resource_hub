@@ -28,7 +28,7 @@
 </style>
 
 {# ── Reading progress bar ─────────────────────────────────────────────── #}
-<div id="progress-bar" class="fixed top-0 left-0 h-0.5 w-0 bg-linear-to-r from-brand-gold to-brand-accent z-[9999] transition-[width] duration-75 ease-linear" role="progressbar" aria-hidden="true"></div>
+<div id="progress-bar" class="fixed top-0 left-0 h-0.5 w-0 bg-linear-to-r from-brand-gold to-brand-accent z-9999 transition-[width] duration-75 ease-linear" role="progressbar" aria-hidden="true"></div>
 
 {# ── Hero / Masthead ──────────────────────────────────────────────────── #}
 <header class="relative bg-brand-secondary overflow-hidden" role="banner">
@@ -112,7 +112,7 @@
            aria-label="Read: {{ featured.title }}">
 
           {# Image — takes 55% on desktop #}
-          <div class="relative lg:w-[55%] aspect-[16/9] lg:aspect-auto overflow-hidden bg-brand-primary/30">
+          <div class="relative lg:w-[55%] aspect-video lg:aspect-auto overflow-hidden bg-brand-primary/30">
             {% if featured.specific.main_image %}
               {% image featured.specific.main_image fill-1200x700 as fimg %}
               <img src="{{ fimg.url }}"
@@ -191,7 +191,7 @@
                aria-label="Read: {{ post.title }}">
 
               {# Thumbnail #}
-              <div class="relative aspect-[16/9] w-full overflow-hidden bg-brand-primary/20">
+              <div class="relative aspect-video w-full overflow-hidden bg-brand-primary/20">
                 {% if post.specific.main_image %}
                   {% image post.specific.main_image fill-800x450 as thumb %}
                   <img src="{{ thumb.url }}"
@@ -207,7 +207,7 @@
                   </div>
                 {% endif %}
                 {# Gold gradient overlay at bottom #}
-                <div class="absolute inset-0 bg-gradient-to-t from-brand-secondary/60 via-transparent to-transparent"></div>
+                <div class="absolute inset-0 bg-linear-to-t from-brand-secondary/60 via-transparent to-transparent"></div>
               </div>
 
               {# Card body #}
@@ -241,10 +241,6 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                     </svg>
-                  </span>
-                  {# Est. reading time (approx) #}
-                  <span class="text-white/30 text-xs font-body" aria-label="Estimated reading time">
-                    ~3 min read
                   </span>
                 </div>
               </div>

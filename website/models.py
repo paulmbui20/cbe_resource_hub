@@ -251,9 +251,20 @@ class BlogAuthor(models.Model):
     )
 
     facebook = models.URLField(blank=True)
-    twitter = models.URLField(blank=True)
-    linkedin = models.URLField(blank=True)
     instagram = models.URLField(blank=True)
+
+    tiktok = models.URLField(blank=True)
+
+    twitter = models.URLField(blank=True)
+
+    youtube = models.URLField(blank=True)
+
+    linkedin = models.URLField(blank=True)
+
+    whatsapp = models.URLField(blank=True)
+
+    telegram = models.URLField(blank=True)
+
     email = models.EmailField(blank=True)
 
     website = models.URLField(blank=True)
@@ -307,23 +318,26 @@ class BlogPage(Page):
 
     def get_context(self, request):
         context = super().get_context(request)
-        
+
         # Re-fetch the page with optimizations to avoid N+1 in templates
         # We use .get() to ensure we have the prefetched data on the object
-        optimized_page = BlogPage.objects.filter(pk=self.pk).select_related(
-            "author", "author__image", "main_image"
-        ).prefetch_related("tags").first()
+        optimized_page = (
+            BlogPage.objects.filter(pk=self.pk)
+            .select_related("author", "author__image", "main_image")
+            .prefetch_related("tags")
+            .first()
+        )
 
         if optimized_page:
             context["page"] = optimized_page
             # Cache tags and parent to avoid repeated queries in template
             context["tags"] = optimized_page.tags.all()
             context["parent"] = optimized_page.get_parent()
-            
+
             # Pre-calculate siblings
             context["prev_post"] = optimized_page.get_prev_sibling()
             context["next_post"] = optimized_page.get_next_sibling()
-        
+
         return context
 
 
