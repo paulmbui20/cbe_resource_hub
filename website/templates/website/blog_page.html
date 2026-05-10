@@ -85,12 +85,12 @@
 </style>
 
 {# ── Reading progress bar ─────────────────────────────────────────────── #}
-<div id="progress-bar" class="fixed top-0 left-0 h-0.5 w-0 bg-linear-to-r from-brand-gold to-brand-accent z-[9999] transition-[width] duration-75 ease-linear" role="progressbar"
+<div id="progress-bar" class="fixed top-0 left-0 h-0.5 w-0 bg-linear-to-r from-brand-gold to-brand-accent z-9999 transition-[width] duration-75 ease-linear" role="progressbar"
      aria-label="Reading progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
 
 {# ── Skip to content ───────────────────────────────────────────────────── #}
 <a href="#article-content"
-   class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-brand-gold focus:text-brand-secondary focus:px-4 focus:py-2 focus:rounded-lg focus:font-semibold">
+   class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-9999 focus:bg-brand-gold focus:text-brand-secondary focus:px-4 focus:py-2 focus:rounded-lg focus:font-semibold">
   Skip to article
 </a>
 
@@ -356,7 +356,7 @@
              aria-label="Article sidebar">
 
         {# Table of Contents #}
-        <div class="bg-white/4 border border-white/10 rounded-2xl p-6 mb-6">
+        <div id="toc-sidebar-container" class="bg-white/4 border border-white/10 rounded-2xl p-6 mb-6">
           <p class="text-xs text-white/35 uppercase tracking-widest font-semibold mb-4 font-body">
             Contents
           </p>

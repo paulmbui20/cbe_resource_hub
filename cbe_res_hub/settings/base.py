@@ -147,7 +147,9 @@ WSGI_APPLICATION = "cbe_res_hub.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "website/templates"],
+        "DIRS": [
+            BASE_DIR / "website/templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

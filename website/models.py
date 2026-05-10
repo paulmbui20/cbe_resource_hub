@@ -20,8 +20,8 @@ from wagtail.models import Page
 from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel
 from wagtail.snippets.models import register_snippet
-from wagtail.images.models import AbstractImage, AbstractRendition, Image
-from wagtail.documents.models import AbstractDocument, Document
+from wagtail.images.models import AbstractImage, AbstractRendition
+from wagtail.documents.models import AbstractDocument
 
 from taggit.models import TaggedItemBase
 from modelcluster.fields import ParentalKey
@@ -155,7 +155,16 @@ class CustomImage(AbstractImage):
         validators=[validate_image_file],
     )
 
-    admin_form_fields = Image.admin_form_fields
+    admin_form_fields = (
+        "title",
+        "file",
+        "collection",
+        "tags",
+        "focal_point_x",
+        "focal_point_y",
+        "focal_point_width",
+        "focal_point_height",
+    )
 
 
 class CustomRendition(AbstractRendition):
@@ -181,7 +190,12 @@ class CustomDocument(AbstractDocument):
         verbose_name="file",
     )
 
-    admin_form_fields = Document.admin_form_fields
+    admin_form_fields = (
+        "title",
+        "file",
+        "collection",
+        "tags",
+    )
 
 
 class BlogIndexPage(Page):

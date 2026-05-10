@@ -50,22 +50,22 @@ MIDDLEWARE = list(MAIN_MIDDLEWARE)
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
-        "OPTIONS": {"location": "test-default"},
+        "OPTIONS": {"location": "media/test/test-default"},
     },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-        "OPTIONS": {"location": "test-static"},
+        "OPTIONS": {"location": "static/test/test-static"},
     },
     "protected": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
-        "OPTIONS": {"location": "test-protected"},
+        "OPTIONS": {"location": "media/test/test-protected"},
     },
     "public_files": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
-        "OPTIONS": {"location": "test-public-files"},
+        "OPTIONS": {"location": "media/test/test-public-files"},
     },
     "dbbackup": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
-        "OPTIONS": {"location": "test-database-backups"},
+        "OPTIONS": {"location": "media/test/test-database-backups"},
     },
 }
