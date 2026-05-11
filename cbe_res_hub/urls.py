@@ -12,37 +12,40 @@ from django.views.generic import TemplateView
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
+from wagtail.contrib.sitemaps.views import sitemap as wagtail_sitemap
 
 from website.sitemaps import sitemaps as SITEMAPS
 
 urlpatterns = [
     # ── Root ────────────────────────────────────────────────────────────────
     path("", include("website.urls.website_urls")),
-
     # ── SEO: robots.txt & sitemap.xml ─────────────────────────────────────
-    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots"),
-    path("sitemap.xml", sitemap, {"sitemaps": SITEMAPS}, name="django.contrib.sitemaps.views.sitemap"),
-
+    path(
+        "robots.txt",
+        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
+        name="robots",
+    ),
+    path(
+        "sitemap.xml",
+        sitemap,
+        {"sitemaps": SITEMAPS},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
     # ── Django admin ─────────────────────────────────────────────────────────
     path("admin/", admin.site.urls),
-
     # ── Authentication (allauth — login, sign-up, password, Google OAuth) ────
     path("accounts/", include("allauth.urls")),
-
     # ── Account dashboard / profile ──────────────────────────────────────────
     path("account/", include("accounts.urls", namespace="accounts")),
     path("management/", include("website.urls.admin_urls", namespace="management")),
-
     # ── CBC resources (/resources/) ──────────────────────────────────────────
     path("resources/", include("resources.urls")),
-
     # ── CMS pages (/pages/<slug>/) ───────────────────────────────────────────
     path("pages/", include("cms.urls")),
-
     # ── TinyMCE ──────────────────────────────────────────────────────────────
     path("tinymce/", include("tinymce.urls")),
-
     # ── Wagtail ──────────────────────────────────────────────────────────────
+    path("blog/sitemap.xml", wagtail_sitemap),
     path("wagtail-admin/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
     path("blog/", include(wagtail_urls)),
@@ -66,5 +69,4 @@ if settings.DEBUG and not ("pytest" in sys.modules or "test" in sys.argv):
         urlpatterns += [
             # ── Silk profiler ──────────────────────────────────────────────────────
             path("silk/", include("silk.urls", namespace="silk")),
-
         ]

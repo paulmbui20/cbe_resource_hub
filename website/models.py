@@ -9,6 +9,8 @@ from taggit.forms import TagWidget
 from datetime import date
 
 from django.db import models
+import math
+from django import forms
 from django.core.files.storage import storages
 from django.db.models.functions import Lower
 from django.utils.html import strip_tags
@@ -16,15 +18,19 @@ from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
 from core.fields import SafeHTMLField
 
-from wagtail.models import Page
-from wagtail.fields import RichTextField
-from wagtail.admin.panels import FieldPanel
+from wagtail import blocks
+from wagtail.models import Page, Orderable
+from wagtail.fields import RichTextField, StreamField
+from wagtail.admin.panels import FieldPanel, InlinePanel
+from wagtail.contrib.table_block.blocks import TableBlock
+
 from wagtail.snippets.models import register_snippet
 from wagtail.images.models import AbstractImage, AbstractRendition
 from wagtail.documents.models import AbstractDocument
+from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 
 from taggit.models import TaggedItemBase
-from modelcluster.fields import ParentalKey
+from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from modelcluster.contrib.taggit import ClusterTaggableManager
 
 from core.models import TimeStampedModel
@@ -198,7 +204,32 @@ class CustomDocument(AbstractDocument):
     )
 
 
-class BlogIndexPage(Page):
+@register_snippet
+class BlogCategory(models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, max_length=255)
+    icon = models.ForeignKey(
+        "website.CustomImage",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    panels = [
+        FieldPanel("name"),
+        FieldPanel("slug"),
+        FieldPanel("icon"),
+    ]
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Blog Categories"
+
+
+class BlogIndexPage(RoutablePageMixin, Page):
     """This page is the parent page for all blog pages.
     It will display all blog pages in a list.
     Only One such page can be created.
@@ -208,31 +239,59 @@ class BlogIndexPage(Page):
 
     content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
 
+    def get_blogpages(self):
+        return (
+            BlogPage.objects.child_of(self)
+            .live()
+            .select_related("main_image", "author", "author__image")
+            .prefetch_related("tags", "categories")
+            .order_by("-first_published_at")
+        )
+
     def get_context(self, request):
-
-        tag = request.GET.get("tag")
-        if tag:
-            blogpages = (
-                BlogPage.objects.filter(
-                    tags__name=tag,
-                    live=True,
-                )
-                .select_related("main_image", "author", "author__image")
-                .prefetch_related("tags")
-                .order_by("-first_published_at")
-            )
-        else:
-            blogpages = (
-                BlogPage.objects.child_of(self)
-                .live()
-                .select_related("main_image", "author", "author__image")
-                .prefetch_related("tags")
-                .order_by("-first_published_at")
-            )
-
         context = super().get_context(request)
-        context["blogpages"] = blogpages
+        context["blogpages"] = self.get_blogpages()
+        context["index_url"] = self.url
         return context
+
+    @route(r"^category/(?P<category_slug>[-\w]+)/$")
+    def category_filter(self, request, category_slug):
+        category = BlogCategory.objects.get(slug=category_slug)
+        blogpages = self.get_blogpages().filter(categories__slug=category_slug)
+        return self.render(
+            request,
+            context_overrides={
+                "blogpages": blogpages,
+                "filter_type": "Category",
+                "filter_term": category.name,
+            },
+        )
+
+    @route(r"^author/(?P<author_slug>[-\w]+)/$")
+    def author_filter(self, request, author_slug):
+        author = BlogAuthor.objects.get(slug=author_slug)
+        blogpages = self.get_blogpages().filter(author__slug=author_slug)
+        return self.render(
+            request,
+            context_overrides={
+                "blogpages": blogpages,
+                "filter_type": "Author",
+                "filter_term": author.name,
+                "author": author,
+            },
+        )
+
+    @route(r"^tag/(?P<tag_slug>[-\w]+)/$")
+    def tag_filter(self, request, tag_slug):
+        blogpages = self.get_blogpages().filter(tags__slug=tag_slug)
+        return self.render(
+            request,
+            context_overrides={
+                "blogpages": blogpages,
+                "filter_type": "Tag",
+                "filter_term": tag_slug,
+            },
+        )
 
 
 @register_snippet
@@ -268,6 +327,34 @@ class BlogAuthor(models.Model):
     email = models.EmailField(blank=True)
 
     website = models.URLField(blank=True)
+    slug = models.SlugField(unique=True, max_length=255, blank=True, null=True)
+
+    panels = [
+        FieldPanel("name"),
+        FieldPanel("slug"),
+        FieldPanel("role"),
+        FieldPanel("bio"),
+        FieldPanel("image"),
+        FieldPanel("facebook"),
+        FieldPanel("instagram"),
+        FieldPanel("tiktok"),
+        FieldPanel("twitter"),
+        FieldPanel("youtube"),
+        FieldPanel("linkedin"),
+        FieldPanel("whatsapp"),
+        FieldPanel("telegram"),
+        FieldPanel("email"),
+        FieldPanel("website"),
+    ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    @property
+    def post_count(self):
+        return self.blog_posts.live().count()
 
     def __str__(self):
         return self.name
@@ -282,7 +369,36 @@ class BlogPage(Page):
 
     date = models.DateField("Post date", default=date.today)
     intro = models.CharField(max_length=250, blank=True, default="")
-    body = RichTextField(blank=True, default="")
+    body = StreamField(
+        [
+            (
+                "paragraph",
+                blocks.RichTextBlock(
+                    features=[
+                        "h1",
+                        "h2",
+                        "h3",
+                        "h4",
+                        "h5",
+                        "h6",
+                        "bold",
+                        "italic",
+                        "blockquote",
+                        "ol",
+                        "ul",
+                        "hr",
+                        "link",
+                        "image",
+                        "embed",
+                    ]
+                ),
+            ),
+            ("table", TableBlock()),
+        ],
+        use_json_field=True,
+        blank=True,
+        null=True,
+    )
     views = models.PositiveIntegerField(default=0, editable=False)
 
     author = models.ForeignKey(
@@ -300,16 +416,33 @@ class BlogPage(Page):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    main_image_alt = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Alt text for the main image (SEO optimization).",
+    )
+    categories = ParentalManyToManyField("website.BlogCategory", blank=True)
     tags = ClusterTaggableManager(through="BlogTag", blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("author"),
         FieldPanel("date"),
         FieldPanel("main_image"),
+        FieldPanel("main_image_alt"),
         FieldPanel("intro"),
         FieldPanel("body", classname="full"),
+        FieldPanel("categories", widget=forms.CheckboxSelectMultiple),
         FieldPanel("tags", widget=TagWidget),
+        InlinePanel("faqs", label="FAQs"),
     ]
+
+    @property
+    def reading_time(self):
+        """Calculates estimated reading time in minutes."""
+        # Convert StreamField to string (HTML) then strip tags
+        content = strip_tags(str(self.body))
+        word_count = len(content.split())
+        return max(1, math.ceil(word_count / 200))
 
     def serve(self, request):
         # Efficiently increment view count
@@ -338,7 +471,41 @@ class BlogPage(Page):
             context["prev_post"] = optimized_page.get_prev_sibling()
             context["next_post"] = optimized_page.get_next_sibling()
 
+            # Related articles (same category)
+            category_ids = list(optimized_page.categories.values_list("id", flat=True))
+            first_category = optimized_page.categories.first() if category_ids else None
+            context["related_category"] = first_category
+
+            if category_ids:
+                context["related_posts"] = (
+                    BlogPage.objects.live()
+                    .filter(categories__id__in=category_ids)
+                    .exclude(id=optimized_page.id)
+                    .distinct()
+                    .select_related("main_image", "author", "author__image")
+                    .prefetch_related("categories", "tags")[:3]
+                )
+            else:
+                context["related_posts"] = (
+                    BlogPage.objects.live()
+                    .exclude(id=optimized_page.id)
+                    .order_by("-first_published_at")
+                    .select_related("main_image", "author", "author__image")
+                    .prefetch_related("categories", "tags")[:3]
+                )
+
         return context
+
+
+class BlogPageFAQ(Orderable):
+    page = ParentalKey(BlogPage, on_delete=models.CASCADE, related_name="faqs")
+    question = models.CharField(max_length=255)
+    answer = RichTextField()
+
+    panels = [
+        FieldPanel("question"),
+        FieldPanel("answer"),
+    ]
 
 
 class BlogTag(TaggedItemBase):

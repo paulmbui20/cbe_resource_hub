@@ -100,6 +100,7 @@ MY_APPS: list[str] = [
 WAGTAIL_APPS: list[str] = [
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
+    "wagtail.contrib.table_block",
     "wagtail.embeds",
     "wagtail.sites",
     "wagtail.users",
@@ -506,7 +507,14 @@ RATELIMIT_REDIS = {
 }
 RATELIMIT_MIDDLEWARE = {
     "DEFAULT_RATE": "60/m",
-    "SKIP_PATHS": ["/admin/", "/health/", "/static/", "/favicon.ico", "/media/"],
+    "SKIP_PATHS": [
+        "/admin/",
+        "/wagtail-admin/",
+        "/health/",
+        "/static/",
+        "/favicon.ico",
+        "/media/",
+    ],
     "BLOCK": True,
     "KEY_FUNCTION": "django_smart_ratelimit.utils.get_ip_key",
 }
@@ -561,10 +569,18 @@ CONTACT_PHONE: str = str(contact_phone_env_var) if contact_phone_env_var else ""
 # ──────────────────────────────────────────────────────────────────────────────
 WAGTAIL_SITE_NAME = "CBE Resource Hub"
 WAGTAILADMIN_BASE_URL = SITE_URL
-WAGTAILDOCS_SERVE_METHOD = "direct"
+WAGTAILDOCS_SERVE_METHOD = "redirect"
 
 WAGTAILIMAGES_IMAGE_MODEL = "website.CustomImage"
 WAGTAILDOCS_DOCUMENT_MODEL = "website.CustomDocument"
+
+WAGTAIL_CONTENT_LANGUAGES = LANGUAGES
+WAGTAILADMIN_PERMITTED_LANGUAGES = WAGTAIL_CONTENT_LANGUAGES
+WAGTAIL_I18N_ENABLED = USE_I18N
+
+WAGTAIL_AUTO_UPDATE_PREVIEW_INTERVAL = 1500
+
+WAGTAIL_EDITING_SESSION_PING_INTERVAL = 55000
 
 # ── django-nh3 settings ──────────────────────────────────────────────────
 NH3_ALLOWED_TAGS = {
@@ -649,7 +665,7 @@ NH3_ALLOWED_TAGS = {
 }
 
 NH3_ALLOWED_ATTRIBUTES = {
-    "*": {"class", "style", "title", "dir", "lang"},
+    "*": {"class", "title", "dir", "lang"},
     "a": {"href", "name", "target"},
     "img": {"src", "alt", "width", "height"},
     "table": {"border", "cellpadding", "cellspacing", "summary"},

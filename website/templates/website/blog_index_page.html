@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block content %}
+{% pageurl page as index_url %}
 
 {# ── Inline CSS: editorial layout tokens ──────────────────────────────── #}
 <style>
@@ -77,16 +78,96 @@
       </div>
       {% endif %}
 
-      {# Tag filter strip #}
-      {% if request.GET.tag %}
-      <div class="mt-8 flex items-center justify-center gap-3 flex-wrap">
-        <span class="text-white/40 text-sm font-body">Filtering by:</span>
-        <span class="inline-flex items-center px-[0.7rem] py-[0.22rem] rounded-full text-[0.65rem] font-semibold tracking-[0.08em] uppercase border border-brand-gold/35 text-brand-gold bg-brand-gold/10">{{ request.GET.tag }}</span>
-        <a href="{{ request.path }}"
-           class="text-xs text-white/40 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-gold rounded font-body"
-           aria-label="Remove tag filter">
-          ✕ Clear filter
-        </a>
+      {# Filter indicator #}
+      {% if filter_type %}
+      <div class="mt-8 flex flex-col items-center gap-4">
+        <div class="flex items-center justify-center gap-3 flex-wrap">
+          <span class="text-white/40 text-sm font-body">Filtering by {{ filter_type }}:</span>
+          <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase border border-brand-gold/35 text-brand-gold bg-brand-gold/10">
+            {{ filter_term }}
+          </span>
+          <a href="{{ index_url }}"
+             class="text-xs text-white/40 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-gold rounded font-bold uppercase tracking-widest bg-white/5 px-3 py-1.5 border border-white/10"
+             aria-label="Remove filter">
+            ✕ Clear
+          </a>
+        </div>
+        
+        {% if author %}
+        <div class="max-w-xl mx-auto rounded-2xl bg-white/5 border border-white/10 p-6">
+          <div class="flex items-center gap-4 mb-4">
+            {% if author.image %}
+              {% image author.image fill-100x100 as auth_img %}
+              <img src="{{ auth_img.url }}" alt="{{ author.name }}" class="w-14 h-14 rounded-full object-cover border border-white/10">
+            {% else %}
+              <div class="w-14 h-14 rounded-full bg-brand-gold/20 flex items-center justify-center border border-white/10">
+                <span class="text-brand-gold text-xl font-editorial">{{ author.name|first }}</span>
+              </div>
+            {% endif %}
+            <div class="text-left flex-1">
+              <h2 class="text-white font-bold font-body">{{ author.name }}</h2>
+              <p class="text-xs text-white/40 font-body">{{ author.role }}</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-brand-gold/10 text-brand-gold text-xs font-bold">{{ author.post_count }} articles</span>
+          </div>
+          {% if author.bio %}
+          <p class="text-xs text-white/60 leading-relaxed font-body mb-4 line-clamp-3">{{ author.bio }}</p>
+          {% endif %}
+          {# Author Socials #}
+          <div class="flex items-center flex-wrap gap-2">
+            {% if author.facebook %}
+            <a href="{{ author.facebook }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-[#1877F2] hover:bg-[#1877F2]/10 transition-all border border-white/5 hover:border-[#1877F2]/30" title="Facebook">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/></svg>
+            </a>
+            {% endif %}
+            {% if author.twitter %}
+            <a href="{{ author.twitter }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-white hover:bg-black/20 transition-all border border-white/5 hover:border-white/30" title="X (Twitter)">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.261 5.635L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+            </a>
+            {% endif %}
+            {% if author.linkedin %}
+            <a href="{{ author.linkedin }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-[#0A66C2] hover:bg-[#0A66C2]/10 transition-all border border-white/5 hover:border-[#0A66C2]/30" title="LinkedIn">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+            </a>
+            {% endif %}
+            {% if author.instagram %}
+            <a href="{{ author.instagram }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-[#E4405F] hover:bg-[#E4405F]/10 transition-all border border-white/5 hover:border-[#E4405F]/30" title="Instagram">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.054 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.217.562-.477.96-.896 1.382-.419.419-.818.679-1.381.896-.422.165-1.057.359-2.227.413-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.054-1.805-.249-2.227-.415-.562-.217-.96-.477-1.382-.896-.419-.42-.679-.819-.896-1.381-.164-.422-.36-1.057-.413-2.227-.057-1.266-.07-1.646-.07-4.85s.012-3.585.07-4.85c.054-1.17.249-1.805.415-2.227.217-.562.477-.96.896-1.382.42-.419.819-.679 1.381-.896.422-.164 1.057-.36 2.227-.413 1.266-.057 1.646-.07 4.85-.07ZM12 0C8.741 0 8.333.014 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0Zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324ZM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881Z"/></svg>
+            </a>
+            {% endif %}
+            {% if author.youtube %}
+            <a href="{{ author.youtube }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-[#FF0000] hover:bg-[#FF0000]/10 transition-all border border-white/5 hover:border-[#FF0000]/30" title="YouTube">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.546 12 3.546 12 3.546s-7.505 0-9.377.504A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.504 9.376.504 9.376.504s7.505 0 9.377-.504a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+            {% endif %}
+            {% if author.tiktok %}
+            <a href="{{ author.tiktok }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-white hover:bg-black/20 transition-all border border-white/5 hover:border-white/30" title="TikTok">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+            </a>
+            {% endif %}
+            {% if author.whatsapp %}
+            <a href="{{ author.whatsapp }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-[#25D366] hover:bg-[#25D366]/10 transition-all border border-white/5 hover:border-[#25D366]/30" title="WhatsApp">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            </a>
+            {% endif %}
+            {% if author.telegram %}
+            <a href="{{ author.telegram }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-[#0088cc] hover:bg-[#0088cc]/10 transition-all border border-white/5 hover:border-[#0088cc]/30" title="Telegram">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012.056 0h-.112zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            </a>
+            {% endif %}
+            {% if author.email %}
+            <a href="mailto:{{ author.email }}" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-brand-gold hover:bg-brand-gold/10 transition-all border border-white/5 hover:border-brand-gold/30" title="Email">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </a>
+            {% endif %}
+            {% if author.website %}
+            <a href="{{ author.website }}" target="_blank" rel="noopener" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-brand-gold hover:bg-brand-gold/10 transition-all border border-white/5 hover:border-brand-gold/30" title="Website">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
       </div>
       {% endif %}
     </div>
@@ -104,149 +185,12 @@
 
     {% if blogpages %}
 
-      {# ── Featured post (first item) — full-width editorial card ──────── #}
-      {% with blogpages|first as featured %}
-      <article class="group mb-14" aria-label="Featured article">
-        <a href="{% pageurl featured %}"
-           class="flex flex-col lg:flex-row gap-0 rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-brand-gold/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
-           aria-label="Read: {{ featured.title }}">
-
-          {# Image — takes 55% on desktop #}
-          <div class="relative lg:w-[55%] aspect-video lg:aspect-auto overflow-hidden bg-brand-primary/30">
-            {% if featured.specific.main_image %}
-              {% image featured.specific.main_image fill-1200x700 as fimg %}
-              <img src="{{ fimg.url }}"
-                   alt="{{ fimg.alt|default:featured.title }}"
-                   class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                   width="1200" height="700"
-                   loading="eager" fetchpriority="high">
-            {% else %}
-              <div class="absolute inset-0 flex items-center justify-center">
-                <svg class="w-16 h-16 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-              </div>
-            {% endif %}
-            {# Featured badge #}
-            <div class="absolute top-4 left-4">
-              <span class="inline-flex items-center gap-1 bg-brand-gold text-brand-secondary text-xs font-bold px-3 py-1 rounded-full tracking-wide uppercase font-body">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                Featured
-              </span>
-            </div>
-          </div>
-
-          {# Content #}
-          <div class="lg:w-[45%] flex flex-col justify-center p-8 lg:p-12">
-            <div class="flex items-center gap-3 mb-5">
-              <time class="text-brand-gold text-xs font-semibold tracking-widest uppercase font-body"
-                    datetime="{{ featured.specific.date|date:'Y-m-d' }}">
-                {{ featured.specific.date|date:"F j, Y" }}
-              </time>
-              {% if featured.specific.tags.all %}
-                {% for tag in featured.specific.tags.all|slice:":2" %}
-                  <span class="inline-flex items-center px-[0.7rem] py-[0.22rem] rounded-full text-[0.65rem] font-semibold tracking-[0.08em] uppercase border border-brand-gold/35 text-brand-gold bg-brand-gold/10">{{ tag }}</span>
-                {% endfor %}
-              {% endif %}
-            </div>
-            <h2 class="font-editorial text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight mb-4 group-hover:text-brand-gold transition-colors duration-300">
-              {{ featured.title }}
-            </h2>
-            {% if featured.specific.intro %}
-            <p class="text-white/60 leading-relaxed mb-8 line-clamp-3 font-body text-base">
-              {{ featured.specific.intro }}
-            </p>
-            {% endif %}
-            <span class="inline-flex items-center gap-2 text-brand-gold font-semibold text-sm font-body group-hover:gap-3 transition-all">
-              Read Full Story
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-              </svg>
-            </span>
-          </div>
-        </a>
-      </article>
-      {% endwith %}
-
-      {# Section divider #}
-      <div class="flex items-center gap-4 mb-10" aria-hidden="true">
-        <div class="h-px bg-linear-to-r from-transparent via-brand-gold/45 to-transparent flex-1"></div>
-        <span class="text-white/30 text-xs tracking-[0.2em] uppercase font-body font-medium">Latest Articles</span>
-        <div class="h-px bg-linear-to-r from-transparent via-brand-gold/45 to-transparent flex-1"></div>
-      </div>
-
       {# ── Grid of remaining posts ────────────────────────────────────── #}
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
            role="feed"
            aria-label="Blog articles">
         {% for post in blogpages %}
-          {% if not forloop.first %}
-          <article class="post-card group bg-white/5 border border-white/10 rounded-2xl overflow-hidden
-                          hover:border-brand-gold/30 hover:shadow-xl hover:shadow-brand-gold/5 hover:-translate-y-1 transition-all duration-300 ease-out
-                          flex flex-col"
-                   aria-label="{{ post.title }}">
-
-            <a href="{% pageurl post %}"
-               class="flex flex-col flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-inset rounded-2xl"
-               aria-label="Read: {{ post.title }}">
-
-              {# Thumbnail #}
-              <div class="relative aspect-video w-full overflow-hidden bg-brand-primary/20">
-                {% if post.specific.main_image %}
-                  {% image post.specific.main_image fill-800x450 as thumb %}
-                  <img src="{{ thumb.url }}"
-                       alt="{{ thumb.alt|default:post.title }}"
-                       class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                       width="800" height="450"
-                       loading="lazy" decoding="async">
-                {% else %}
-                  <div class="absolute inset-0 flex items-center justify-center">
-                    <svg class="w-10 h-10 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                  </div>
-                {% endif %}
-                {# Gold gradient overlay at bottom #}
-                <div class="absolute inset-0 bg-linear-to-t from-brand-secondary/60 via-transparent to-transparent"></div>
-              </div>
-
-              {# Card body #}
-              <div class="flex flex-col flex-1 p-6">
-                <div class="flex items-center justify-between mb-3">
-                  <time class="text-brand-gold text-xs font-semibold tracking-widest uppercase font-body"
-                        datetime="{{ post.specific.date|date:'Y-m-d' }}">
-                    {{ post.specific.date|date:"M j, Y" }}
-                  </time>
-                  {% if post.specific.tags.all %}
-                    <span class="inline-flex items-center px-[0.7rem] py-[0.22rem] rounded-full text-[0.65rem] font-semibold tracking-[0.08em] uppercase border border-brand-gold/35 text-brand-gold bg-brand-gold/10"
-                       aria-label="Tagged: {{ post.specific.tags.all|first }}">
-                      {{ post.specific.tags.all|first }}
-                    </span>
-                  {% endif %}
-                </div>
-
-                <h2 class="font-editorial text-lg sm:text-xl font-bold text-white leading-snug mb-3 group-hover:text-brand-gold transition-colors duration-200">
-                  {{ post.title }}
-                </h2>
-
-                {% if post.specific.intro %}
-                <p class="text-sm text-white/55 leading-relaxed line-clamp-3 mb-5 flex-1 font-body">
-                  {{ post.specific.intro }}
-                </p>
-                {% endif %}
-
-                <div class="flex items-center justify-between mt-auto pt-4 border-t border-white/8">
-                  <span class="inline-flex items-center gap-1.5 text-brand-gold text-xs font-semibold font-body group-hover:gap-2.5 transition-all">
-                    Read Article
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            </a>
-          </article>
-          {% endif %}
+            {% include "components/blog_card.html" with post=post index_url=index_url %}
         {% endfor %}
       </div>
 
