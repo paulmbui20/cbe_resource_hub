@@ -30,8 +30,15 @@ DATABASES = {
 
 # ── Rate limiting: non-blocking in tests ─────────────────────────────────────
 RATELIMIT_MIDDLEWARE = {
-    "DEFAULT_RATE": "150/m",
-    "SKIP_PATHS": ["/admin/", "/health/", "/static/", "/favicon.ico", "/media/"],
+    "DEFAULT_RATE": "180/m",
+    "SKIP_PATHS": [
+        "/admin/",
+        "/wagtail-admin/",
+        "/health/",
+        "/static/",
+        "/favicon.ico",
+        "/media/",
+    ],
     "BLOCK": False,
     "KEY_FUNCTION": "django_smart_ratelimit.utils.get_ip_key",
 }
