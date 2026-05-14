@@ -1,0 +1,15 @@
+{% extends 'notifications/email_base.html' %}
+
+{% block content %}
+    <h2>New Email Subscription</h2>
+    <p>Dear Admin,</p>
+    <p>This is to inform you that a user has subscribed to email notifications:</p>
+    <table>
+        <tr>
+            <td><strong>Email:</strong> {{ email_subscription.email }}</td>
+        </tr>
+        <tr>
+            <td><strong>Subscribed at:</strong> {{ email_subscription.updated_at|date:"F j, Y, g:i a" }}</td>
+        </tr>
+    </table>
+{% endblock %}

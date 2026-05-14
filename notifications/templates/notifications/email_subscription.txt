@@ -1,0 +1,12 @@
+New Email Subscription
+===========================================
+
+Dear Admin,
+
+This is to inform you that a user has subscribed to email notifications:
+
+Email: {{ email_subscription.email }}
+Subscribed at: {{ email_subscription.updated_at|date:"F j, Y, g:i a" }}
+
+
+===========================================

@@ -1,0 +1,8 @@
+{% extends "notifications/email_base.html" %}
+
+{% block content %}
+  <h2>Email Unsubscription</h2>
+  <p>Someone has unsubscribed from our email list:</p>
+  <p><strong>Email:</strong> {{ email_unsubscription.email }}</p>
+  <p><strong>Unsubscribed at:</strong> {{ email_unsubscription.updated_at|date:"F j, Y, g:i a" }}</p>
+{% endblock %}

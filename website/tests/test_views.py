@@ -180,40 +180,64 @@ class ContactViewTests(WebsiteBaseTestCase):
 class EmailSubscriptionViewTests(WebsiteBaseTestCase):
     URL = "/email-subscription/"
 
-    def test_post_valid_returns_htmx_partial(self):
-        r = self.client.post(self.URL, data={"email": "htmx@example.com"})
+    def setUp(self):
+        super().setUp()
+        from django.core.cache import cache
+        cache.clear()
+
+    @patch("website.views.notify_email_subscription")
+    def test_post_valid_returns_form_partial_and_triggers_success(self, mock_notify):
+        r = self.client.post(self.URL, data={"email": "htmx@example.com"}, REMOTE_ADDR="10.0.0.1")
         self.assertEqual(r.status_code, 200)
-        self.assertTemplateUsed(r, "partials/htmx_notification.html")
+        self.assertTemplateUsed(r, "partials/email_subscription_form.html")
+        
+        trigger = r.get("HX-Trigger")
+        self.assertIsNotNone(trigger)
+        trigger_data = json.loads(trigger)
+        self.assertEqual(trigger_data.get("notify", {}).get("type"), "success")
+        
+        mock_notify.assert_called_once()
 
     def test_post_valid_saves_subscriber(self):
-        self.client.post(self.URL, data={"email": "saved_sub@example.com"})
+        self.client.post(self.URL, data={"email": "saved_sub@example.com"}, REMOTE_ADDR="10.0.0.2")
         self.assertTrue(
             EmailSubscriber.objects.filter(email="saved_sub@example.com").exists()
         )
 
-    def test_post_invalid_returns_form_partial(self):
-        r = self.client.post(self.URL, data={"email": "not-an-email"})
+    def test_post_invalid_returns_form_partial_with_error_trigger(self):
+        r = self.client.post(self.URL, data={"email": "not-an-email"}, REMOTE_ADDR="10.0.0.3")
         self.assertEqual(r.status_code, 200)
         self.assertTemplateUsed(r, "partials/email_subscription_form.html")
+        
+        trigger = r.get("HX-Trigger")
+        self.assertIsNotNone(trigger)
+        trigger_data = json.loads(trigger)
+        self.assertEqual(trigger_data.get("notify", {}).get("type"), "error")
 
     def test_get_returns_form_partial_with_error(self):
-        r = self.client.get(self.URL)
+        r = self.client.get(self.URL, REMOTE_ADDR="10.0.0.4")
         self.assertEqual(r.status_code, 200)
         self.assertTemplateUsed(r, "partials/email_subscription_form.html")
+        
+        trigger = r.get("HX-Trigger")
+        self.assertIsNotNone(trigger)
+        trigger_data = json.loads(trigger)
+        self.assertEqual(trigger_data.get("notify", {}).get("type"), "error")
 
-    def test_post_valid_context_success_true(self):
-        r = self.client.post(self.URL, data={"email": "ctx@example.com"})
-        self.assertTrue(r.context["success"])
-
-    def test_post_invalid_context_success_false(self):
-        r = self.client.post(self.URL, data={"email": "bad"})
-        self.assertFalse(r.context["success"])
-
-    def test_duplicate_email_returns_form_partial(self):
+    @patch("website.views.notify_email_subscription")
+    def test_duplicate_email_returns_success_without_saving_or_notifying(self, mock_notify):
         EmailSubscriber.objects.create(email="existing@example.com")
-        r = self.client.post(self.URL, data={"email": "existing@example.com"})
+        count_before = EmailSubscriber.objects.count()
+        r = self.client.post(self.URL, data={"email": "existing@example.com"}, REMOTE_ADDR="10.0.0.5")
         self.assertEqual(r.status_code, 200)
-        self.assertFalse(r.context.get("success", True))
+        
+        trigger = r.get("HX-Trigger")
+        self.assertIsNotNone(trigger)
+        trigger_data = json.loads(trigger)
+        self.assertEqual(trigger_data.get("notify", {}).get("type"), "success")
+        
+        self.assertEqual(EmailSubscriber.objects.count(), count_before)
+        mock_notify.assert_not_called()
 
 
 # ── PartnerListView ────────────────────────────────────────────────────────────

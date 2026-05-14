@@ -4,10 +4,13 @@ website/views.py
 Public-facing homepage and contact page views.
 """
 
+from notifications.notifier import notify_email_subscription
+import json
 from website.cache import get_partners
 from website.cache import get_faqs
 from website.cache import get_testimonials
 from django.contrib import messages
+from django_smart_ratelimit import ratelimit
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -22,7 +25,7 @@ from resources.cache import (
 )
 from resources.models import ResourceItem
 from website.forms import ContactForm, EmailSubscriptionForm, BlogCommentForm
-from website.models import ContactMessage, BlogPage, BlogComment
+from website.models import ContactMessage, BlogPage, BlogComment, EmailSubscriber
 
 
 class HomePageView(TemplateView):
@@ -137,46 +140,107 @@ class ContactView(FormView):
         return context
 
 
+@ratelimit(key="ip", rate="5/m", block=False)
 def email_subscription(request):
-    template_partial = "partials/htmx_notification.html"
     original_form_partial_template = "partials/email_subscription_form.html"
-    form = EmailSubscriptionForm(request.POST)
-    if request.POST:
+
+    was_limited = getattr(request, "rate_limit_exceeded", False)
+    if was_limited:
+        response = render(
+            request, original_form_partial_template, {"form": EmailSubscriptionForm()}
+        )
+        response["HX-Trigger"] = json.dumps(
+            {
+                "notify": {
+                    "type": "error",
+                    "message": "Too many attempts. Please try again in a minute.",
+                }
+            }
+        )
+        return response
+
+    form = EmailSubscriptionForm(request.POST or None)
+
+    if request.method == "POST":
         if form.is_valid():
             try:
-                form.save()
-                context = {
-                    "success": True,
-                    "message": "Email has been sent successfully!",
-                }
-                return render(request, template_partial, context=context)
+                # Check if email already exists to avoid redundant saves and errors
+                email = form.cleaned_data.get("email")
+                if not EmailSubscriber.objects.filter(email=email).exists():
+                    form.save()
 
-            except Exception as e:
-                context = {
-                    "success": False,
-                    "message": f"Error! {str(e)}",
-                }
-                return render(request, original_form_partial_template, context=context)
+                response = render(
+                    request,
+                    original_form_partial_template,
+                    {"form": EmailSubscriptionForm()},
+                )
+                response["HX-Trigger"] = json.dumps(
+                    {
+                        "notify": {
+                            "type": "success",
+                            "message": "Email has been sent successfully!",
+                        }
+                    }
+                )
+                notify_email_subscription(form.instance)
+                return response
+
+            except Exception:
+                response = render(
+                    request, original_form_partial_template, {"form": form}
+                )
+                response["HX-Trigger"] = json.dumps(
+                    {
+                        "notify": {
+                            "type": "error",
+                            "message": "An error occurred while saving your subscription. Please try again later.",
+                        }
+                    }
+                )
+                return response
 
         else:
-            context = {}
-            # Handle form validation errors
+            # Check if the only reason it failed is because the email already exists
+            email_input = request.POST.get("email")
+            if (
+                "__all__" not in form.errors
+                and email_input
+                and EmailSubscriber.objects.filter(email=email_input).exists()
+            ):
+                response = render(
+                    request,
+                    original_form_partial_template,
+                    {"form": EmailSubscriptionForm()},
+                )
+                response["HX-Trigger"] = json.dumps(
+                    {
+                        "notify": {
+                            "type": "success",
+                            "message": "Email has been sent successfully!",
+                        }
+                    }
+                )
+                return response
+
+            # Handle form validation errors (including honeypot)
+            message = "Invalid form submission."
             for field, errors in form.errors.items():
                 for error in errors:
-                    context = {
-                        "success": False,
-                        "message": f"Error on form! : {field.replace('_', ' ').title()}: {error}",
-                        "form": form,
-                    }
+                    message = f"Error! {field.replace('_', ' ').title()}: {error}"
+                    break
+                break
 
-            return render(request, original_form_partial_template, context=context)
+            response = render(request, original_form_partial_template, {"form": form})
+            response["HX-Trigger"] = json.dumps(
+                {"notify": {"type": "error", "message": message}}
+            )
+            return response
     else:
-        context = {
-            "success": False,
-            "message": "Http method not supported.",
-        }
-
-        return render(request, original_form_partial_template, context=context)
+        response = render(request, original_form_partial_template, {"form": form})
+        response["HX-Trigger"] = json.dumps(
+            {"notify": {"type": "error", "message": "HTTP method not supported."}}
+        )
+        return response
 
 
 class PartnerListView(TemplateView):

@@ -308,6 +308,10 @@ class AdminSiteSettingsUpdateView(IsAdminMixin, UpdateView):
                     "value": "site_indexing",
                     "label": "Toggle search engine indexing (true/false)",
                 },
+                {
+                    "value": "site_logo_url",
+                    "label": "Enter the full url of the site logo",
+                },
             ]
         }
         return context

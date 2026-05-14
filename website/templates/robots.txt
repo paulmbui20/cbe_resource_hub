@@ -12,12 +12,16 @@ Disallow: /tinymce/
 Disallow: /silk/
 Disallow: /__debug__/
 Disallow: /health/
+Disallow: /wagtail-admin/
+Disallow: /documents/
+Disallow: /blog/_util/*
 
 # Allow search engines to index all public resources and pages
 Allow: /resources/
 Allow: /pages/
 Allow: /partners/
 Allow: /contact/
+Allow: /blog/
 
 # Sitemap location
 Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

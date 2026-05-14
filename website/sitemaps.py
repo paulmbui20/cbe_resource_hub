@@ -39,9 +39,12 @@ class StaticViewSitemap(Sitemap):
             "resources:academic_session_list",
             "faqs",
             "testimonials",
+            "/blog/",
         ]
 
     def location(self, item):
+        if item.startswith("/"):
+            return item
         return reverse(item)
 
 

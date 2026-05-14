@@ -1,0 +1,13 @@
+Email Unsubscription
+========================================================
+
+Dear Admin,
+
+This is to inform you that a user has unsubscribed from email notifications:
+
+Email: {{ email_unsubscription.email }}
+
+Unsubscribed at: {{ email_unsubscription.updated_at|date:"F j, Y, g:i a" }}
+
+
+========================================================

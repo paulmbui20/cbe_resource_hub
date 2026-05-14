@@ -42,6 +42,9 @@
   schema, breadcrumbs, pagination, and sidebar navigation
 - **Sitemap & robots.txt** — Auto-generated `sitemap.xml` and configurable `robots.txt` for Search Console
 - **Custom Branding** — Fully integrated SVG logo support for high-DPI scaling across the platform and favicons
+- **Hardened Email Subscription** — Secure, HTMX-powered email subscription form with honeypot protection, smart rate limiting, and global toast feedback
+- **Admin Notifications** — Automatic admin notification for new email subscriptions and unsubscriptions via the `notifications` app
+- **Search Engine Visibility** — Configurable `robots.txt` logic with `Allow`/`Disallow` rules managed via site settings
 
 ---
 
