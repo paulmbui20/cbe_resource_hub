@@ -151,11 +151,16 @@ class EmailSubscriber(TimeStampedModel, models.Model):
 # WAGTAIL BLOG & MEDIA MODELS
 # ──────────────────────────────────────────────────────────────────────────────
 
+def get_public_storage():
+    """Callable to return the public storage backend, preventing migration flapping
+    when environments (like CI/CD vs Prod) have different storage configs."""
+    return storages["public_files"]
+
 
 class CustomImage(AbstractImage):
     file = models.ImageField(
         upload_to="wagtail_images/",
-        storage=storages["public_files"],
+        storage=get_public_storage,
         verbose_name="file",
         width_field="width",
         height_field="height",
@@ -180,7 +185,7 @@ class CustomRendition(AbstractRendition):
     )
     file = models.ImageField(
         upload_to="wagtail_renditions/",
-        storage=storages["public_files"],
+        storage=get_public_storage,
         width_field="width",
         height_field="height",
         validators=[validate_image_file],
@@ -193,7 +198,7 @@ class CustomRendition(AbstractRendition):
 class CustomDocument(AbstractDocument):
     file = models.FileField(
         upload_to="wagtail_docs/",
-        storage=storages["public_files"],
+        storage=get_public_storage,
         verbose_name="file",
     )
 
