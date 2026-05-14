@@ -23,6 +23,7 @@
 - **Favorites System** — HTMX-powered bookmarking without page reloads
 - **Interactive DataTables** — Client-side search, sort, and pagination across all admin lists
 - **Bulk User Management** — Multi-select enable/disable users with self-protection guard
+- **High-Performance CSV Export** — Blazing fast, memory-safe data export via `StreamingHttpResponse` capable of handling millions of records without crashing
 - **File Storage** — Cloudflare R2 (S3-compatible) in production; local filesystem in development
 - **Deep File Validation** — Magic/mimetype signature scanning via the `validators` package to rigorously enforce uploaded file integrity
 - **Built-in Rate Limiting** — `django-smart-ratelimit` + `django-axes` brute-force protection

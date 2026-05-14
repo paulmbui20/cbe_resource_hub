@@ -4,7 +4,7 @@ from django.contrib import admin
 
 from seo.admin import SEOAdminMixin
 from .models import ContactMessage, Partner, EmailSubscriber
-
+from core.admin_actions import export_as_csv_action
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
@@ -55,6 +55,12 @@ class EmailSubscriberAdmin(admin.ModelAdmin):
         "email",
     )
     list_filter = ("opted_out", "created_at", "updated_at")
+    actions = [
+        export_as_csv_action(
+            "Export selected subscribers to CSV",
+            fields=["id", "full_name", "email", "opted_out", "created_at", "updated_at"],
+        )
+    ]
 
 
 @admin.register(Testimonial)

@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, ListView, UpdateView, CreateView, DeleteView, DetailView
+from django.views.generic import TemplateView, ListView, UpdateView, CreateView, DeleteView, DetailView, View
+from core.utils import stream_queryset_as_csv
 
 from accounts.admin_views import IsAdminMixin
 from accounts.models import CustomUser
@@ -160,6 +161,22 @@ class AdminEmailSubscribersListView(IsAdminMixin, ListView):
 
         return context
 
+class AdminEmailSubscribersExportCSVView(IsAdminMixin, View):
+    def get(self, request, *args, **kwargs):
+        qs = EmailSubscriber.objects.all()
+
+        q = self.request.GET.get("q")
+        q = str(q) if q else ""
+        if q:
+            qs = qs.filter(
+                Q(email__icontains=q) | Q(full_name__icontains=q)
+            )
+
+        return stream_queryset_as_csv(
+            qs,
+            fields=["id", "full_name", "email", "opted_out", "created_at", "updated_at"],
+            filename="email_subscribers.csv"
+        )
 
 class AdminEmailSubscribersCreateView(IsAdminMixin, CreateView):
     model = EmailSubscriber

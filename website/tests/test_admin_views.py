@@ -15,9 +15,16 @@ Tests for all website admin views:
   - AdminEmailSubscribersCreateView: GET 200, POST creates subscriber
   - AdminEmailSubscriberEdit: GET 200, POST updates
   - AdminEmailSubscriberDeleteView: POST deletes
+  - AdminTestimonialListView: GET 200, template, context
+  - AdminTestimonialCreateView: GET 200, POST creates
+  - AdminTestimonialUpdateView: GET 200, POST updates
+  - AdminTestimonialDeleteView: POST deletes
+  - AdminFAQListView: GET 200, template, context
+  - AdminFAQCreateView: GET 200, POST creates
+  - AdminFAQUpdateView: GET 200, POST updates
+  - AdminFAQDeleteView: POST deletes
 """
 
-from django.test import TestCase
 from django.urls import reverse
 
 from website.models import ContactMessage, Partner, EmailSubscriber
@@ -26,8 +33,8 @@ from website.tests.base import WebsiteBaseTestCase
 
 # ── Access Control ─────────────────────────────────────────────────────────────
 
-class AdminWebsiteAccessControlTests(WebsiteBaseTestCase):
 
+class AdminWebsiteAccessControlTests(WebsiteBaseTestCase):
     def test_anonymous_denied_dashboard(self):
         r = self.client.get(reverse("management:dashboard"))
         self.assertIn(r.status_code, [302, 403])
@@ -45,13 +52,15 @@ class AdminWebsiteAccessControlTests(WebsiteBaseTestCase):
 
 # ── AdminDashboardView ─────────────────────────────────────────────────────────
 
-class AdminDashboardViewTests(WebsiteBaseTestCase):
 
+class AdminDashboardViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
 
     def test_returns_200(self):
-        self.assertEqual(self.client.get(reverse("management:dashboard")).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse("management:dashboard")).status_code, 200
+        )
 
     def test_uses_correct_template(self):
         self.assertTemplateUsed(
@@ -99,8 +108,8 @@ class AdminDashboardViewTests(WebsiteBaseTestCase):
 
 # ── AdminContactMessageListView ────────────────────────────────────────────────
 
-class AdminContactMessageListViewTests(WebsiteBaseTestCase):
 
+class AdminContactMessageListViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
 
@@ -130,11 +139,13 @@ class AdminContactMessageListViewTests(WebsiteBaseTestCase):
 
 # ── AdminContactMessageDetailView ──────────────────────────────────────────────
 
-class AdminContactMessageDetailViewTests(WebsiteBaseTestCase):
 
+class AdminContactMessageDetailViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
-        self.url = reverse("management:contact_detail", kwargs={"pk": self.contact_msg.pk})
+        self.url = reverse(
+            "management:contact_detail", kwargs={"pk": self.contact_msg.pk}
+        )
 
     def test_returns_200(self):
         self.assertEqual(self.client.get(self.url).status_code, 200)
@@ -164,8 +175,8 @@ class AdminContactMessageDetailViewTests(WebsiteBaseTestCase):
 
 # ── AdminContactMessageDeleteView ──────────────────────────────────────────────
 
-class AdminContactMessageDeleteViewTests(WebsiteBaseTestCase):
 
+class AdminContactMessageDeleteViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.target = ContactMessage.objects.create(
@@ -194,8 +205,8 @@ class AdminContactMessageDeleteViewTests(WebsiteBaseTestCase):
 
 # ── AdminPartnerListView ───────────────────────────────────────────────────────
 
-class AdminPartnerListViewTests(WebsiteBaseTestCase):
 
+class AdminPartnerListViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
 
@@ -216,8 +227,8 @@ class AdminPartnerListViewTests(WebsiteBaseTestCase):
 
 # ── AdminPartnerCreateView ─────────────────────────────────────────────────────
 
-class AdminPartnerCreateViewTests(WebsiteBaseTestCase):
 
+class AdminPartnerCreateViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.url = reverse("management:partner_add")
@@ -251,8 +262,8 @@ class AdminPartnerCreateViewTests(WebsiteBaseTestCase):
 
 # ── AdminPartnerUpdateView ─────────────────────────────────────────────────────
 
-class AdminPartnerUpdateViewTests(WebsiteBaseTestCase):
 
+class AdminPartnerUpdateViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.url = reverse("management:partner_edit", kwargs={"pk": self.partner.pk})
@@ -289,8 +300,8 @@ class AdminPartnerUpdateViewTests(WebsiteBaseTestCase):
 
 # ── AdminPartnerDeleteView ─────────────────────────────────────────────────────
 
-class AdminPartnerDeleteViewTests(WebsiteBaseTestCase):
 
+class AdminPartnerDeleteViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.target = Partner.objects.create(name="Delete Target Partner")
@@ -311,8 +322,8 @@ class AdminPartnerDeleteViewTests(WebsiteBaseTestCase):
 
 # ── AdminEmailSubscribersListView ──────────────────────────────────────────────
 
-class AdminEmailSubscribersListViewTests(WebsiteBaseTestCase):
 
+class AdminEmailSubscribersListViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
 
@@ -344,10 +355,49 @@ class AdminEmailSubscribersListViewTests(WebsiteBaseTestCase):
         self.assertEqual(list(r.context["email_subscribers"]), [])
 
 
+# ── AdminEmailSubscribersExportCSVView ────────────────────────────────────────
+
+
+class AdminEmailSubscribersExportCSVViewTests(WebsiteBaseTestCase):
+    def setUp(self):
+        self.login_as_admin()
+        self.url = reverse("management:email_subscribers_export_csv")
+        EmailSubscriber.objects.create(
+            email="export1@example.com", full_name="Export One"
+        )
+        EmailSubscriber.objects.create(
+            email="export2@example.com", full_name="Export Two", opted_out=True
+        )
+
+    def test_returns_csv_streaming_response(self):
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r["Content-Type"], "text/csv")
+        self.assertIn('filename="email_subscribers.csv"', r["Content-Disposition"])
+
+    def test_csv_contains_headers_and_data(self):
+        r = self.client.get(self.url)
+        content = b"".join(r.streaming_content).decode("utf-8")
+
+        self.assertIn("full_name,email,opted_out", content)
+        self.assertIn("export1@example.com", content)
+        self.assertIn("Export One", content)
+        self.assertIn("export2@example.com", content)
+        self.assertIn("Export Two", content)
+        self.assertIn("True", content)  # opted_out is True for export2
+
+    def test_csv_respects_search_filter(self):
+        r = self.client.get(self.url + "?q=Export One")
+        content = b"".join(r.streaming_content).decode("utf-8")
+
+        self.assertIn("export1@example.com", content)
+        self.assertNotIn("export2@example.com", content)
+
+
 # ── AdminEmailSubscribersCreateView ───────────────────────────────────────────
 
-class AdminEmailSubscriberCreateViewTests(WebsiteBaseTestCase):
 
+class AdminEmailSubscriberCreateViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.url = reverse("management:email_subscriber_add")
@@ -356,63 +406,83 @@ class AdminEmailSubscriberCreateViewTests(WebsiteBaseTestCase):
         self.assertEqual(self.client.get(self.url).status_code, 200)
 
     def test_valid_post_creates_subscriber(self):
-        self.client.post(self.url, data={
-            "email": "admin_created@example.com",
-            "full_name": "Admin Created",
-            "opted_out": False,
-        })
-        self.assertTrue(EmailSubscriber.objects.filter(email="admin_created@example.com").exists())
+        self.client.post(
+            self.url,
+            data={
+                "email": "admin_created@example.com",
+                "full_name": "Admin Created",
+                "opted_out": False,
+            },
+        )
+        self.assertTrue(
+            EmailSubscriber.objects.filter(email="admin_created@example.com").exists()
+        )
 
     def test_valid_post_redirects(self):
-        r = self.client.post(self.url, data={
-            "email": "redirect_sub@example.com",
-            "full_name": "Redirect Sub",
-            "opted_out": False,
-        })
+        r = self.client.post(
+            self.url,
+            data={
+                "email": "redirect_sub@example.com",
+                "full_name": "Redirect Sub",
+                "opted_out": False,
+            },
+        )
         self.assertRedirects(r, reverse("management:email_subscribers"))
 
 
 # ── AdminEmailSubscriberEdit ───────────────────────────────────────────────────
 
-class AdminEmailSubscriberEditViewTests(WebsiteBaseTestCase):
 
+class AdminEmailSubscriberEditViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
-        self.url = reverse("management:email_subscriber_edit", kwargs={"pk": self.subscriber.pk})
+        self.url = reverse(
+            "management:email_subscriber_edit", kwargs={"pk": self.subscriber.pk}
+        )
 
     def test_get_returns_200(self):
         self.assertEqual(self.client.get(self.url).status_code, 200)
 
     def test_valid_post_updates_subscriber(self):
-        self.client.post(self.url, data={
-            "email": self.subscriber.email,
-            "full_name": "Updated Name",
-            "opted_out": False,
-        })
+        self.client.post(
+            self.url,
+            data={
+                "email": self.subscriber.email,
+                "full_name": "Updated Name",
+                "opted_out": False,
+            },
+        )
         self.subscriber.refresh_from_db()
         self.assertEqual(self.subscriber.full_name, "Updated Name")
 
     def test_valid_post_redirects(self):
-        r = self.client.post(self.url, data={
-            "email": self.subscriber.email,
-            "full_name": "Redirect Test",
-            "opted_out": False,
-        })
+        r = self.client.post(
+            self.url,
+            data={
+                "email": self.subscriber.email,
+                "full_name": "Redirect Test",
+                "opted_out": False,
+            },
+        )
         self.assertRedirects(r, reverse("management:email_subscribers"))
 
     def test_nonexistent_returns_404(self):
-        r = self.client.get(reverse("management:email_subscriber_edit", kwargs={"pk": 99999}))
+        r = self.client.get(
+            reverse("management:email_subscriber_edit", kwargs={"pk": 99999})
+        )
         self.assertEqual(r.status_code, 404)
 
 
 # ── AdminEmailSubscriberDeleteView ─────────────────────────────────────────────
 
-class AdminEmailSubscriberDeleteViewTests(WebsiteBaseTestCase):
 
+class AdminEmailSubscriberDeleteViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.target = EmailSubscriber.objects.create(email="delete_me_sub@example.com")
-        self.url = reverse("management:email_subscribers_delete", kwargs={"pk": self.target.pk})
+        self.url = reverse(
+            "management:email_subscribers_delete", kwargs={"pk": self.target.pk}
+        )
 
     def test_post_deletes_subscriber(self):
         self.client.post(self.url)
@@ -431,11 +501,12 @@ class AdminEmailSubscriberDeleteViewTests(WebsiteBaseTestCase):
 
 # ── AdminTestimonialListView ───────────────────────────────────────────────────
 
-class AdminTestimonialListViewTests(WebsiteBaseTestCase):
 
+class AdminTestimonialListViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         from website.models import Testimonial
+
         self.testimonial = Testimonial.objects.create(
             author_name="Jane Doe", body="Great platform!", rating=5
         )
@@ -456,7 +527,6 @@ class AdminTestimonialListViewTests(WebsiteBaseTestCase):
 
 
 class AdminTestimonialCreateViewTests(WebsiteBaseTestCase):
-
     def setUp(self):
         self.login_as_admin()
         self.url = reverse("management:testimonial_add")
@@ -466,54 +536,83 @@ class AdminTestimonialCreateViewTests(WebsiteBaseTestCase):
 
     def test_valid_post_creates_testimonial(self):
         from website.models import Testimonial
-        self.client.post(self.url, data={
-            "author_name": "Test Author", "body": "Amazing!", "rating": 5,
-            "is_featured": False, "is_active": True, "order": 0,
-        })
+
+        self.client.post(
+            self.url,
+            data={
+                "author_name": "Test Author",
+                "body": "Amazing!",
+                "rating": 5,
+                "is_featured": False,
+                "is_active": True,
+                "order": 0,
+            },
+        )
         self.assertTrue(Testimonial.objects.filter(author_name="Test Author").exists())
 
     def test_valid_post_redirects(self):
-        r = self.client.post(self.url, data={
-            "author_name": "Redirect Author", "body": "Great!", "rating": 4,
-            "is_featured": False, "is_active": True, "order": 0,
-        })
+        r = self.client.post(
+            self.url,
+            data={
+                "author_name": "Redirect Author",
+                "body": "Great!",
+                "rating": 4,
+                "is_featured": False,
+                "is_active": True,
+                "order": 0,
+            },
+        )
         self.assertRedirects(r, reverse("management:testimonial_list"))
 
 
 class AdminTestimonialUpdateViewTests(WebsiteBaseTestCase):
-
     def setUp(self):
         self.login_as_admin()
         from website.models import Testimonial
-        self.obj = Testimonial.objects.create(author_name="Old Name", body="Old body", rating=3)
+
+        self.obj = Testimonial.objects.create(
+            author_name="Old Name", body="Old body", rating=3
+        )
         self.url = reverse("management:testimonial_edit", kwargs={"pk": self.obj.pk})
 
     def test_get_returns_200(self):
         self.assertEqual(self.client.get(self.url).status_code, 200)
 
     def test_valid_post_updates(self):
-        self.client.post(self.url, data={
-            "author_name": "New Name", "body": "New body", "rating": 5,
-            "is_featured": False, "is_active": True, "order": 0,
-        })
+        self.client.post(
+            self.url,
+            data={
+                "author_name": "New Name",
+                "body": "New body",
+                "rating": 5,
+                "is_featured": False,
+                "is_active": True,
+                "order": 0,
+            },
+        )
         self.obj.refresh_from_db()
         self.assertEqual(self.obj.author_name, "New Name")
 
     def test_nonexistent_returns_404(self):
-        r = self.client.get(reverse("management:testimonial_edit", kwargs={"pk": 99999}))
+        r = self.client.get(
+            reverse("management:testimonial_edit", kwargs={"pk": 99999})
+        )
         self.assertEqual(r.status_code, 404)
 
 
 class AdminTestimonialDeleteViewTests(WebsiteBaseTestCase):
-
     def setUp(self):
         self.login_as_admin()
         from website.models import Testimonial
-        self.obj = Testimonial.objects.create(author_name="Delete Me", body="body", rating=5)
+
+        self.obj = Testimonial.objects.create(
+            author_name="Delete Me", body="body", rating=5
+        )
         self.url = reverse("management:testimonial_delete", kwargs={"pk": self.obj.pk})
 
     def test_post_deletes(self):
         from website.models import Testimonial
+
         self.client.post(self.url)
         self.assertFalse(Testimonial.objects.filter(pk=self.obj.pk).exists())
 
@@ -524,12 +623,15 @@ class AdminTestimonialDeleteViewTests(WebsiteBaseTestCase):
 
 # ── AdminFAQListView ───────────────────────────────────────────────────────────
 
-class AdminFAQListViewTests(WebsiteBaseTestCase):
 
+class AdminFAQListViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         from website.models import FAQ
-        self.faq = FAQ.objects.create(question="What is CBC?", answer="Competency Based Curriculum.")
+
+        self.faq = FAQ.objects.create(
+            question="What is CBC?", answer="Competency Based Curriculum."
+        )
 
     def test_returns_200(self):
         r = self.client.get(reverse("management:faq_list"))
@@ -547,7 +649,6 @@ class AdminFAQListViewTests(WebsiteBaseTestCase):
 
 
 class AdminFAQCreateViewTests(WebsiteBaseTestCase):
-
     def setUp(self):
         self.login_as_admin()
         self.url = reverse("management:faq_add")
@@ -557,25 +658,36 @@ class AdminFAQCreateViewTests(WebsiteBaseTestCase):
 
     def test_valid_post_creates_faq(self):
         from website.models import FAQ
-        self.client.post(self.url, data={
-            "question": "New FAQ question?", "answer": "Answer here.",
-            "is_active": True, "order": 1,
-        })
+
+        self.client.post(
+            self.url,
+            data={
+                "question": "New FAQ question?",
+                "answer": "Answer here.",
+                "is_active": True,
+                "order": 1,
+            },
+        )
         self.assertTrue(FAQ.objects.filter(question="New FAQ question?").exists())
 
     def test_valid_post_redirects(self):
-        r = self.client.post(self.url, data={
-            "question": "Another FAQ?", "answer": "Yes.",
-            "is_active": True, "order": 2,
-        })
+        r = self.client.post(
+            self.url,
+            data={
+                "question": "Another FAQ?",
+                "answer": "Yes.",
+                "is_active": True,
+                "order": 2,
+            },
+        )
         self.assertRedirects(r, reverse("management:faq_list"))
 
 
 class AdminFAQUpdateViewTests(WebsiteBaseTestCase):
-
     def setUp(self):
         self.login_as_admin()
         from website.models import FAQ
+
         self.obj = FAQ.objects.create(question="Old Q?", answer="Old A.")
         self.url = reverse("management:faq_edit", kwargs={"pk": self.obj.pk})
 
@@ -583,10 +695,15 @@ class AdminFAQUpdateViewTests(WebsiteBaseTestCase):
         self.assertEqual(self.client.get(self.url).status_code, 200)
 
     def test_valid_post_updates(self):
-        self.client.post(self.url, data={
-            "question": "Updated Q?", "answer": "Updated A.",
-            "is_active": True, "order": 0,
-        })
+        self.client.post(
+            self.url,
+            data={
+                "question": "Updated Q?",
+                "answer": "Updated A.",
+                "is_active": True,
+                "order": 0,
+            },
+        )
         self.obj.refresh_from_db()
         self.assertEqual(self.obj.question, "Updated Q?")
 
@@ -596,15 +713,16 @@ class AdminFAQUpdateViewTests(WebsiteBaseTestCase):
 
 
 class AdminFAQDeleteViewTests(WebsiteBaseTestCase):
-
     def setUp(self):
         self.login_as_admin()
         from website.models import FAQ
+
         self.obj = FAQ.objects.create(question="Delete Me?", answer="Yes.")
         self.url = reverse("management:faq_delete", kwargs={"pk": self.obj.pk})
 
     def test_post_deletes(self):
         from website.models import FAQ
+
         self.client.post(self.url)
         self.assertFalse(FAQ.objects.filter(pk=self.obj.pk).exists())
 

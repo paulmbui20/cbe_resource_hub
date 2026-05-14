@@ -38,6 +38,7 @@ from website.tests.test_admin_views import (
     AdminFAQCreateViewTests,
     AdminFAQUpdateViewTests,
     AdminFAQDeleteViewTests,
+    AdminEmailSubscribersExportCSVViewTests,
 )
 from website.tests.test_sitemaps import (
     StaticViewSitemapTests,
@@ -111,4 +112,6 @@ __all__ = [
     "CacheInvalidationTests",
     # Sanitization
     "SanitizationTests",
+    # Email Subscribers Export CSV
+    "AdminEmailSubscribersExportCSVViewTests",
 ]
