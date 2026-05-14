@@ -34,12 +34,15 @@ from cms.models import Page
 from core.models import AcademicSession, Term, Year
 from resources.models import EducationLevel, Grade, LearningArea, ResourceItem
 from seo.models import SlugRedirect
-from website.models import ContactMessage, EmailSubscriber, Partner
+from website.models import ContactMessage, EmailSubscriber
 
 
 def make_pdf(name="integration.pdf"):
     from django.core.files.uploadedfile import SimpleUploadedFile
-    return SimpleUploadedFile(name, b"%PDF-1.4 integration", content_type="application/pdf")
+
+    return SimpleUploadedFile(
+        name, b"%PDF-1.4 integration", content_type="application/pdf"
+    )
 
 
 class IntegrationBaseTestCase(TestCase):
@@ -53,20 +56,25 @@ class IntegrationBaseTestCase(TestCase):
             email="int_admin@example.com", password="pass123"
         )
         cls.vendor1 = CustomUser.objects.create_user(
-            email="vendor1@example.com", password="pass123",
+            email="vendor1@example.com",
+            password="pass123",
             role=CustomUser.Role.VENDOR,
         )
         cls.vendor2 = CustomUser.objects.create_user(
-            email="vendor2@example.com", password="pass123",
+            email="vendor2@example.com",
+            password="pass123",
             role=CustomUser.Role.VENDOR,
         )
         cls.regular = CustomUser.objects.create_user(
-            email="regular@example.com", password="pass123",
+            email="regular@example.com",
+            password="pass123",
         )
 
         # Curriculum
         cls.level = EducationLevel.objects.create(name="Integration Level", order=77)
-        cls.grade = Grade.objects.create(level=cls.level, name="Integration Grade", order=77)
+        cls.grade = Grade.objects.create(
+            level=cls.level, name="Integration Grade", order=77
+        )
         cls.learning_area = LearningArea.objects.create(name="Integration Area")
 
         cls.year = Year.objects.create(year=2077)
@@ -97,52 +105,63 @@ class IntegrationBaseTestCase(TestCase):
 
 # ── Flow 1: Contact form → DB + notification ───────────────────────────────────
 
-class ContactFormIntegrationTest(IntegrationBaseTestCase):
 
+class ContactFormIntegrationTest(IntegrationBaseTestCase):
     @patch("website.views.notify_contact_form")
     def test_contact_submission_saves_to_db(self, mock_notify):
         count_before = ContactMessage.objects.count()
-        self.client.post("/contact/", {
-            "name": "Integration Sender",
-            "email": "int@example.com",
-            "subject": "Integration Subject",
-            "message": "Integration message body.",
-            "website_url": "",
-        })
+        self.client.post(
+            "/contact/",
+            {
+                "name": "Integration Sender",
+                "email": "int@example.com",
+                "subject": "Integration Subject",
+                "message": "Integration message body.",
+                "website_url": "",
+            },
+        )
         self.assertEqual(ContactMessage.objects.count(), count_before + 1)
 
     @patch("website.views.notify_contact_form")
     def test_contact_submission_triggers_notification(self, mock_notify):
-        self.client.post("/contact/", {
-            "name": "Notif Sender",
-            "email": "notif@example.com",
-            "subject": "Notif Subject",
-            "message": "Notif body.",
-            "website_url": "",
-        })
+        self.client.post(
+            "/contact/",
+            {
+                "name": "Notif Sender",
+                "email": "notif@example.com",
+                "subject": "Notif Subject",
+                "message": "Notif body.",
+                "website_url": "",
+            },
+        )
         mock_notify.assert_called_once()
 
     @patch("website.views.notify_contact_form")
     def test_contact_honeypot_blocks_bot(self, mock_notify):
         count_before = ContactMessage.objects.count()
-        self.client.post("/contact/", {
-            "name": "Bot",
-            "email": "bot@spam.com",
-            "subject": "Buy now",
-            "message": "Click here",
-            "website_url": "http://spam.example.com",  # bot fills honeypot
-        })
+        self.client.post(
+            "/contact/",
+            {
+                "name": "Bot",
+                "email": "bot@spam.com",
+                "subject": "Buy now",
+                "message": "Click here",
+                "website_url": "http://spam.example.com",  # bot fills honeypot
+            },
+        )
         self.assertEqual(ContactMessage.objects.count(), count_before)
         mock_notify.assert_not_called()
 
 
 # ── Flow 2: Resource appears on public list after creation ─────────────────────
 
-class ResourcePublicListIntegrationTest(IntegrationBaseTestCase):
 
+class ResourcePublicListIntegrationTest(IntegrationBaseTestCase):
     def test_resource_appears_on_public_list(self):
         r = self.client.get("/resources/")
-        resources = list(r.context.get("resources", []) or r.context.get("page_obj", []))
+        resources = list(
+            r.context.get("resources", []) or r.context.get("page_obj", [])
+        )
         pks = [res.pk for res in resources]
         self.assertIn(self.resource.pk, pks)
 
@@ -160,13 +179,15 @@ class ResourcePublicListIntegrationTest(IntegrationBaseTestCase):
                 "resource_type": "notes",
             },
         )
-        self.assertTrue(ResourceItem.objects.filter(title="New Vendor Resource").exists())
+        self.assertTrue(
+            ResourceItem.objects.filter(title="New Vendor Resource").exists()
+        )
 
 
 # ── Flow 3: Download counter increments ───────────────────────────────────────
 
-class DownloadCounterIntegrationTest(IntegrationBaseTestCase):
 
+class DownloadCounterIntegrationTest(IntegrationBaseTestCase):
     def setUp(self):
         super().setUp()
         # Refresh from DB each time so we capture the real current count
@@ -175,14 +196,20 @@ class DownloadCounterIntegrationTest(IntegrationBaseTestCase):
     def test_download_increments_via_htmx(self):
         initial = self.resource.downloads
         self.client.post(
-            reverse("resources:resource_increment_downloads", kwargs={"slug": self.resource.slug})
+            reverse(
+                "resources:resource_increment_downloads",
+                kwargs={"slug": self.resource.slug},
+            )
         )
         self.resource.refresh_from_db()
         self.assertEqual(self.resource.downloads, initial + 1)
 
     def test_multiple_downloads_accumulate(self):
         initial = self.resource.downloads
-        url = reverse("resources:resource_increment_downloads", kwargs={"slug": self.resource.slug})
+        url = reverse(
+            "resources:resource_increment_downloads",
+            kwargs={"slug": self.resource.slug},
+        )
         for _ in range(3):
             self.client.post(url)
         self.resource.refresh_from_db()
@@ -190,20 +217,24 @@ class DownloadCounterIntegrationTest(IntegrationBaseTestCase):
 
     def test_invalid_slug_returns_404_json(self):
         r = self.client.post(
-            reverse("resources:resource_increment_downloads", kwargs={"slug": "nonexistent-slug-999"})
+            reverse(
+                "resources:resource_increment_downloads",
+                kwargs={"slug": "nonexistent-slug-999"},
+            )
         )
         self.assertEqual(r.status_code, 404)
 
 
-
 # ── Flow 4: Favorite toggle (add then remove) ─────────────────────────────────
 
-class FavoriteToggleIntegrationTest(IntegrationBaseTestCase):
 
+class FavoriteToggleIntegrationTest(IntegrationBaseTestCase):
     def setUp(self):
         super().setUp()
         self.client.force_login(self.regular)
-        self.url = reverse("resources:toggle_favorite", kwargs={"slug": self.resource.slug})
+        self.url = reverse(
+            "resources:toggle_favorite", kwargs={"slug": self.resource.slug}
+        )
 
     def test_add_to_favorites(self):
         self.client.post(self.url, HTTP_HX_REQUEST="true")
@@ -222,8 +253,8 @@ class FavoriteToggleIntegrationTest(IntegrationBaseTestCase):
 
 # ── Flow 5: Admin creates EducationLevel → cache cleared → homepage updated ────
 
-class AdminCacheInvalidationIntegrationTest(IntegrationBaseTestCase):
 
+class AdminCacheInvalidationIntegrationTest(IntegrationBaseTestCase):
     def test_creating_level_clears_cache_and_homepage_reflects_count(self):
         self.client.force_login(self.admin)
         count_before = EducationLevel.objects.count()
@@ -238,12 +269,10 @@ class AdminCacheInvalidationIntegrationTest(IntegrationBaseTestCase):
         self.assertEqual(r.context["total_levels"], count_after)
 
 
-
-
 # ── Flow 6: CMS page published → accessible at public URL ─────────────────────
 
-class CMSPagePublishIntegrationTest(IntegrationBaseTestCase):
 
+class CMSPagePublishIntegrationTest(IntegrationBaseTestCase):
     def setUp(self):
         super().setUp()
         self.page = Page.objects.create(
@@ -272,8 +301,8 @@ class CMSPagePublishIntegrationTest(IntegrationBaseTestCase):
 
 # ── Flow 7: Slug change → redirect created → middleware handles 301 ────────────
 
-class SlugRedirectIntegrationTest(IntegrationBaseTestCase):
 
+class SlugRedirectIntegrationTest(IntegrationBaseTestCase):
     def test_slug_change_creates_redirect_in_db(self):
         old_slug = self.level.slug
         self.level.slug = "integration-level-renamed"
@@ -283,6 +312,7 @@ class SlugRedirectIntegrationTest(IntegrationBaseTestCase):
 
     def test_middleware_serves_301_for_old_slug(self):
         from django.contrib.contenttypes.models import ContentType
+
         ct = ContentType.objects.get_for_model(ResourceItem)
         SlugRedirect.objects.create(
             content_type=ct,
@@ -290,11 +320,12 @@ class SlugRedirectIntegrationTest(IntegrationBaseTestCase):
             old_slug="int-old-resource-slug",
             new_slug=self.resource.slug,
         )
-        r = self.client.get(f"/resources/int-old-resource-slug/")
+        r = self.client.get("/resources/int-old-resource-slug/")
         self.assertEqual(r.status_code, 301)
 
     def test_middleware_redirect_points_to_new_url(self):
         from django.contrib.contenttypes.models import ContentType
+
         ct = ContentType.objects.get_for_model(ResourceItem)
         SlugRedirect.objects.create(
             content_type=ct,
@@ -302,38 +333,51 @@ class SlugRedirectIntegrationTest(IntegrationBaseTestCase):
             old_slug="mw-int-old",
             new_slug=self.resource.slug,
         )
-        r = self.client.get(f"/resources/mw-int-old/")
+        r = self.client.get("/resources/mw-int-old/")
         self.assertIn(self.resource.slug, r["Location"])
 
 
 # ── Flow 8: Email subscription end-to-end ─────────────────────────────────────
 
-class EmailSubscriptionIntegrationTest(IntegrationBaseTestCase):
 
+class EmailSubscriptionIntegrationTest(IntegrationBaseTestCase):
     def test_valid_subscription_saves_subscriber(self):
-        self.client.post("/email-subscription/", {"email": "flow_sub@example.com"}, REMOTE_ADDR="10.0.0.10")
-        self.assertTrue(EmailSubscriber.objects.filter(email="flow_sub@example.com").exists())
+        self.client.post(
+            "/email-subscription/",
+            {"email": "flow_sub@example.com"},
+            REMOTE_ADDR="10.0.0.10",
+        )
+        self.assertTrue(
+            EmailSubscriber.objects.filter(email="flow_sub@example.com").exists()
+        )
 
     def test_duplicate_subscription_blocked_but_returns_success_trigger(self):
         """Verify anti-enumeration: duplicate returns success trigger but doesn't create new record."""
         import json
+
         EmailSubscriber.objects.create(email="dup_int@example.com")
-        r = self.client.post("/email-subscription/", {"email": "dup_int@example.com"}, REMOTE_ADDR="10.0.0.11")
-        
+        r = self.client.post(
+            "/email-subscription/",
+            {"email": "dup_int@example.com"},
+            REMOTE_ADDR="10.0.0.11",
+        )
+
         # Check for success trigger (anti-enumeration)
         trigger = r.get("HX-Trigger")
         self.assertIsNotNone(trigger)
         trigger_data = json.loads(trigger)
         self.assertEqual(trigger_data.get("notify", {}).get("type"), "success")
-        
+
         # Verify no duplicate was created
-        self.assertEqual(EmailSubscriber.objects.filter(email="dup_int@example.com").count(), 1)
+        self.assertEqual(
+            EmailSubscriber.objects.filter(email="dup_int@example.com").count(), 1
+        )
 
 
 # ── Flow 9: Admin marks contact message as read ────────────────────────────────
 
-class AdminContactReadIntegrationTest(IntegrationBaseTestCase):
 
+class AdminContactReadIntegrationTest(IntegrationBaseTestCase):
     def test_opening_message_marks_it_read(self):
         msg = ContactMessage.objects.create(
             name="Unread Int", subject="Sub", message="Body", is_read=False
@@ -359,8 +403,8 @@ class AdminContactReadIntegrationTest(IntegrationBaseTestCase):
 
 # ── Flow 10: Admin dashboard aggregates correct counts ────────────────────────
 
-class AdminDashboardCountsIntegrationTest(IntegrationBaseTestCase):
 
+class AdminDashboardCountsIntegrationTest(IntegrationBaseTestCase):
     def test_dashboard_total_users_correct(self):
         self.client.force_login(self.admin)
         expected = CustomUser.objects.count()
@@ -382,8 +426,8 @@ class AdminDashboardCountsIntegrationTest(IntegrationBaseTestCase):
 
 # ── Flow 11: Sitemap XML is valid and contains resources ──────────────────────
 
-class SitemapIntegrationTest(IntegrationBaseTestCase):
 
+class SitemapIntegrationTest(IntegrationBaseTestCase):
     def test_sitemap_returns_200(self):
         r = self.client.get("/sitemap.xml")
         self.assertEqual(r.status_code, 200)
@@ -394,6 +438,7 @@ class SitemapIntegrationTest(IntegrationBaseTestCase):
 
     def test_contenttypes_before_auth(self):
         from django.conf import settings
+
         apps = list(settings.INSTALLED_APPS)
         # Both must be present
         self.assertIn("django.contrib.contenttypes", apps)
@@ -407,8 +452,8 @@ class SitemapIntegrationTest(IntegrationBaseTestCase):
 
 # ── Flow 12: Robots.txt ────────────────────────────────────────────────────────
 
-class RobotsTxtIntegrationTest(IntegrationBaseTestCase):
 
+class RobotsTxtIntegrationTest(IntegrationBaseTestCase):
     def test_robots_txt_returns_200(self):
         r = self.client.get("/robots.txt")
         self.assertEqual(r.status_code, 200)
@@ -420,8 +465,8 @@ class RobotsTxtIntegrationTest(IntegrationBaseTestCase):
 
 # ── Flow 13: Unauthenticated access to vendor views ───────────────────────────
 
-class UnauthenticatedAccessIntegrationTest(IntegrationBaseTestCase):
 
+class UnauthenticatedAccessIntegrationTest(IntegrationBaseTestCase):
     def test_resource_create_requires_auth(self):
         r = self.client.get(reverse("resources:manage_add"))
         self.assertIn(r.status_code, [302, 403])
@@ -439,8 +484,8 @@ class UnauthenticatedAccessIntegrationTest(IntegrationBaseTestCase):
 
 # ── Flow 14: Vendor cannot edit another vendor's resource ─────────────────────
 
-class VendorOwnershipIntegrationTest(IntegrationBaseTestCase):
 
+class VendorOwnershipIntegrationTest(IntegrationBaseTestCase):
     def test_vendor2_cannot_edit_vendor1_resource(self):
         self.client.force_login(self.vendor2)
         r = self.client.get(
@@ -466,8 +511,8 @@ class VendorOwnershipIntegrationTest(IntegrationBaseTestCase):
 
 # ── Flow 15: Admin can edit any resource ──────────────────────────────────────
 
-class AdminResourceAccessIntegrationTest(IntegrationBaseTestCase):
 
+class AdminResourceAccessIntegrationTest(IntegrationBaseTestCase):
     def test_admin_can_view_any_resource_edit_page(self):
         self.client.force_login(self.admin)
         r = self.client.get(
