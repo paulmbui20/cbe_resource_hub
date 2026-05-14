@@ -407,7 +407,7 @@ uv run python manage.py createsuperuser
 uv run python manage.py runserver
 ```
 
-Visit: http://localhost:8000
+Visit: <http://localhost:8000>
 
 ---
 
@@ -504,6 +504,7 @@ users.
 3. Set Authorized redirect URI: `http://localhost:8000/accounts/google/login/callback/`
 4. Add your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to `.env`
 5. In the Django admin or shell, add a `SocialApp` for Google:
+
    ```python
    from allauth.socialaccount.models import SocialApp
    from django.contrib.sites.models import Site
@@ -560,7 +561,7 @@ docker run -d \
 quay.io/minio/minio server /data --console-address ":9001"
 ```
 
-> visit minio webaddress on browser at http://localhost:9001
+> visit minio webaddress on browser at <http://localhost:9001>
 
 Create the three buckets, by default they are all private to change one to public that exec into minio
 container and use `mc` to adjust policy
@@ -688,7 +689,6 @@ if self.request.GET.get('suggestions') == '1':
 The stats section uses a vanilla `IntersectionObserver` (no Alpine plugin dependency) that dispatches a `animate-stats`
 CustomEvent on the section when it enters the viewport. Alpine listens with `@animate-stats.window` and runs the counter
 animation. This is more reliable than `x-intersect` because it doesn't depend on Alpine plugin loading order.
-
 
 ---
 

@@ -311,13 +311,22 @@ class SlugRedirectIntegrationTest(IntegrationBaseTestCase):
 class EmailSubscriptionIntegrationTest(IntegrationBaseTestCase):
 
     def test_valid_subscription_saves_subscriber(self):
-        self.client.post("/email-subscription/", {"email": "flow_sub@example.com"})
+        self.client.post("/email-subscription/", {"email": "flow_sub@example.com"}, REMOTE_ADDR="10.0.0.10")
         self.assertTrue(EmailSubscriber.objects.filter(email="flow_sub@example.com").exists())
 
-    def test_duplicate_subscription_blocked(self):
+    def test_duplicate_subscription_blocked_but_returns_success_trigger(self):
+        """Verify anti-enumeration: duplicate returns success trigger but doesn't create new record."""
+        import json
         EmailSubscriber.objects.create(email="dup_int@example.com")
-        r = self.client.post("/email-subscription/", {"email": "dup_int@example.com"})
-        self.assertFalse(r.context.get("success", True))
+        r = self.client.post("/email-subscription/", {"email": "dup_int@example.com"}, REMOTE_ADDR="10.0.0.11")
+        
+        # Check for success trigger (anti-enumeration)
+        trigger = r.get("HX-Trigger")
+        self.assertIsNotNone(trigger)
+        trigger_data = json.loads(trigger)
+        self.assertEqual(trigger_data.get("notify", {}).get("type"), "success")
+        
+        # Verify no duplicate was created
         self.assertEqual(EmailSubscriber.objects.filter(email="dup_int@example.com").count(), 1)
 
 
