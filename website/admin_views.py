@@ -1,7 +1,15 @@
 from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, ListView, UpdateView, CreateView, DeleteView, DetailView, View
+from django.views.generic import (
+    TemplateView,
+    ListView,
+    UpdateView,
+    CreateView,
+    DeleteView,
+    DetailView,
+    View,
+)
 from core.utils import stream_queryset_as_csv
 
 from accounts.admin_views import IsAdminMixin
@@ -20,6 +28,7 @@ class AdminDashboardView(IsAdminMixin, TemplateView):
 
         # Batch user-related COUNTs into a single annotated aggregate.
         from django.db.models import Count, Q
+
         user_agg = CustomUser.objects.aggregate(
             total=Count("id"),
             vendors=Count("id", filter=Q(role=CustomUser.Role.VENDOR)),
@@ -31,8 +40,12 @@ class AdminDashboardView(IsAdminMixin, TemplateView):
         # hit different tables so they can't be collapsed further without raw SQL.
         context["total_resources"] = ResourceItem.objects.count()
         context["total_pages"] = Page.objects.count()
-        context["unread_messages"] = ContactMessage.objects.filter(is_read=False).count()
-        context["total_email_subscribers"] = EmailSubscriber.objects.filter(opted_out=False).count()
+        context["unread_messages"] = ContactMessage.objects.filter(
+            is_read=False
+        ).count()
+        context["total_email_subscribers"] = EmailSubscriber.objects.filter(
+            opted_out=False
+        ).count()
 
         # Recent items — select_related to avoid N+1 in the template
         context["recent_users"] = CustomUser.objects.order_by("-date_joined").only(
@@ -41,7 +54,6 @@ class AdminDashboardView(IsAdminMixin, TemplateView):
         context["recent_resources"] = ResourceItem.objects.order_by("-created_at")[:5]
 
         return context
-
 
 
 # ── Contact Messages ─────────────────────────────────────────────────────────
@@ -92,8 +104,20 @@ class AdminPartnerListView(IsAdminMixin, ListView):
 class AdminPartnerCreateView(IsAdminMixin, CreateView):
     model = Partner
     template_name = "admin/seo_form.html"
-    fields = ["name", "slug", "link", "description", "logo", "show_as_banner", "banner_cta",
-              "focus_keyword", "meta_title", "meta_description", "meta_keywords", "featured_image"]
+    fields = [
+        "name",
+        "slug",
+        "link",
+        "description",
+        "logo",
+        "show_as_banner",
+        "banner_cta",
+        "focus_keyword",
+        "meta_title",
+        "meta_description",
+        "meta_keywords",
+        "featured_image",
+    ]
     success_url = reverse_lazy("management:partner_list")
 
     def get_context_data(self, **kwargs):
@@ -104,15 +128,29 @@ class AdminPartnerCreateView(IsAdminMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        messages.success(self.request, f"Partner '{form.instance.name}' added successfully.")
+        messages.success(
+            self.request, f"Partner '{form.instance.name}' added successfully."
+        )
         return super().form_valid(form)
 
 
 class AdminPartnerUpdateView(IsAdminMixin, UpdateView):
     model = Partner
     template_name = "admin/seo_form.html"
-    fields = ["name", "slug", "link", "description", "logo", "show_as_banner", "banner_cta",
-              "focus_keyword", "meta_title", "meta_description", "meta_keywords", "featured_image"]
+    fields = [
+        "name",
+        "slug",
+        "link",
+        "description",
+        "logo",
+        "show_as_banner",
+        "banner_cta",
+        "focus_keyword",
+        "meta_title",
+        "meta_description",
+        "meta_keywords",
+        "featured_image",
+    ]
     success_url = reverse_lazy("management:partner_list")
 
     def get_context_data(self, **kwargs):
@@ -148,18 +186,19 @@ class AdminEmailSubscribersListView(IsAdminMixin, ListView):
         q = self.request.GET.get("q")
         q = str(q) if q else ""
         if q:
-            qs = qs.filter(
-                Q(email__icontains=q) | Q(full_name__icontains=q)
-            )
+            qs = qs.filter(Q(email__icontains=q) | Q(full_name__icontains=q))
 
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["opted_out_count"] = EmailSubscriber.objects.filter(opted_out=True).count()
+        context["opted_out_count"] = EmailSubscriber.objects.filter(
+            opted_out=True
+        ).count()
         context["search_query"] = self.request.GET.get("q")
 
         return context
+
 
 class AdminEmailSubscribersExportCSVView(IsAdminMixin, View):
     def get(self, request, *args, **kwargs):
@@ -168,21 +207,29 @@ class AdminEmailSubscribersExportCSVView(IsAdminMixin, View):
         q = self.request.GET.get("q")
         q = str(q) if q else ""
         if q:
-            qs = qs.filter(
-                Q(email__icontains=q) | Q(full_name__icontains=q)
-            )
+            qs = qs.filter(Q(email__icontains=q) | Q(full_name__icontains=q))
 
         return stream_queryset_as_csv(
             qs,
-            fields=["id", "full_name", "email", "opted_out", "created_at", "updated_at"],
-            filename="email_subscribers.csv"
+            fields=[
+                "id",
+                "full_name",
+                "email",
+                "opted_out",
+                "created_at",
+                "updated_at",
+            ],
+            filename="email_subscribers.csv",
         )
+
 
 class AdminEmailSubscribersCreateView(IsAdminMixin, CreateView):
     model = EmailSubscriber
     template_name = "admin/generic_form.html"
     fields = [
-        "full_name", "email", "opted_out",
+        "full_name",
+        "email",
+        "opted_out",
     ]
     success_url = reverse_lazy("management:email_subscribers")
 
@@ -194,16 +241,17 @@ class AdminEmailSubscribersCreateView(IsAdminMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        messages.success(self.request, f"Email subscriber {form.instance.email} created successfully.")
+        messages.success(
+            self.request,
+            f"Email subscriber {form.instance.email} created successfully.",
+        )
         return super().form_valid(form)
 
 
 class AdminEmailSubscriberEdit(IsAdminMixin, UpdateView):
     model = EmailSubscriber
     template_name = "admin/generic_form.html"
-    fields = [
-        "full_name", "email", "opted_out"
-    ]
+    fields = ["full_name", "email", "opted_out"]
     success_url = reverse_lazy("management:email_subscribers")
 
     def get_context_data(self, **kwargs):
@@ -214,7 +262,9 @@ class AdminEmailSubscriberEdit(IsAdminMixin, UpdateView):
         return context
 
     def form_valid(self, form):
-        messages.success(self.request, f"Email subscriber {form.instance.email} updated.")
+        messages.success(
+            self.request, f"Email subscriber {form.instance.email} updated."
+        )
         return super().form_valid(form)
 
 
@@ -239,8 +289,15 @@ class AdminTestimonialCreateView(IsAdminMixin, CreateView):
     model = Testimonial
     template_name = "admin/generic_form.html"
     fields = [
-        "author_name", "author_role", "author_organization",
-        "author_avatar", "body", "rating", "is_featured", "is_active", "order",
+        "author_name",
+        "author_role",
+        "author_organization",
+        "author_avatar",
+        "body",
+        "rating",
+        "is_featured",
+        "is_active",
+        "order",
     ]
     success_url = reverse_lazy("management:testimonial_list")
 
@@ -252,7 +309,9 @@ class AdminTestimonialCreateView(IsAdminMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        messages.success(self.request, f"Testimonial from '{form.instance.author_name}' created.")
+        messages.success(
+            self.request, f"Testimonial from '{form.instance.author_name}' created."
+        )
         return super().form_valid(form)
 
 
@@ -260,8 +319,15 @@ class AdminTestimonialUpdateView(IsAdminMixin, UpdateView):
     model = Testimonial
     template_name = "admin/generic_form.html"
     fields = [
-        "author_name", "author_role", "author_organization",
-        "author_avatar", "body", "rating", "is_featured", "is_active", "order",
+        "author_name",
+        "author_role",
+        "author_organization",
+        "author_avatar",
+        "body",
+        "rating",
+        "is_featured",
+        "is_active",
+        "order",
     ]
     success_url = reverse_lazy("management:testimonial_list")
 

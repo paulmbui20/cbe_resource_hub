@@ -1,6 +1,8 @@
+from django.core.cache import cache
+import re
+from django.urls import get_resolver, URLPattern, URLResolver
 from datetime import datetime
 import csv
-from django.core.cache import cache
 from django.http import StreamingHttpResponse
 
 current_year = datetime.now().year
@@ -64,3 +66,56 @@ def stream_queryset_as_csv(queryset, fields=None, exclude=None, filename="export
     response = StreamingHttpResponse(stream_csv(), content_type="text/csv")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
+
+
+# Compile regex outside the generator for maximum loop efficiency
+REGEX_CLEANUP = re.compile(r"[\^\$\?\(\):|]|\?P<.*?>")
+
+
+def get_all_urls(resolver=None, prefix=""):
+    if resolver is None:
+        resolver = get_resolver()
+
+    for pattern in resolver.url_patterns:
+        pattern_str = str(pattern.pattern)
+
+        if isinstance(pattern, URLResolver):
+            yield from get_all_urls(pattern, prefix + pattern_str)
+        elif isinstance(pattern, URLPattern):
+            full_path = prefix + pattern_str
+
+            # 1. Faster Exclusions via Membership Testing
+            if any(
+                x in full_path
+                for x in (
+                    "<",
+                    ">",
+                    "admin/",
+                    "wagtail-admin/",
+                    "__debug__/",
+                    "tinymce/",
+                    "_util/",
+                    "documents/",
+                    "media/",
+                    "static/",
+                )
+            ):
+                continue
+
+            # Exclude backend-only authenticators
+            if "3rdparty/" in full_path or "social/" in full_path:
+                continue
+
+            # 2. Strip Regex syntax from legacy/complex patterns (like your blog URL)
+            clean_path = REGEX_CLEANUP.sub("", full_path)
+
+            # 3. Ensure a clean leading slash for frontend palette usage
+            if not clean_path.startswith("/"):
+                clean_path = "/" + clean_path
+
+            yield clean_path
+
+
+def get_cached_urls():
+    # Cache permanently; clear it only when you redeploy or change code
+    return cache.get_or_set("all_urls", lambda: list(get_all_urls()), timeout=None)

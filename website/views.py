@@ -260,9 +260,9 @@ def blog_comment_post(request, page_id):
             "form": form,
             "page": page,
             "is_auth": is_auth,
-            "commenter_name": (
-                request.user.get_full_name() or request.user.username
-            ) if is_auth else "",
+            "commenter_name": (request.user.get_full_name() or request.user.username)
+            if is_auth
+            else "",
             "commenter_email": request.user.email if is_auth else "",
         },
         status=422,  # Unprocessable Entity — tells HTMX this is an error
