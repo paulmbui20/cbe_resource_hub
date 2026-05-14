@@ -16,3 +16,8 @@
 1.
 
 # Completed Features
+
+1. Dynamic Comment System (HTMX + Alpine.js) for Blog
+   * Secure SPA-like interactive comments.
+   * Built-in honeypot spam protection.
+   * Fully decoupled components logic for future reuse on resource details pages.

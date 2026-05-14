@@ -1,0 +1,207 @@
+{# ─────────────────────────────────────────────────────────────────────────── #}
+{# components/comment_section.html                                             #}
+{#                                                                              #}
+{# Drop-in comment section.  Include anywhere with:                            #}
+{#   {% include "components/comment_section.html" %}                           #}
+{#                                                                              #}
+{# Required context (set by BlogPage.get_context):                             #}
+{#   page             – the BlogPage object                                    #}
+{#   comments         – approved top-level comments queryset                   #}
+{#   comment_count    – integer, total approved comments                       #}
+{#   comment_form     – BlogCommentForm instance                               #}
+{#   is_auth          – bool                                                   #}
+{#   commenter_name   – string (pre-filled for auth users)                     #}
+{#   commenter_email  – string (pre-filled for auth users)                     #}
+{# ─────────────────────────────────────────────────────────────────────────── #}
+
+{# ── Scoped CSS for this section ────────────────────────────────────────── #}
+<style>
+  /* New-comment highlight pop-in */
+  @keyframes commentPop {
+    0%   { opacity: 0; transform: translateY(12px) scale(0.97); }
+    70%  { transform: translateY(-2px) scale(1.005); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .comment-new {
+    animation: commentPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.15);
+  }
+
+  /* Toast */
+  @keyframes toastIn  { from { opacity: 0; transform: translateY(16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(8px) scale(0.97); } }
+  .toast-enter { animation: toastIn  0.35s ease both; }
+  .toast-leave { animation: toastOut 0.3s  ease both; }
+
+  /* HTMX loading spinner reveal */
+  .htmx-request .htmx-indicator { opacity: 1 !important; }
+  .htmx-indicator { opacity: 0; transition: opacity 0.2s; }
+</style>
+
+{# ── Global toast container (Alpine-driven) ─────────────────────────────── #}
+<div id="comment-toast-region"
+     x-data="{
+       toasts: [],
+       addToast(msg, type='success') {
+         const id = Date.now();
+         this.toasts.push({ id, msg, type });
+         setTimeout(() => this.removeToast(id), 4000);
+       },
+       removeToast(id) {
+         const el = document.getElementById('toast-' + id);
+         if (el) { el.classList.add('toast-leave'); setTimeout(() => this.toasts = this.toasts.filter(t => t.id !== id), 300); }
+         else { this.toasts = this.toasts.filter(t => t.id !== id); }
+       }
+     }"
+     @comment-posted.window="addToast($event.detail.message, 'success')"
+     @comment-error.window="addToast($event.detail.message, 'error')"
+     class="fixed bottom-6 right-6 z-[9999] flex flex-col-reverse gap-3 pointer-events-none"
+     aria-live="polite"
+     aria-atomic="true">
+  <template x-for="toast in toasts" :key="toast.id">
+    <div :id="'toast-' + toast.id"
+         class="toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl text-sm font-semibold backdrop-blur-md border"
+         :class="{
+           'bg-brand-secondary/90 border-brand-gold/30 text-white': toast.type === 'success',
+           'bg-brand-secondary/90 border-red-500/30 text-red-300':  toast.type === 'error'
+         }">
+      {# Icon #}
+      <span class="shrink-0">
+        <template x-if="toast.type === 'success'">
+          <svg class="w-4 h-4 text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+        </template>
+        <template x-if="toast.type === 'error'">
+          <svg class="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </template>
+      </span>
+      <span x-text="toast.msg"></span>
+      <button @click="removeToast(toast.id)"
+              class="ml-auto text-white/40 hover:text-white transition-colors"
+              aria-label="Dismiss notification">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </template>
+</div>
+
+{# ─────────────────────────────────────────────────────────────────────────── #}
+{# COMMENT SECTION                                                             #}
+{# ─────────────────────────────────────────────────────────────────────────── #}
+<section class="mt-20 pt-10 border-t border-white/10"
+         id="comments"
+         aria-labelledby="comments-heading">
+
+  {# ── Heading ─────────────────────────────────────────────────────────── #}
+  <div class="flex items-center gap-3 mb-10">
+    <h2 id="comments-heading" class="text-2xl font-black text-white">
+      Comments
+    </h2>
+    {% if comment_count %}
+      <span class="px-2.5 py-0.5 rounded-full bg-brand-gold/15 text-brand-gold text-xs font-bold border border-brand-gold/25 tabular-nums">
+        {{ comment_count }}
+      </span>
+    {% endif %}
+  </div>
+
+  <div class="grid lg:grid-cols-[1fr_380px] gap-10 items-start">
+
+    {# ── Left: Existing comments list ────────────────────────────────── #}
+    <div>
+      {% if comments %}
+        {# HTMX will prepend new comments before this list #}
+        <div id="comment-list"
+             class="space-y-6"
+             hx-on::after-request="
+               if (event.detail.successful) {
+                 window.dispatchEvent(new CustomEvent('comment-posted', { detail: { message: 'Comment posted successfully!' } }));
+               }
+             "
+             role="list"
+             aria-label="Comments">
+          {% for comment in comments %}
+            <div class="bg-white/[0.03] border border-white/8 rounded-2xl p-5 transition-colors hover:border-white/15">
+              {% include "components/comment_new.html" with comment=comment is_new=False %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="flex flex-col items-center justify-center py-16 text-center" id="comment-list" role="list" aria-label="Comments">
+          <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4" aria-hidden="true">
+            <svg class="w-7 h-7 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </div>
+          <p class="text-white/30 font-body text-sm">No comments yet — be the first!</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {# ── Right: Form ──────────────────────────────────────────────── #}
+    <div class="lg:sticky lg:top-24">
+      <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
+        <p class="text-xs text-white/35 uppercase tracking-widest font-semibold mb-5 font-body">
+          Leave a comment
+        </p>
+
+        {# ── HTMX wrapper: on success swap the form with new comment card, #}
+        {# but also prepend the card to the list via OOB swap ─────── #}
+        <div id="comment-form-region"
+             hx-on::after-swap="
+               /* If a .comment-new appeared, we got a success response.
+                  Prepend a copy to the #comment-list and fire the toast. */
+               const incoming = document.querySelector('#comment-form-region .comment-new');
+               if (incoming) {
+                 const list = document.getElementById('comment-list');
+                 /* Remove empty state div if present */
+                 const empty = list.querySelector('p');
+                 if (empty) list.innerHTML = '';
+                 const wrapper = document.createElement('div');
+                 wrapper.className = 'bg-white/[0.03] border border-white/8 rounded-2xl p-5 transition-colors hover:border-white/15';
+                 wrapper.appendChild(incoming.cloneNode(true));
+                 list.prepend(wrapper);
+                 /* Update comment count badge */
+                 const badge = document.querySelector('#comments .tabular-nums');
+                 if (badge) badge.textContent = String((parseInt(badge.textContent) || 0) + 1);
+                 window.dispatchEvent(new CustomEvent('comment-posted', { detail: { message: 'Comment posted! Thanks for joining the conversation.' } }));
+               } else {
+                 /* 422 / validation error */
+                 window.dispatchEvent(new CustomEvent('comment-error', { detail: { message: 'Please fix the errors below.' } }));
+               }
+             ">
+          {% include "components/comment_form.html" with form=comment_form %}
+        </div>
+
+        {# ── Auth nudge for anonymous visitors ───────────────────── #}
+        {% if not is_auth %}
+        <p class="mt-4 text-[0.7rem] text-white/25 font-body text-center leading-relaxed">
+          <a href="{% url 'account_login' %}?next={{ request.path }}"
+             class="text-brand-gold/70 hover:text-brand-gold underline transition-colors">Sign in</a>
+          to comment without entering your details every time.
+        </p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>{# /grid #}
+</section>
+
+{# ── HTMX afterSettle: re-wire the form's hx- attributes on validation error #}
+<script>
+(function () {
+  document.body.addEventListener('htmx:afterSettle', function (e) {
+    if (e.detail.requestConfig && e.detail.requestConfig.path &&
+        e.detail.requestConfig.path.includes('/comment/')) {
+      // Re-initialize any Alpine components inside the swapped content
+      if (window.Alpine) Alpine.initTree(document.getElementById('comment-form-region'));
+    }
+  });
+})();
+</script>

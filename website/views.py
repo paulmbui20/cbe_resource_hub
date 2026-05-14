@@ -8,8 +8,10 @@ from website.cache import get_partners
 from website.cache import get_faqs
 from website.cache import get_testimonials
 from django.contrib import messages
-from django.shortcuts import render
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 from django.views.generic import FormView, TemplateView
 
 from notifications.notifier import notify_contact_form
@@ -19,8 +21,8 @@ from resources.cache import (
     get_home_stats,
 )
 from resources.models import ResourceItem
-from website.forms import ContactForm, EmailSubscriptionForm
-from website.models import ContactMessage, BlogPage
+from website.forms import ContactForm, EmailSubscriptionForm, BlogCommentForm
+from website.models import ContactMessage, BlogPage, BlogComment
 
 
 class HomePageView(TemplateView):
@@ -69,9 +71,17 @@ class HomePageView(TemplateView):
         ]
 
         # ── Recent Blogs ──────────────────────────────────────────────────────────
-        context["recent_blogs"] = BlogPage.objects.live().order_by(
-            "-first_published_at"
-        )[:3]
+        context["recent_blogs"] = (
+            BlogPage.objects.live()
+            .select_related("main_image", "author", "author__image")
+            .prefetch_related("categories", "tags")
+            .annotate(
+                approved_comments_count=Count(
+                    "comments", filter=Q(comments__is_approved=True)
+                )
+            )
+            .order_by("-first_published_at")[:3]
+        )
 
         # ── Homepage FAQs (up to 5 active, ordered by order then newest) ───────────────
         context["homepage_faqs"] = get_faqs()[:5]
@@ -200,3 +210,60 @@ class TestimonialsPageView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["testimonials"] = get_testimonials()
         return context
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# BLOG COMMENTS (HTMX)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+@require_POST
+def blog_comment_post(request, page_id):
+    """
+    HTMX endpoint: POST a comment for a BlogPage.
+    Returns an HTML partial so HTMX can swap it in without a full reload.
+    """
+    page = get_object_or_404(BlogPage, pk=page_id, live=True)
+    form = BlogCommentForm(request.POST)
+
+    # Pre-fill identity from session for authenticated users.
+    is_auth = request.user.is_authenticated
+    if is_auth and not request.POST.get("name"):
+        # Manually inject so validation passes even when fields are hidden.
+        data = request.POST.copy()
+        data["name"] = request.user.get_full_name() or request.user.username
+        data["email"] = request.user.email
+        form = BlogCommentForm(data)
+
+    if form.is_valid():
+        comment = BlogComment(
+            page=page,
+            body=form.cleaned_data["body"],
+            name=form.cleaned_data["name"],
+            email=form.cleaned_data.get("email", ""),
+        )
+        if is_auth:
+            comment.user = request.user
+        comment.save()
+
+        return render(
+            request,
+            "components/comment_new.html",
+            {"comment": comment, "is_new": True},
+        )
+
+    # Validation failure → return the form partial with errors.
+    return render(
+        request,
+        "components/comment_form.html",
+        {
+            "form": form,
+            "page": page,
+            "is_auth": is_auth,
+            "commenter_name": (
+                request.user.get_full_name() or request.user.username
+            ) if is_auth else "",
+            "commenter_email": request.user.email if is_auth else "",
+        },
+        status=422,  # Unprocessable Entity — tells HTMX this is an error
+    )

@@ -9,6 +9,7 @@ from taggit.forms import TagWidget
 from datetime import date
 
 from django.db import models
+from django.db.models import Count, Q
 import math
 from django import forms
 from django.core.files.storage import storages
@@ -245,6 +246,9 @@ class BlogIndexPage(RoutablePageMixin, Page):
             .live()
             .select_related("main_image", "author", "author__image")
             .prefetch_related("tags", "categories")
+            .annotate(
+                approved_comments_count=Count("comments", filter=Q(comments__is_approved=True))
+            )
             .order_by("-first_published_at")
         )
 
@@ -483,7 +487,8 @@ class BlogPage(Page):
                     .exclude(id=optimized_page.id)
                     .distinct()
                     .select_related("main_image", "author", "author__image")
-                    .prefetch_related("categories", "tags")[:3]
+                    .prefetch_related("categories", "tags")
+                    .annotate(approved_comments_count=Count("comments", filter=Q(comments__is_approved=True)))[:3]
                 )
             else:
                 context["related_posts"] = (
@@ -491,8 +496,29 @@ class BlogPage(Page):
                     .exclude(id=optimized_page.id)
                     .order_by("-first_published_at")
                     .select_related("main_image", "author", "author__image")
-                    .prefetch_related("categories", "tags")[:3]
+                    .prefetch_related("categories", "tags")
+                    .annotate(approved_comments_count=Count("comments", filter=Q(comments__is_approved=True)))[:3]
                 )
+
+            # ── Comments ──────────────────────────────────────────────────
+            from website.forms import BlogCommentForm  # local to avoid circular
+
+            context["comments"] = (
+                optimized_page.comments.filter(is_approved=True, parent=None)
+                .select_related("user")
+                .prefetch_related("replies__user")
+            )
+            context["comment_count"] = optimized_page.comments.filter(
+                is_approved=True
+            ).count()
+
+            is_auth = request.user.is_authenticated
+            context["is_auth"] = is_auth
+            context["commenter_name"] = (
+                request.user.get_full_name() or request.user.username
+            ) if is_auth else ""
+            context["commenter_email"] = request.user.email if is_auth else ""
+            context["comment_form"] = BlogCommentForm()
 
         return context
 
@@ -512,6 +538,74 @@ class BlogTag(TaggedItemBase):
     content_object = ParentalKey(
         "website.BlogPage", on_delete=models.CASCADE, related_name="tagged_items"
     )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# BLOG COMMENTS
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+class BlogComment(models.Model):
+    """
+    A comment on a BlogPage.  Supports both authenticated users (name/email
+    filled automatically) and anonymous visitors.  Designed for reuse: swap
+    the ForeignKey for a GenericForeignKey when extending to resources.
+    """
+
+    page = models.ForeignKey(
+        "website.BlogPage",
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
+
+    # ── Commenter identity ────────────────────────────────────────────────
+    user = models.ForeignKey(
+        "accounts.CustomUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="blog_comments",
+        help_text="Set when the commenter is logged in.",
+    )
+    # For anonymous commenters (also pre-filled for authenticated ones).
+    name = models.CharField(max_length=100)
+    email = models.EmailField(
+        blank=True,
+        default="",
+        help_text="Not displayed publicly.",
+    )
+
+    # ── Content ───────────────────────────────────────────────────────────
+    body = models.TextField(max_length=2000)
+
+    # ── Threading ─────────────────────────────────────────────────────────
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="replies",
+        help_text="Set to make this a reply to another comment.",
+    )
+
+    # ── Moderation ────────────────────────────────────────────────────────
+    is_approved = models.BooleanField(
+        default=True,
+        db_index=True,
+        help_text="Uncheck to hide this comment from the public.",
+    )
+
+    # ── Timestamps ────────────────────────────────────────────────────────
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "Blog Comment"
+        verbose_name_plural = "Blog Comments"
+
+    def __str__(self) -> str:
+        return f'{self.name} on "{self.page.title[:40]}" at {self.created_at:%Y-%m-%d}'
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ from website.views import (
     FAQPageView,
     TestimonialsPageView,
     email_subscription,
+    blog_comment_post,
 )
 
 urlpatterns = [
@@ -17,6 +18,13 @@ urlpatterns = [
     path("partners/", PartnerListView.as_view(), name="partners"),
     path("faqs/", FAQPageView.as_view(), name="faqs"),
     path("testimonials/", TestimonialsPageView.as_view(), name="testimonials"),
+
+    # Blog comment HTMX endpoint
+    path(
+        "blog/<int:page_id>/comment/",
+        blog_comment_post,
+        name="blog_comment_post",
+    ),
 
     # Health check endpoints
     path('health/', health_check, name='health_check'),

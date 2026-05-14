@@ -76,3 +76,32 @@ class FAQAdmin(admin.ModelAdmin):
     list_display = ("question", "answer", "is_active", "created_at", "updated_at")
     list_filter = ("is_active", "created_at", "updated_at")
     search_fields = ("question", "answer")
+
+
+# ── Blog Comment Admin ────────────────────────────────────────────────────────
+from .models import BlogComment  # noqa: E402
+
+
+@admin.register(BlogComment)
+class BlogCommentAdmin(admin.ModelAdmin):
+    list_display = ("name", "page", "short_body", "is_approved", "created_at")
+    list_filter = ("is_approved", "created_at", "page")
+    search_fields = ("name", "email", "body", "page__title")
+    ordering = ("-created_at",)
+    readonly_fields = ("created_at", "updated_at", "user", "page")
+    list_editable = ("is_approved",)
+    actions = ["approve_comments", "reject_comments"]
+
+    @admin.display(description="Comment")
+    def short_body(self, obj):
+        return obj.body[:80] + "…" if len(obj.body) > 80 else obj.body
+
+    @admin.action(description="Approve selected comments")
+    def approve_comments(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"{updated} comment(s) approved.")
+
+    @admin.action(description="Reject / hide selected comments")
+    def reject_comments(self, request, queryset):
+        updated = queryset.update(is_approved=False)
+        self.message_user(request, f"{updated} comment(s) hidden.")
