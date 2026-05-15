@@ -496,6 +496,54 @@
                 <span class="sb-tooltip">Pages</span>
             </a>
 
+            <!-- Comments dropdown -->
+            <div class="sb-dropdown"
+                 x-data="{ open: {% if 'comment' in request.resolver_match.url_name %}true{% else %}false{% endif %} }">
+                <!-- When collapsed: acts as a link to first child; when expanded: toggles submenu -->
+                <a x-show="sidebarCollapsed"
+                   href="{% url 'management:resource_comment_list' %}"
+                   class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                          {% if 'comment' in request.resolver_match.url_name %}
+                              bg-white/10 text-white border border-white/10
+                          {% else %}
+                              text-white/65 hover:text-white hover:bg-white/5
+                          {% endif %}"
+                   data-active="{% if 'comment' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="sb-tooltip">Comments</span>
+                </a>
+                <button x-show="!sidebarCollapsed"
+                        x-on:click="open = !open"
+                        class="sb-item gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200
+                               {% if 'comment' in request.resolver_match.url_name %}
+                                   bg-white/10 text-white border border-white/10
+                               {% else %}
+                                   text-white/65 hover:text-white hover:bg-white/5
+                               {% endif %}">
+                    <svg class="w-[1.05rem] h-[1.05rem] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="sb-label flex-1 text-left">Comments</span>
+                    <svg class="sb-chevron w-3.5 h-3.5 shrink-0 opacity-40 transition-transform duration-200"
+                         :class="open ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="sb-submenu pl-8 pr-1 space-y-0.5" x-show="open && !sidebarCollapsed" x-transition.opacity x-cloak>
+                    <a href="{% url 'management:resource_comment_list' %}"
+                       class="{% if request.resolver_match.url_name == 'resource_comment_list' %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Resource Comments
+                    </a>
+                    <a href="{% url 'management:blog_comment_list' %}"
+                       class="{% if request.resolver_match.url_name == 'blog_comment_list' %}text-white bg-white/6{% else %}text-white/50 hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="sb-dot"></span>Blog Comments
+                    </a>
+                </div>
+            </div>
+
             <!-- Curriculum dropdown -->
             <div class="sb-dropdown"
                  x-data="{ open: {% if 'level' in request.resolver_match.url_name or 'grade' in request.resolver_match.url_name or 'learningarea' in request.resolver_match.url_name %}true{% else %}false{% endif %} }">
@@ -921,6 +969,8 @@
         { label: 'Resources',           section: 'Content',      url: '{% url "management:resource_list" %}',           icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
         { label: 'Media Library',       section: 'Content',      url: '{% url "management:file_list" %}',               icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
         { label: 'Pages',               section: 'Content',      url: '{% url "management:page_list" %}',               icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+        { label: 'Resource Comments',   section: 'Content',      url: '{% url "management:resource_comment_list" %}',   icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+        { label: 'Blog Comments',       section: 'Content',      url: '{% url "management:blog_comment_list" %}',       icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
         { label: 'Education Levels',    section: 'Curriculum',   url: '{% url "management:level_list" %}',              icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
         { label: 'Grades',              section: 'Curriculum',   url: '{% url "management:grade_list" %}',              icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
         { label: 'Learning Areas',      section: 'Curriculum',   url: '{% url "management:learningarea_list" %}',       icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },

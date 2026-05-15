@@ -100,4 +100,20 @@ urlpatterns = [
     path(
         "faqs/<int:pk>/delete/", views.AdminFAQDeleteView.as_view(), name="faq_delete"
     ),
+    # Blog Comments
+    path(
+        "blog-comments/",
+        views.AdminBlogCommentListView.as_view(),
+        name="blog_comment_list",
+    ),
+    path(
+        "blog-comments/<int:pk>/edit/",
+        views.AdminBlogCommentUpdateView.as_view(),
+        name="blog_comment_edit",
+    ),
+    path(
+        "blog-comments/<int:pk>/delete/",
+        views.AdminBlogCommentDeleteView.as_view(),
+        name="blog_comment_delete",
+    ),
 ]

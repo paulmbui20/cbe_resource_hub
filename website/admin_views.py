@@ -16,7 +16,8 @@ from accounts.admin_views import IsAdminMixin
 from accounts.models import CustomUser
 from cms.models import Page
 from resources.models import ResourceItem
-from website.models import ContactMessage, Partner, EmailSubscriber, FAQ, Testimonial
+from website.models import ContactMessage, Partner, EmailSubscriber, FAQ, Testimonial, BlogComment
+from website.forms.admin_comment import AdminBlogCommentForm
 
 
 # ── Dashboard ────────────────────────────────────────────────────────────────
@@ -402,4 +403,59 @@ class AdminFAQDeleteView(IsAdminMixin, DeleteView):
 
     def form_valid(self, form):
         messages.success(self.request, "FAQ deleted.")
+        return super().form_valid(form)
+
+
+# ── Blog Comments ─────────────────────────────────────────────────────────────
+class AdminBlogCommentListView(IsAdminMixin, ListView):
+    model = BlogComment
+    template_name = "admin/blog_comment_list.html"
+    context_object_name = "comments"
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = (
+            BlogComment.objects.select_related("page", "user", "parent")
+            .order_by("-created_at")
+        )
+        q = self.request.GET.get("q")
+        if q:
+            qs = qs.filter(
+                Q(body__icontains=q) | Q(name__icontains=q) | Q(email__icontains=q)
+            )
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["search_query"] = self.request.GET.get("q", "")
+        return context
+
+
+class AdminBlogCommentUpdateView(IsAdminMixin, UpdateView):
+    model = BlogComment
+    form_class = AdminBlogCommentForm
+    template_name = "admin/generic_form.html"
+    success_url = reverse_lazy("management:blog_comment_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Edit Comment by {self.object.name}"
+        context["cancel_url"] = self.success_url
+        context["parent_title"] = "Blog Comments"
+        # Link to the blog post details page if available
+        if self.object.page:
+            context["detail_url"] = self.object.page.get_full_url()
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Comment updated successfully.")
+        return super().form_valid(form)
+
+
+class AdminBlogCommentDeleteView(IsAdminMixin, DeleteView):
+    model = BlogComment
+    success_url = reverse_lazy("management:blog_comment_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Comment deleted.")
         return super().form_valid(form)

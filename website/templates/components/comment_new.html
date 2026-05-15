@@ -38,7 +38,7 @@
       </div>
 
       {# Body #}
-      <p class="text-sm text-white/70 font-body leading-relaxed whitespace-pre-wrap break-words">{{ comment.body|linebreaksbr }}</p>
+      <p class="text-sm text-white/70 font-body leading-relaxed whitespace-pre-wrap wrap-break-word">{{ comment.body|linebreaksbr }}</p>
 
       {# Replies #}
       {% if comment.replies.all %}
@@ -61,7 +61,7 @@
                     {{ reply.created_at|date:"N j, Y" }}
                   </time>
                 </div>
-                <p class="text-xs text-white/60 font-body leading-relaxed whitespace-pre-wrap break-words">{{ reply.body|linebreaksbr }}</p>
+                <p class="text-xs text-white/60 font-body leading-relaxed whitespace-pre-wrap wrap-break-word">{{ reply.body|linebreaksbr }}</p>
               </div>
             </div>
             {% endif %}

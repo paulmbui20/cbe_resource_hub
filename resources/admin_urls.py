@@ -29,6 +29,20 @@ urlpatterns = [
     path("learningareas/add/", dep_views.AdminLearningAreaCreateView.as_view(), name="learningarea_add"),
     path("learningareas/<int:pk>/edit/", dep_views.AdminLearningAreaUpdateView.as_view(), name="learningarea_edit"),
     path("learningareas/<int:pk>/delete/", dep_views.AdminLearningAreaDeleteView.as_view(), name="learningarea_delete"),
-
-
+    # Resource Comments
+    path(
+        "comments/",
+        admin_views.AdminResourceCommentListView.as_view(),
+        name="resource_comment_list",
+    ),
+    path(
+        "comments/<int:pk>/edit/",
+        admin_views.AdminResourceCommentUpdateView.as_view(),
+        name="resource_comment_edit",
+    ),
+    path(
+        "comments/<int:pk>/delete/",
+        admin_views.AdminResourceCommentDeleteView.as_view(),
+        name="resource_comment_delete",
+    ),
 ]

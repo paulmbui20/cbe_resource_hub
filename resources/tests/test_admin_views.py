@@ -308,3 +308,93 @@ class AdminLearningAreaCRUDTests(ResourceBaseTestCase):
     def test_learningarea_update_nonexistent_returns_404(self):
         r = self.client.get(reverse("management:learningarea_edit", kwargs={"pk": 99999}))
         self.assertEqual(r.status_code, 404)
+
+
+from resources.models import ResourceComment
+
+
+# ── AdminResourceCommentListView ──────────────────────────────────────────────
+class AdminResourceCommentListViewTests(ResourceBaseTestCase):
+    def setUp(self):
+        self.login_as_admin()
+
+    def test_returns_200(self):
+        r = self.client.get(reverse("management:resource_comment_list"))
+        self.assertEqual(r.status_code, 200)
+
+    def test_uses_correct_template(self):
+        r = self.client.get(reverse("management:resource_comment_list"))
+        self.assertTemplateUsed(r, "admin/resource_comment_list.html")
+
+    def test_context_has_comments(self):
+        r = self.client.get(reverse("management:resource_comment_list"))
+        self.assertIn("comments", r.context)
+
+    def test_search_filter(self):
+        res = self.make_resource(title="Res")
+        ResourceComment.objects.create(resource=res, name="SearchMe", body="Secret text")
+        r = self.client.get(reverse("management:resource_comment_list") + "?q=SearchMe")
+        self.assertTrue(any(c.name == "SearchMe" for c in r.context["comments"]))
+
+
+# ── AdminResourceCommentUpdateView ────────────────────────────────────────────
+class AdminResourceCommentUpdateViewTests(ResourceBaseTestCase):
+    def setUp(self):
+        self.login_as_admin()
+        self.res = self.make_resource(title="Res")
+        self.comment = ResourceComment.objects.create(
+            resource=self.res, name="John", body="Original body"
+        )
+        self.url = reverse(
+            "management:resource_comment_edit", kwargs={"pk": self.comment.pk}
+        )
+
+    def test_get_returns_200(self):
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+
+    def test_post_updates_comment(self):
+        self.client.post(
+            self.url,
+            data={
+                "name": "John Updated",
+                "body": "Updated body",
+                "is_approved": False,
+            },
+        )
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.name, "John Updated")
+        self.assertFalse(self.comment.is_approved)
+
+    def test_cannot_change_resource(self):
+        # The form disables the 'resource' field
+        r = self.client.post(
+            self.url,
+            data={
+                "resource": 999,
+                "name": "John",
+                "body": "Body",
+                "is_approved": True,
+            },
+        )
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.resource, self.res)
+
+
+# ── AdminResourceCommentDeleteView ────────────────────────────────────────────
+class AdminResourceCommentDeleteViewTests(ResourceBaseTestCase):
+    def setUp(self):
+        self.login_as_admin()
+        self.res = self.make_resource(title="Res")
+        self.comment = ResourceComment.objects.create(resource=self.res, name="DeleteMe")
+        self.url = reverse(
+            "management:resource_comment_delete", kwargs={"pk": self.comment.pk}
+        )
+
+    def test_post_deletes_comment(self):
+        self.client.post(self.url)
+        self.assertFalse(ResourceComment.objects.filter(pk=self.comment.pk).exists())
+
+    def test_post_redirects_to_list(self):
+        r = self.client.post(self.url)
+        self.assertRedirects(r, reverse("management:resource_comment_list"))

@@ -25,9 +25,20 @@ Tests for all website admin views:
   - AdminFAQDeleteView: POST deletes
 """
 
+import uuid
+from wagtail.models import Page as WagtailPage
 from django.urls import reverse
 
-from website.models import ContactMessage, Partner, EmailSubscriber
+from website.models import (
+    BlogComment,
+    BlogPage,
+    BlogIndexPage,
+    ContactMessage,
+    Partner,
+    EmailSubscriber,
+    Testimonial,
+    FAQ,
+)
 from website.tests.base import WebsiteBaseTestCase
 
 
@@ -505,7 +516,6 @@ class AdminEmailSubscriberDeleteViewTests(WebsiteBaseTestCase):
 class AdminTestimonialListViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
-        from website.models import Testimonial
 
         self.testimonial = Testimonial.objects.create(
             author_name="Jane Doe", body="Great platform!", rating=5
@@ -535,7 +545,6 @@ class AdminTestimonialCreateViewTests(WebsiteBaseTestCase):
         self.assertEqual(self.client.get(self.url).status_code, 200)
 
     def test_valid_post_creates_testimonial(self):
-        from website.models import Testimonial
 
         self.client.post(
             self.url,
@@ -568,7 +577,6 @@ class AdminTestimonialCreateViewTests(WebsiteBaseTestCase):
 class AdminTestimonialUpdateViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
-        from website.models import Testimonial
 
         self.obj = Testimonial.objects.create(
             author_name="Old Name", body="Old body", rating=3
@@ -603,7 +611,6 @@ class AdminTestimonialUpdateViewTests(WebsiteBaseTestCase):
 class AdminTestimonialDeleteViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
-        from website.models import Testimonial
 
         self.obj = Testimonial.objects.create(
             author_name="Delete Me", body="body", rating=5
@@ -611,7 +618,6 @@ class AdminTestimonialDeleteViewTests(WebsiteBaseTestCase):
         self.url = reverse("management:testimonial_delete", kwargs={"pk": self.obj.pk})
 
     def test_post_deletes(self):
-        from website.models import Testimonial
 
         self.client.post(self.url)
         self.assertFalse(Testimonial.objects.filter(pk=self.obj.pk).exists())
@@ -627,7 +633,6 @@ class AdminTestimonialDeleteViewTests(WebsiteBaseTestCase):
 class AdminFAQListViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
-        from website.models import FAQ
 
         self.faq = FAQ.objects.create(
             question="What is CBC?", answer="Competency Based Curriculum."
@@ -657,7 +662,6 @@ class AdminFAQCreateViewTests(WebsiteBaseTestCase):
         self.assertEqual(self.client.get(self.url).status_code, 200)
 
     def test_valid_post_creates_faq(self):
-        from website.models import FAQ
 
         self.client.post(
             self.url,
@@ -686,7 +690,6 @@ class AdminFAQCreateViewTests(WebsiteBaseTestCase):
 class AdminFAQUpdateViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
-        from website.models import FAQ
 
         self.obj = FAQ.objects.create(question="Old Q?", answer="Old A.")
         self.url = reverse("management:faq_edit", kwargs={"pk": self.obj.pk})
@@ -715,13 +718,11 @@ class AdminFAQUpdateViewTests(WebsiteBaseTestCase):
 class AdminFAQDeleteViewTests(WebsiteBaseTestCase):
     def setUp(self):
         self.login_as_admin()
-        from website.models import FAQ
 
         self.obj = FAQ.objects.create(question="Delete Me?", answer="Yes.")
         self.url = reverse("management:faq_delete", kwargs={"pk": self.obj.pk})
 
     def test_post_deletes(self):
-        from website.models import FAQ
 
         self.client.post(self.url)
         self.assertFalse(FAQ.objects.filter(pk=self.obj.pk).exists())
@@ -729,3 +730,123 @@ class AdminFAQDeleteViewTests(WebsiteBaseTestCase):
     def test_post_redirects(self):
         r = self.client.post(self.url)
         self.assertRedirects(r, reverse("management:faq_list"))
+
+
+# ── AdminBlogCommentListView ──────────────────────────────────────────────────
+class AdminBlogCommentListViewTests(WebsiteBaseTestCase):
+    def setUp(self):
+        self.login_as_admin()
+        # Setup Wagtail pages
+        root = WagtailPage.objects.get(
+            id=1
+        ).get_first_child() or WagtailPage.objects.get(id=1)
+        blog_index = BlogIndexPage.objects.filter(slug="test-blog-list").first()
+        if not blog_index:
+            blog_index = BlogIndexPage(title="Blog", slug="test-blog-list")
+            root.add_child(instance=blog_index)
+        self.page = BlogPage(
+            title="Test Blog", slug="test-blog-" + str(uuid.uuid4())[:8]
+        )
+        blog_index.add_child(instance=self.page)
+
+    def test_returns_200(self):
+        r = self.client.get(reverse("management:blog_comment_list"))
+        self.assertEqual(r.status_code, 200)
+
+    def test_uses_correct_template(self):
+        r = self.client.get(reverse("management:blog_comment_list"))
+        self.assertTemplateUsed(r, "admin/blog_comment_list.html")
+
+    def test_context_has_comments(self):
+        r = self.client.get(reverse("management:blog_comment_list"))
+        self.assertIn("comments", r.context)
+
+    def test_search_filter(self):
+        BlogComment.objects.create(page=self.page, name="SearchMe", body="Secret text")
+        r = self.client.get(reverse("management:blog_comment_list") + "?q=SearchMe")
+        self.assertTrue(any(c.name == "SearchMe" for c in r.context["comments"]))
+
+
+# ── AdminBlogCommentUpdateView ────────────────────────────────────────────────
+class AdminBlogCommentUpdateViewTests(WebsiteBaseTestCase):
+    def setUp(self):
+        self.login_as_admin()
+        root = WagtailPage.objects.get(
+            id=1
+        ).get_first_child() or WagtailPage.objects.get(id=1)
+        blog_index = BlogIndexPage.objects.filter(slug="test-blog-update").first()
+        if not blog_index:
+            blog_index = BlogIndexPage(title="Blog", slug="test-blog-update")
+            root.add_child(instance=blog_index)
+        self.page = BlogPage(
+            title="Test Blog", slug="test-blog-" + str(uuid.uuid4())[:8]
+        )
+        blog_index.add_child(instance=self.page)
+
+        self.comment = BlogComment.objects.create(
+            page=self.page, name="John", body="Original body"
+        )
+        self.url = reverse(
+            "management:blog_comment_edit", kwargs={"pk": self.comment.pk}
+        )
+
+    def test_get_returns_200(self):
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+
+    def test_post_updates_comment(self):
+        self.client.post(
+            self.url,
+            data={
+                "name": "John Updated",
+                "body": "Updated body",
+                "is_approved": False,
+            },
+        )
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.name, "John Updated")
+        self.assertFalse(self.comment.is_approved)
+
+    def test_cannot_change_page(self):
+        # Even if page_id is passed, the form should ignore it due to disabled field
+        self.client.post(
+            self.url,
+            data={
+                "page": 999,  # Non-existent or different page
+                "name": "John",
+                "body": "Body",
+                "is_approved": True,
+            },
+        )
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.page, self.page)
+
+
+# ── AdminBlogCommentDeleteView ────────────────────────────────────────────────
+class AdminBlogCommentDeleteViewTests(WebsiteBaseTestCase):
+    def setUp(self):
+        self.login_as_admin()
+        root = WagtailPage.objects.get(
+            id=1
+        ).get_first_child() or WagtailPage.objects.get(id=1)
+        blog_index = BlogIndexPage.objects.filter(slug="test-blog-delete").first()
+        if not blog_index:
+            blog_index = BlogIndexPage(title="Blog", slug="test-blog-delete")
+            root.add_child(instance=blog_index)
+        self.page = BlogPage(
+            title="Test Blog", slug="test-blog-" + str(uuid.uuid4())[:8]
+        )
+        blog_index.add_child(instance=self.page)
+
+        self.comment = BlogComment.objects.create(page=self.page, name="DeleteMe")
+        self.url = reverse(
+            "management:blog_comment_delete", kwargs={"pk": self.comment.pk}
+        )
+
+    def test_post_deletes_comment(self):
+        self.client.post(self.url)
+        self.assertFalse(BlogComment.objects.filter(pk=self.comment.pk).exists())
+
+    def test_post_redirects_to_list(self):
+        r = self.client.post(self.url)
+        self.assertRedirects(r, reverse("management:blog_comment_list"))
