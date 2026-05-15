@@ -50,6 +50,9 @@ from resources.tests.test_admin_views import (
     AdminEducationLevelCRUDTests,
     AdminGradeCRUDTests,
     AdminLearningAreaCRUDTests,
+    AdminResourceCommentListViewTests,
+    AdminResourceCommentUpdateViewTests,
+    AdminResourceCommentDeleteViewTests,
 )
 
 __all__ = [
@@ -102,4 +105,8 @@ __all__ = [
     "AdminLearningAreaCRUDTests",
     # Resource Comment View Tests
     "ResourceCommentViewTests",
+    # Admin Resource Comment View Tests
+    "AdminResourceCommentListViewTests",
+    "AdminResourceCommentUpdateViewTests",
+    "AdminResourceCommentDeleteViewTests",
 ]

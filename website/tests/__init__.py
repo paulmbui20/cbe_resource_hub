@@ -39,6 +39,9 @@ from website.tests.test_admin_views import (
     AdminFAQUpdateViewTests,
     AdminFAQDeleteViewTests,
     AdminEmailSubscribersExportCSVViewTests,
+    AdminBlogCommentListViewTests,
+    AdminBlogCommentUpdateViewTests,
+    AdminBlogCommentDeleteViewTests,
 )
 from website.tests.test_sitemaps import (
     StaticViewSitemapTests,
@@ -114,4 +117,8 @@ __all__ = [
     "SanitizationTests",
     # Email Subscribers Export CSV
     "AdminEmailSubscribersExportCSVViewTests",
+    # Blog Comments
+    "AdminBlogCommentListViewTests",
+    "AdminBlogCommentUpdateViewTests",
+    "AdminBlogCommentDeleteViewTests",
 ]

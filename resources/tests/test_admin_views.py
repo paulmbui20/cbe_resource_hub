@@ -11,8 +11,10 @@ Covers:
   - AdminResourceUpdateView: GET, POST valid, 404
   - AdminResourceDeleteView: POST deletes, 404
   - AdminEducationLevel / AdminGrade / AdminLearningArea CRUD (same pattern)
+  - AdminResourceCommentListView / AdminResourceCommentUpdateView / AdminResourceCommentDeleteView
 """
 
+from resources.models import ResourceComment
 from django.urls import reverse
 
 from resources.models import EducationLevel, Grade, LearningArea, ResourceItem
@@ -21,8 +23,8 @@ from resources.tests.base import ResourceBaseTestCase, make_pdf
 
 # ── Access Control ─────────────────────────────────────────────────────────────
 
-class AdminResourceAccessControlTests(ResourceBaseTestCase):
 
+class AdminResourceAccessControlTests(ResourceBaseTestCase):
     def _get(self, name, kwargs=None):
         return self.client.get(reverse(name, kwargs=kwargs))
 
@@ -44,13 +46,15 @@ class AdminResourceAccessControlTests(ResourceBaseTestCase):
 
 # ── AdminResourceListView ──────────────────────────────────────────────────────
 
-class AdminResourceListViewTests(ResourceBaseTestCase):
 
+class AdminResourceListViewTests(ResourceBaseTestCase):
     def setUp(self):
         self.login_as_admin()
 
     def test_returns_200(self):
-        self.assertEqual(self.client.get(reverse("management:resource_list")).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse("management:resource_list")).status_code, 200
+        )
 
     def test_uses_correct_template(self):
         self.assertTemplateUsed(
@@ -74,8 +78,8 @@ class AdminResourceListViewTests(ResourceBaseTestCase):
 
 # ── AdminResourceCreateView ────────────────────────────────────────────────────
 
-class AdminResourceCreateViewTests(ResourceBaseTestCase):
 
+class AdminResourceCreateViewTests(ResourceBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.url = reverse("management:resource_add")
@@ -105,11 +109,15 @@ class AdminResourceCreateViewTests(ResourceBaseTestCase):
     def test_valid_post_creates_resource(self):
         f = make_pdf("admin_create.pdf")
         self.client.post(self.url, data={**self._payload(), "file": f})
-        self.assertTrue(ResourceItem.objects.filter(title="Admin Created Resource").exists())
+        self.assertTrue(
+            ResourceItem.objects.filter(title="Admin Created Resource").exists()
+        )
 
     def test_valid_post_redirects_to_resource_list(self):
         f = make_pdf("admin_redir.pdf")
-        r = self.client.post(self.url, data={**self._payload(title="Redirect Resource"), "file": f})
+        r = self.client.post(
+            self.url, data={**self._payload(title="Redirect Resource"), "file": f}
+        )
         self.assertRedirects(r, reverse("management:resource_list"))
 
     def test_invalid_post_missing_title_re_renders(self):
@@ -120,8 +128,8 @@ class AdminResourceCreateViewTests(ResourceBaseTestCase):
 
 # ── AdminResourceUpdateView ────────────────────────────────────────────────────
 
-class AdminResourceUpdateViewTests(ResourceBaseTestCase):
 
+class AdminResourceUpdateViewTests(ResourceBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.target = self.make_resource(title="Update Target")
@@ -164,8 +172,8 @@ class AdminResourceUpdateViewTests(ResourceBaseTestCase):
 
 # ── AdminResourceDeleteView ────────────────────────────────────────────────────
 
-class AdminResourceDeleteViewTests(ResourceBaseTestCase):
 
+class AdminResourceDeleteViewTests(ResourceBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.target = self.make_resource(title="Admin Delete Target")
@@ -180,14 +188,16 @@ class AdminResourceDeleteViewTests(ResourceBaseTestCase):
         self.assertRedirects(r, reverse("management:resource_list"))
 
     def test_nonexistent_returns_404(self):
-        r = self.client.post(reverse("management:resource_delete", kwargs={"pk": 99999}))
+        r = self.client.post(
+            reverse("management:resource_delete", kwargs={"pk": 99999})
+        )
         self.assertEqual(r.status_code, 404)
 
 
 # ── Education Level Admin CRUD ─────────────────────────────────────────────────
 
-class AdminEducationLevelCRUDTests(ResourceBaseTestCase):
 
+class AdminEducationLevelCRUDTests(ResourceBaseTestCase):
     def setUp(self):
         self.login_as_admin()
 
@@ -200,23 +210,39 @@ class AdminEducationLevelCRUDTests(ResourceBaseTestCase):
         self.assertEqual(r.status_code, 200)
 
     def test_level_create_post_creates_level(self):
-        self.client.post(reverse("management:level_add"),
-                         data={"name": "Tertiary", "order": 10,
-                               "meta_title": "Tertiary", "slug": "tertiary"})
+        self.client.post(
+            reverse("management:level_add"),
+            data={
+                "name": "Tertiary",
+                "order": 10,
+                "meta_title": "Tertiary",
+                "slug": "tertiary",
+            },
+        )
         self.assertTrue(EducationLevel.objects.filter(name="Tertiary").exists())
 
     def test_level_create_redirects(self):
-        r = self.client.post(reverse("management:level_add"),
-                             data={"name": "Post-Secondary", "order": 11,
-                                   "meta_title": "Post-Secondary", "slug": "post-secondary"})
+        r = self.client.post(
+            reverse("management:level_add"),
+            data={
+                "name": "Post-Secondary",
+                "order": 11,
+                "meta_title": "Post-Secondary",
+                "slug": "post-secondary",
+            },
+        )
         self.assertRedirects(r, reverse("management:level_list"))
 
     def test_level_update_post_updates(self):
         lvl = EducationLevel.objects.create(name="Old Level Name", order=20)
-        r = self.client.post(
+        self.client.post(
             reverse("management:level_edit", kwargs={"pk": lvl.pk}),
-            data={"name": "New Level Name", "order": 20,
-                  "meta_title": "New Level Name", "slug": lvl.slug},
+            data={
+                "name": "New Level Name",
+                "order": 20,
+                "meta_title": "New Level Name",
+                "slug": lvl.slug,
+            },
         )
         lvl.refresh_from_db()
         self.assertEqual(lvl.name, "New Level Name")
@@ -233,8 +259,8 @@ class AdminEducationLevelCRUDTests(ResourceBaseTestCase):
 
 # ── Grade Admin CRUD ───────────────────────────────────────────────────────────
 
-class AdminGradeCRUDTests(ResourceBaseTestCase):
 
+class AdminGradeCRUDTests(ResourceBaseTestCase):
     def setUp(self):
         self.login_as_admin()
 
@@ -250,8 +276,13 @@ class AdminGradeCRUDTests(ResourceBaseTestCase):
         new_level = EducationLevel.objects.create(name="Admin Level", order=50)
         self.client.post(
             reverse("management:grade_add"),
-            data={"level": new_level.pk, "name": "Grade Admin", "order": 1,
-                  "meta_title": "Grade Admin", "slug": "grade-admin"},
+            data={
+                "level": new_level.pk,
+                "name": "Grade Admin",
+                "order": 1,
+                "meta_title": "Grade Admin",
+                "slug": "grade-admin",
+            },
         )
         self.assertTrue(Grade.objects.filter(name="Grade Admin").exists())
 
@@ -259,8 +290,13 @@ class AdminGradeCRUDTests(ResourceBaseTestCase):
         new_level = EducationLevel.objects.create(name="Admin Level 2", order=51)
         r = self.client.post(
             reverse("management:grade_add"),
-            data={"level": new_level.pk, "name": "Grade Redirect", "order": 2,
-                  "meta_title": "Grade Redirect", "slug": "grade-redirect"},
+            data={
+                "level": new_level.pk,
+                "name": "Grade Redirect",
+                "order": 2,
+                "meta_title": "Grade Redirect",
+                "slug": "grade-redirect",
+            },
         )
         self.assertRedirects(r, reverse("management:grade_list"))
 
@@ -271,8 +307,8 @@ class AdminGradeCRUDTests(ResourceBaseTestCase):
 
 # ── Learning Area Admin CRUD ───────────────────────────────────────────────────
 
-class AdminLearningAreaCRUDTests(ResourceBaseTestCase):
 
+class AdminLearningAreaCRUDTests(ResourceBaseTestCase):
     def setUp(self):
         self.login_as_admin()
 
@@ -287,30 +323,37 @@ class AdminLearningAreaCRUDTests(ResourceBaseTestCase):
     def test_learningarea_create_post_creates(self):
         self.client.post(
             reverse("management:learningarea_add"),
-            data={"name": "Creative Arts", "meta_title": "Creative Arts",
-                  "slug": "creative-arts"},
+            data={
+                "name": "Creative Arts",
+                "meta_title": "Creative Arts",
+                "slug": "creative-arts",
+            },
         )
         self.assertTrue(LearningArea.objects.filter(name="Creative Arts").exists())
 
     def test_learningarea_create_redirects(self):
         r = self.client.post(
             reverse("management:learningarea_add"),
-            data={"name": "Integrated Science", "meta_title": "Integrated Science",
-                  "slug": "integrated-science"},
+            data={
+                "name": "Integrated Science",
+                "meta_title": "Integrated Science",
+                "slug": "integrated-science",
+            },
         )
         self.assertRedirects(r, reverse("management:learningarea_list"))
 
     def test_learningarea_delete_post_deletes(self):
         la = LearningArea.objects.create(name="Temp Area")
-        self.client.post(reverse("management:learningarea_delete", kwargs={"pk": la.pk}))
+        self.client.post(
+            reverse("management:learningarea_delete", kwargs={"pk": la.pk})
+        )
         self.assertFalse(LearningArea.objects.filter(pk=la.pk).exists())
 
     def test_learningarea_update_nonexistent_returns_404(self):
-        r = self.client.get(reverse("management:learningarea_edit", kwargs={"pk": 99999}))
+        r = self.client.get(
+            reverse("management:learningarea_edit", kwargs={"pk": 99999})
+        )
         self.assertEqual(r.status_code, 404)
-
-
-from resources.models import ResourceComment
 
 
 # ── AdminResourceCommentListView ──────────────────────────────────────────────
@@ -332,7 +375,9 @@ class AdminResourceCommentListViewTests(ResourceBaseTestCase):
 
     def test_search_filter(self):
         res = self.make_resource(title="Res")
-        ResourceComment.objects.create(resource=res, name="SearchMe", body="Secret text")
+        ResourceComment.objects.create(
+            resource=res, name="SearchMe", body="Secret text"
+        )
         r = self.client.get(reverse("management:resource_comment_list") + "?q=SearchMe")
         self.assertTrue(any(c.name == "SearchMe" for c in r.context["comments"]))
 
@@ -368,7 +413,7 @@ class AdminResourceCommentUpdateViewTests(ResourceBaseTestCase):
 
     def test_cannot_change_resource(self):
         # The form disables the 'resource' field
-        r = self.client.post(
+        self.client.post(
             self.url,
             data={
                 "resource": 999,
@@ -386,7 +431,9 @@ class AdminResourceCommentDeleteViewTests(ResourceBaseTestCase):
     def setUp(self):
         self.login_as_admin()
         self.res = self.make_resource(title="Res")
-        self.comment = ResourceComment.objects.create(resource=self.res, name="DeleteMe")
+        self.comment = ResourceComment.objects.create(
+            resource=self.res, name="DeleteMe"
+        )
         self.url = reverse(
             "management:resource_comment_delete", kwargs={"pk": self.comment.pk}
         )
