@@ -11,6 +11,7 @@ Future-proofed for multivendor marketplace with vendor FK, pricing,
 and download tracking fields.
 """
 
+from core.models import TimeStampedModel
 from validators import DeepSignatureValidator
 
 from django.conf import settings
@@ -329,3 +330,57 @@ class ResourceItem(SEOModel, SlugRedirectMixin, models.Model):
         """
         ResourceItem.objects.filter(pk=self.pk).update(downloads=F("downloads") + 1)
         self.refresh_from_db(fields=["downloads"])
+
+
+class ResourceComment(TimeStampedModel, models.Model):
+    """
+    A comment on a ResourceItem.
+    """
+
+    resource = models.ForeignKey(
+        "resources.ResourceItem",
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
+
+    # ── Commenter identity ────────────────────────────────────────────────
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="resource_comments",
+        help_text="Set when the commenter is logged in.",
+    )
+    name = models.CharField(max_length=100)
+    email = models.EmailField(
+        blank=True,
+        default="",
+        help_text="Not displayed publicly.",
+    )
+
+    # ── Content ───────────────────────────────────────────────────────────
+    body = models.TextField(max_length=2000)
+
+    # ── Threading ─────────────────────────────────────────────────────────
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="replies",
+    )
+
+    # ── Moderation ────────────────────────────────────────────────────────
+    is_approved = models.BooleanField(
+        default=True,
+        db_index=True,
+    )
+
+    class Meta:
+        verbose_name = "Resource Comment"
+        verbose_name_plural = "Resource Comments"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Comment by {self.name} on {self.resource.title}"

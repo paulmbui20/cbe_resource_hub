@@ -1004,6 +1004,9 @@
   .-rotate-90 {
     rotate: calc(90deg * -1);
   }
+  .rotate-3 {
+    rotate: 3deg;
+  }
   .rotate-180 {
     rotate: 180deg;
   }

@@ -662,3 +662,41 @@ class ResourceDeleteViewTests(ResourceBaseTestCase):
         self.login_as_vendor()
         r = self.client.post(self._url())
         self.assertRedirects(r, reverse("accounts:dashboard"), fetch_redirect_response=False)
+
+
+class ResourceCommentViewTests(ResourceBaseTestCase):
+
+    def _url(self):
+        return reverse("resources:resource_comment_post",
+                       kwargs={"resource_id": self.resource.pk})
+
+    def test_authenticated_post_creates_comment(self):
+        self.login_as_user()
+        data = {"body": "Test comment"}
+        r = self.client.post(self._url(), data=data)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(self.resource.comments.filter(body="Test comment").exists())
+        comment = self.resource.comments.get(body="Test comment")
+        self.assertEqual(comment.user, self.regular_user)
+        self.assertEqual(comment.name, self.regular_user.username)
+
+    def test_anonymous_post_creates_comment(self):
+        data = {"body": "Anon comment", "name": "Guest", "email": "guest@example.com"}
+        r = self.client.post(self._url(), data=data)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(self.resource.comments.filter(body="Anon comment").exists())
+        comment = self.resource.comments.get(body="Anon comment")
+        self.assertIsNone(comment.user)
+        self.assertEqual(comment.name, "Guest")
+
+    def test_invalid_post_returns_422(self):
+        data = {"body": ""} # body is required
+        r = self.client.post(self._url(), data=data)
+        self.assertEqual(r.status_code, 422)
+        self.assertTemplateUsed(r, "components/comment_form.html")
+
+    def test_missing_resource_returns_404(self):
+        url = reverse("resources:resource_comment_post", kwargs={"resource_id": 99999})
+        r = self.client.post(url, data={"body": "test"})
+        self.assertEqual(r.status_code, 404)
+

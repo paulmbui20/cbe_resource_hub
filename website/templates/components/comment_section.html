@@ -28,68 +28,14 @@
     box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.15);
   }
 
-  /* Toast */
-  @keyframes toastIn  { from { opacity: 0; transform: translateY(16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-  @keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(8px) scale(0.97); } }
-  .toast-enter { animation: toastIn  0.35s ease both; }
-  .toast-leave { animation: toastOut 0.3s  ease both; }
+
 
   /* HTMX loading spinner reveal */
   .htmx-request .htmx-indicator { opacity: 1 !important; }
   .htmx-indicator { opacity: 0; transition: opacity 0.2s; }
 </style>
 
-{# ── Global toast container (Alpine-driven) ─────────────────────────────── #}
-<div id="comment-toast-region"
-     x-data="{
-       toasts: [],
-       addToast(msg, type='success') {
-         const id = Date.now();
-         this.toasts.push({ id, msg, type });
-         setTimeout(() => this.removeToast(id), 4000);
-       },
-       removeToast(id) {
-         const el = document.getElementById('toast-' + id);
-         if (el) { el.classList.add('toast-leave'); setTimeout(() => this.toasts = this.toasts.filter(t => t.id !== id), 300); }
-         else { this.toasts = this.toasts.filter(t => t.id !== id); }
-       }
-     }"
-     @comment-posted.window="addToast($event.detail.message, 'success')"
-     @comment-error.window="addToast($event.detail.message, 'error')"
-     class="fixed bottom-6 right-6 z-[9999] flex flex-col-reverse gap-3 pointer-events-none"
-     aria-live="polite"
-     aria-atomic="true">
-  <template x-for="toast in toasts" :key="toast.id">
-    <div :id="'toast-' + toast.id"
-         class="toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl text-sm font-semibold backdrop-blur-md border"
-         :class="{
-           'bg-brand-secondary/90 border-brand-gold/30 text-white': toast.type === 'success',
-           'bg-brand-secondary/90 border-red-500/30 text-red-300':  toast.type === 'error'
-         }">
-      {# Icon #}
-      <span class="shrink-0">
-        <template x-if="toast.type === 'success'">
-          <svg class="w-4 h-4 text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-          </svg>
-        </template>
-        <template x-if="toast.type === 'error'">
-          <svg class="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </template>
-      </span>
-      <span x-text="toast.msg"></span>
-      <button @click="removeToast(toast.id)"
-              class="ml-auto text-white/40 hover:text-white transition-colors"
-              aria-label="Dismiss notification">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
-  </template>
-</div>
+
 
 {# ─────────────────────────────────────────────────────────────────────────── #}
 {# COMMENT SECTION                                                             #}
@@ -126,57 +72,36 @@
              role="list"
              aria-label="Comments">
           {% for comment in comments %}
-            <div class="bg-white/[0.03] border border-white/8 rounded-2xl p-5 transition-colors hover:border-white/15">
+            <div class="bg-white/3 border border-white/8 rounded-2xl p-5 transition-colors hover:border-white/15">
               {% include "components/comment_new.html" with comment=comment is_new=False %}
             </div>
           {% endfor %}
         </div>
       {% else %}
-        <div class="flex flex-col items-center justify-center py-16 text-center" id="comment-list" role="list" aria-label="Comments">
-          <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4" aria-hidden="true">
-            <svg class="w-7 h-7 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div id="empty-state" class="flex flex-col items-center justify-center py-20 text-center bg-white/2 border border-dashed border-white/10 rounded-3xl" id="comment-list" role="list" aria-label="Comments">
+          <div class="w-16 h-16 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center mb-6 rotate-3" aria-hidden="true">
+            <svg class="w-7 h-7 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
           </div>
-          <p class="text-white/30 font-body text-sm">No comments yet — be the first!</p>
+          <h3 class="text-white font-bold mb-1">No comments yet</h3>
+          <p class="text-white/30 font-body text-sm max-w-[200px]">Be the first to share your thoughts on this resource!</p>
         </div>
       {% endif %}
     </div>
 
     {# ── Right: Form ──────────────────────────────────────────────── #}
     <div class="lg:sticky lg:top-24">
-      <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
+      <div class="bg-white/3 border border-white/10 rounded-2xl p-6">
         <p class="text-xs text-white/35 uppercase tracking-widest font-semibold mb-5 font-body">
           Leave a comment
         </p>
 
         {# ── HTMX wrapper: on success swap the form with new comment card, #}
         {# but also prepend the card to the list via OOB swap ─────── #}
-        <div id="comment-form-region"
-             hx-on::after-swap="
-               /* If a .comment-new appeared, we got a success response.
-                  Prepend a copy to the #comment-list and fire the toast. */
-               const incoming = document.querySelector('#comment-form-region .comment-new');
-               if (incoming) {
-                 const list = document.getElementById('comment-list');
-                 /* Remove empty state div if present */
-                 const empty = list.querySelector('p');
-                 if (empty) list.innerHTML = '';
-                 const wrapper = document.createElement('div');
-                 wrapper.className = 'bg-white/[0.03] border border-white/8 rounded-2xl p-5 transition-colors hover:border-white/15';
-                 wrapper.appendChild(incoming.cloneNode(true));
-                 list.prepend(wrapper);
-                 /* Update comment count badge */
-                 const badge = document.querySelector('#comments .tabular-nums');
-                 if (badge) badge.textContent = String((parseInt(badge.textContent) || 0) + 1);
-                 window.dispatchEvent(new CustomEvent('comment-posted', { detail: { message: 'Comment posted! Thanks for joining the conversation.' } }));
-               } else {
-                 /* 422 / validation error */
-                 window.dispatchEvent(new CustomEvent('comment-error', { detail: { message: 'Please fix the errors below.' } }));
-               }
-             ">
-          {% include "components/comment_form.html" with form=comment_form %}
+        <div id="comment-form-region">
+          {% include "components/comment_form.html" with form=comment_form submit_url=submit_url %}
         </div>
 
         {# ── Auth nudge for anonymous visitors ───────────────────── #}

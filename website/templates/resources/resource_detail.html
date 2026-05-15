@@ -154,6 +154,9 @@
         <article class="prose prose-invert prose-brand max-w-none text-white/70 leading-relaxed">
             {{ resource.description|safe }}
         </article>
+
+        {# ── Comment Section ────────────────────────────────────────── #}
+        {% include "components/comment_section.html" %}
     </div>
 {% endblock %}
 

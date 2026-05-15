@@ -54,5 +54,5 @@ urlpatterns = [
     path('sitemap.xml', sitemap, {'sitemaps': resources_sitemaps}, name='resources_sitemap'),
     path("<slug:slug>/", views.ResourceDetailView.as_view(), name="resource_detail"),
     path("<slug:slug>/increment-downloads/", views.increment_downloads, name="resource_increment_downloads"),
-
+    path("<int:resource_id>/comment/", views.resource_comment_post, name="resource_comment_post"),
 ]

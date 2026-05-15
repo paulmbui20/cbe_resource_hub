@@ -3,7 +3,7 @@
 from django.contrib import admin
 
 from seo.admin import SEOAdminMixin
-from .models import EducationLevel, Grade, LearningArea, ResourceItem
+from .models import EducationLevel, Grade, LearningArea, ResourceItem, ResourceComment
 
 
 @admin.register(EducationLevel)
@@ -72,3 +72,17 @@ class ResourceItemAdmin(SEOAdminMixin, admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
+
+
+@admin.register(ResourceComment)
+class ResourceCommentAdmin(admin.ModelAdmin):
+    list_display = ("name", "resource", "is_approved", "created_at")
+    list_filter = ("is_approved", "created_at")
+    search_fields = ("name", "email", "body", "resource__title")
+    actions = ["approve_comments"]
+
+    def approve_comments(self, request, queryset):
+        queryset.update(is_approved=True)
+
+    approve_comments.short_description = "Approve selected comments"
+

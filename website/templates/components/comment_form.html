@@ -29,8 +29,8 @@
   {% endif %}
 
   <form method="POST"
-        action="{% url 'blog_comment_post' page.pk %}"
-        hx-post="{% url 'blog_comment_post' page.pk %}"
+        action="{{ submit_url }}"
+        hx-post="{{ submit_url }}"
         hx-target="#comment-form-wrapper"
         hx-swap="outerHTML"
         hx-indicator="#comment-submit-btn"
@@ -70,13 +70,13 @@
     {# ── Authenticated: pass identity via hidden fields ───────────── #}
     <input type="hidden" name="name"  value="{{ commenter_name }}">
     <input type="hidden" name="email" value="{{ commenter_email }}">
-    <div class="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl bg-brand-gold/5 border border-brand-gold/15">
-      <div class="w-8 h-8 rounded-full bg-brand-gold/20 flex items-center justify-center shrink-0">
-        <span class="text-brand-gold text-sm font-semibold">{{ commenter_name|first|upper }}</span>
+    <div class="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+      <div class="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center shrink-0 border border-brand-primary/20">
+        <span class="text-brand-primary text-sm font-semibold">{{ commenter_name|first|upper }}</span>
       </div>
       <div>
         <p class="text-sm text-white font-semibold font-body">{{ commenter_name }}</p>
-        <p class="text-xs text-white/40 font-body">Commenting as a member</p>
+        <p class="text-[0.65rem] text-white/40 font-body uppercase tracking-wider">Verified Member</p>
       </div>
     </div>
     {% endif %}

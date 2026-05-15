@@ -14,6 +14,7 @@ import math
 from django import forms
 from django.core.files.storage import storages
 from django.db.models.functions import Lower
+from django.urls import reverse
 from django.utils.html import strip_tags
 from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
@@ -151,6 +152,7 @@ class EmailSubscriber(TimeStampedModel, models.Model):
 # WAGTAIL BLOG & MEDIA MODELS
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def get_public_storage():
     """Callable to return the public storage backend, preventing migration flapping
     when environments (like CI/CD vs Prod) have different storage configs."""
@@ -252,7 +254,9 @@ class BlogIndexPage(RoutablePageMixin, Page):
             .select_related("main_image", "author", "author__image")
             .prefetch_related("tags", "categories")
             .annotate(
-                approved_comments_count=Count("comments", filter=Q(comments__is_approved=True))
+                approved_comments_count=Count(
+                    "comments", filter=Q(comments__is_approved=True)
+                )
             )
             .order_by("-first_published_at")
         )
@@ -493,7 +497,11 @@ class BlogPage(Page):
                     .distinct()
                     .select_related("main_image", "author", "author__image")
                     .prefetch_related("categories", "tags")
-                    .annotate(approved_comments_count=Count("comments", filter=Q(comments__is_approved=True)))[:3]
+                    .annotate(
+                        approved_comments_count=Count(
+                            "comments", filter=Q(comments__is_approved=True)
+                        )
+                    )[:3]
                 )
             else:
                 context["related_posts"] = (
@@ -502,7 +510,11 @@ class BlogPage(Page):
                     .order_by("-first_published_at")
                     .select_related("main_image", "author", "author__image")
                     .prefetch_related("categories", "tags")
-                    .annotate(approved_comments_count=Count("comments", filter=Q(comments__is_approved=True)))[:3]
+                    .annotate(
+                        approved_comments_count=Count(
+                            "comments", filter=Q(comments__is_approved=True)
+                        )
+                    )[:3]
                 )
 
             # ── Comments ──────────────────────────────────────────────────
@@ -516,12 +528,17 @@ class BlogPage(Page):
             context["comment_count"] = optimized_page.comments.filter(
                 is_approved=True
             ).count()
+            context["submit_url"] = reverse(
+                "blog_comment_post", kwargs={"page_id": optimized_page.pk}
+            )
 
             is_auth = request.user.is_authenticated
             context["is_auth"] = is_auth
             context["commenter_name"] = (
-                request.user.get_full_name() or request.user.username
-            ) if is_auth else ""
+                (request.user.get_full_name() or request.user.username)
+                if is_auth
+                else ""
+            )
             context["commenter_email"] = request.user.email if is_auth else ""
             context["comment_form"] = BlogCommentForm()
 
@@ -550,7 +567,7 @@ class BlogTag(TaggedItemBase):
 # ──────────────────────────────────────────────────────────────────────────────
 
 
-class BlogComment(models.Model):
+class BlogComment(TimeStampedModel, models.Model):
     """
     A comment on a BlogPage.  Supports both authenticated users (name/email
     filled automatically) and anonymous visitors.  Designed for reuse: swap
@@ -599,10 +616,6 @@ class BlogComment(models.Model):
         db_index=True,
         help_text="Uncheck to hide this comment from the public.",
     )
-
-    # ── Timestamps ────────────────────────────────────────────────────────
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["created_at"]

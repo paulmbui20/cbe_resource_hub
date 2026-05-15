@@ -287,6 +287,8 @@ def blog_comment_post(request, page_id):
     HTMX endpoint: POST a comment for a BlogPage.
     Returns an HTML partial so HTMX can swap it in without a full reload.
     """
+    from .models import BlogPage, BlogComment
+
     page = get_object_or_404(BlogPage, pk=page_id, live=True)
     form = BlogCommentForm(request.POST)
 
@@ -310,14 +312,59 @@ def blog_comment_post(request, page_id):
             comment.user = request.user
         comment.save()
 
-        return render(
-            request,
-            "components/comment_new.html",
-            {"comment": comment, "is_new": True},
+        # Success: Return a fresh form AND the new comment (via OOB)
+        from django.urls import reverse
+
+        context = {
+            "form": BlogCommentForm(),
+            "page": page,
+            "is_auth": is_auth,
+            "submit_url": reverse("blog_comment_post", kwargs={"page_id": page.pk}),
+            "commenter_name": (request.user.get_full_name() or request.user.username)
+            if is_auth
+            else "",
+            "commenter_email": request.user.email if is_auth else "",
+        }
+
+        # We render the form, and append the new comment with OOB attribute
+        from django.http import HttpResponse
+
+        form_html = render(
+            request, "components/comment_form.html", context
+        ).content.decode("utf-8")
+        comment_html = render(
+            request, "components/comment_new.html", {"comment": comment, "is_new": True}
+        ).content.decode("utf-8")
+
+        # Wrap the comment in the same styled wrapper as the list
+        oob_comment = (
+            f'<div id="comment-list" hx-swap-oob="afterbegin">'
+            f'<div class="bg-white/[0.03] border border-white/8 rounded-2xl p-5 transition-colors hover:border-white/15">'
+            f"{comment_html}"
+            f"</div></div>"
         )
 
+        # If it's the first comment, we should remove the empty state
+        from .models import BlogComment
+
+        if BlogComment.objects.filter(page=page).count() == 1:
+            oob_comment += '<div id="empty-state" hx-swap-oob="delete"></div>'
+
+        response = HttpResponse(form_html + oob_comment)
+        import json
+
+        response["HX-Trigger"] = json.dumps(
+            {
+                "notify": {
+                    "type": "success",
+                    "message": "Comment posted! Thanks for joining the conversation.",
+                }
+            }
+        )
+        return response
+
     # Validation failure → return the form partial with errors.
-    return render(
+    response = render(
         request,
         "components/comment_form.html",
         {
@@ -329,5 +376,16 @@ def blog_comment_post(request, page_id):
             else "",
             "commenter_email": request.user.email if is_auth else "",
         },
-        status=422,  # Unprocessable Entity — tells HTMX this is an error
     )
+    response.status_code = 422
+    import json
+
+    response["HX-Trigger"] = json.dumps(
+        {
+            "notify": {
+                "type": "error",
+                "message": "Please correct the errors in the form.",
+            }
+        }
+    )
+    return response

@@ -15,7 +15,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet, Q
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.decorators.http import require_POST
 from django.views.generic import (
     CreateView,
@@ -142,6 +142,8 @@ class ResourceDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        resource = self.get_object()
+
         # Single indexed EXISTS query rather than evaluating full M2M QS
         if self.request.user.is_authenticated:
             context["user_favorite_ids"] = set(
@@ -149,7 +151,141 @@ class ResourceDetailView(DetailView):
             )
         else:
             context["user_favorite_ids"] = set()
+
+        # ── Comments ──────────────────────────────────────────────────
+        from website.forms.comment import BlogCommentForm
+        from django.urls import reverse
+
+        context["comments"] = (
+            resource.comments.filter(is_approved=True, parent=None)
+            .select_related("user")
+            .prefetch_related("replies__user")
+        )
+        context["comment_count"] = resource.comments.filter(is_approved=True).count()
+        context["comment_form"] = BlogCommentForm()
+        context["submit_url"] = reverse(
+            "resources:resource_comment_post", kwargs={"resource_id": resource.pk}
+        )
+
+        is_auth = self.request.user.is_authenticated
+        context["is_auth"] = is_auth
+        context["commenter_name"] = (
+            (self.request.user.get_full_name() or self.request.user.username)
+            if is_auth
+            else ""
+        )
+        context["commenter_email"] = self.request.user.email if is_auth else ""
+
         return context
+
+
+@require_POST
+def resource_comment_post(request, resource_id):
+    """
+    HTMX endpoint: POST a comment for a ResourceItem.
+    """
+    from .models import ResourceItem, ResourceComment
+    from website.forms.comment import BlogCommentForm
+    from django.shortcuts import get_object_or_404, render
+    from django.http import HttpResponse
+
+    resource = get_object_or_404(ResourceItem, pk=resource_id)
+    form = BlogCommentForm(request.POST)
+
+    is_auth = request.user.is_authenticated
+    if is_auth and not request.POST.get("name"):
+        data = request.POST.copy()
+        data["name"] = request.user.get_full_name() or request.user.username
+        data["email"] = request.user.email
+        form = BlogCommentForm(data)
+
+    if form.is_valid():
+        comment = ResourceComment(
+            resource=resource,
+            body=form.cleaned_data["body"],
+            name=form.cleaned_data["name"],
+            email=form.cleaned_data.get("email", ""),
+        )
+        if is_auth:
+            comment.user = request.user
+        comment.save()
+
+        # Success: Return a fresh form AND the new comment (via OOB)
+        context = {
+            "form": BlogCommentForm(),
+            "resource": resource,
+            "is_auth": is_auth,
+            "submit_url": reverse(
+                "resources:resource_comment_post", kwargs={"resource_id": resource.pk}
+            ),
+            "commenter_name": (request.user.get_full_name() or request.user.username)
+            if is_auth
+            else "",
+            "commenter_email": request.user.email if is_auth else "",
+        }
+
+        # We render the form, and append the new comment with OOB attribute
+        form_html = render(
+            request, "components/comment_form.html", context
+        ).content.decode("utf-8")
+        comment_html = render(
+            request, "components/comment_new.html", {"comment": comment, "is_new": True}
+        ).content.decode("utf-8")
+
+        # Wrap the comment in the same styled wrapper as the list
+        oob_comment = (
+            f'<div id="comment-list" hx-swap-oob="afterbegin">'
+            f'<div class="bg-white/[0.03] border border-white/8 rounded-2xl p-5 transition-colors hover:border-white/15">'
+            f"{comment_html}"
+            f"</div></div>"
+        )
+
+        # If it's the first comment, we should remove the empty state
+        if ResourceComment.objects.filter(resource=resource).count() == 1:
+            oob_comment += '<div id="empty-state" hx-swap-oob="delete"></div>'
+
+        response = HttpResponse(form_html + oob_comment)
+        import json
+
+        response["HX-Trigger"] = json.dumps(
+            {
+                "notify": {
+                    "type": "success",
+                    "message": "Comment posted! Thanks for sharing your feedback."
+                }
+            }
+        )
+        return response
+
+    # Validation failure
+    response = render(
+        request,
+        "components/comment_form.html",
+        {
+            "form": form,
+            "resource": resource,
+            "is_auth": is_auth,
+            "submit_url": reverse(
+                "resources:resource_comment_post", kwargs={"resource_id": resource.pk}
+            ),
+            "commenter_name": (request.user.get_full_name() or request.user.username)
+            if is_auth
+            else "",
+            "commenter_email": request.user.email if is_auth else "",
+        },
+    )
+    response.status_code = 422
+    import json
+
+    response["HX-Trigger"] = json.dumps(
+        {
+            "notify": {
+                "type": "error",
+                "message": "Please correct the errors in the form."
+            }
+        }
+    )
+    return response
 
 
 @require_POST
