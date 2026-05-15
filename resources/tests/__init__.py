@@ -39,6 +39,7 @@ from resources.tests.test_views import (
     ResourceCreateViewTests,
     ResourceUpdateViewTests,
     ResourceDeleteViewTests,
+    ResourceCommentViewTests,
 )
 from resources.tests.test_admin_views import (
     AdminResourceAccessControlTests,
@@ -99,4 +100,6 @@ __all__ = [
     "AdminEducationLevelCRUDTests",
     "AdminGradeCRUDTests",
     "AdminLearningAreaCRUDTests",
+    # Resource Comment View Tests
+    "ResourceCommentViewTests",
 ]

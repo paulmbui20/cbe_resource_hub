@@ -17,6 +17,8 @@ URL name reference (from resources/urls.py, app_name='resources'):
   manage_add               → ResourceCreateView
   manage_edit              → ResourceUpdateView (slug)
   manage_delete            → ResourceDeleteView (slug)
+  resource_comment_post    → ResourceCommentView (resource_id)
+
 """
 
 from django.core.cache import cache
@@ -27,7 +29,6 @@ from resources.tests.base import ResourceBaseTestCase, make_pdf
 
 
 class ResourceListViewTests(ResourceBaseTestCase):
-
     URL = "/resources/"
 
     def setUp(self):
@@ -41,7 +42,9 @@ class ResourceListViewTests(ResourceBaseTestCase):
         self.assertEqual(r.status_code, 200)
 
     def test_uses_correct_template(self):
-        self.assertTemplateUsed(self.client.get(self.URL), "resources/resource_list.html")
+        self.assertTemplateUsed(
+            self.client.get(self.URL), "resources/resource_list.html"
+        )
 
     def test_context_has_resources(self):
         self.assertIn("resources", self.client.get(self.URL).context)
@@ -74,7 +77,9 @@ class ResourceListViewTests(ResourceBaseTestCase):
     def test_filter_by_learning_area(self):
         r = self.client.get(self.URL + f"?area={self.learning_area.pk}")
         resources = list(r.context["resources"])
-        self.assertTrue(all(res.learning_area_id == self.learning_area.pk for res in resources))
+        self.assertTrue(
+            all(res.learning_area_id == self.learning_area.pk for res in resources)
+        )
 
     def test_filter_by_level(self):
         r = self.client.get(self.URL + f"?level={self.level.pk}")
@@ -115,7 +120,6 @@ class ResourceListViewTests(ResourceBaseTestCase):
 
 
 class ResourceDetailViewTests(ResourceBaseTestCase):
-
     def setUp(self):
         cache.clear()
 
@@ -129,7 +133,9 @@ class ResourceDetailViewTests(ResourceBaseTestCase):
         self.assertEqual(self.client.get(self._url()).status_code, 200)
 
     def test_uses_correct_template(self):
-        self.assertTemplateUsed(self.client.get(self._url()), "resources/resource_detail.html")
+        self.assertTemplateUsed(
+            self.client.get(self._url()), "resources/resource_detail.html"
+        )
 
     def test_context_has_resource(self):
         r = self.client.get(self._url())
@@ -137,7 +143,9 @@ class ResourceDetailViewTests(ResourceBaseTestCase):
         self.assertEqual(r.context["resource"].pk, self.resource.pk)
 
     def test_missing_slug_returns_404(self):
-        r = self.client.get(reverse("resources:resource_detail", kwargs={"slug": "no-such-slug"}))
+        r = self.client.get(
+            reverse("resources:resource_detail", kwargs={"slug": "no-such-slug"})
+        )
         self.assertEqual(r.status_code, 404)
 
     def test_unauthenticated_favorite_ids_empty(self):
@@ -146,10 +154,11 @@ class ResourceDetailViewTests(ResourceBaseTestCase):
 
 
 class IncrementDownloadsViewTests(ResourceBaseTestCase):
-
     def _url(self, slug=None):
-        return reverse("resources:resource_increment_downloads",
-                       kwargs={"slug": slug or self.resource.slug})
+        return reverse(
+            "resources:resource_increment_downloads",
+            kwargs={"slug": slug or self.resource.slug},
+        )
 
     def test_post_increments_download_count(self):
         initial = self.resource.downloads
@@ -159,6 +168,7 @@ class IncrementDownloadsViewTests(ResourceBaseTestCase):
 
     def test_post_returns_json_success(self):
         import json
+
         r = self.client.post(self._url())
         self.assertEqual(r.status_code, 200)
         data = json.loads(r.content)
@@ -170,13 +180,13 @@ class IncrementDownloadsViewTests(ResourceBaseTestCase):
 
     def test_missing_slug_returns_404_json(self):
         import json
+
         r = self.client.post(self._url("no-such-slug"))
         self.assertEqual(r.status_code, 404)
         self.assertIn("error", json.loads(r.content))
 
 
 class ToggleFavoriteViewTests(ResourceBaseTestCase):
-
     def _url(self):
         return reverse("resources:toggle_favorite", kwargs={"slug": self.resource.slug})
 
@@ -204,12 +214,12 @@ class ToggleFavoriteViewTests(ResourceBaseTestCase):
     def test_non_htmx_redirects_to_resource(self):
         self.login_as_user()
         r = self.client.post(self._url())
-        self.assertRedirects(r, self.resource.get_absolute_url(),
-                             fetch_redirect_response=False)
+        self.assertRedirects(
+            r, self.resource.get_absolute_url(), fetch_redirect_response=False
+        )
 
 
 class ResourceTypeDetailViewTests(ResourceBaseTestCase):
-
     def setUp(self):
         cache.clear()
 
@@ -223,8 +233,9 @@ class ResourceTypeDetailViewTests(ResourceBaseTestCase):
         self.assertEqual(self.client.get(self._url()).status_code, 200)
 
     def test_uses_correct_template(self):
-        self.assertTemplateUsed(self.client.get(self._url()),
-                                "resources/resource_type_detail.html")
+        self.assertTemplateUsed(
+            self.client.get(self._url()), "resources/resource_type_detail.html"
+        )
 
     def test_context_has_type_label(self):
         r = self.client.get(self._url("notes"))
@@ -255,7 +266,6 @@ class ResourceTypeDetailViewTests(ResourceBaseTestCase):
 
 
 class EducationLevelDetailsViewTests(ResourceBaseTestCase):
-
     def setUp(self):
         cache.clear()
 
@@ -263,15 +273,18 @@ class EducationLevelDetailsViewTests(ResourceBaseTestCase):
         cache.clear()
 
     def _url(self, slug=None):
-        return reverse("resources:education_level_details",
-                       kwargs={"slug": slug or self.level.slug})
+        return reverse(
+            "resources:education_level_details",
+            kwargs={"slug": slug or self.level.slug},
+        )
 
     def test_returns_200(self):
         self.assertEqual(self.client.get(self._url()).status_code, 200)
 
     def test_uses_correct_template(self):
-        self.assertTemplateUsed(self.client.get(self._url()),
-                                "resources/education_level_details.html")
+        self.assertTemplateUsed(
+            self.client.get(self._url()), "resources/education_level_details.html"
+        )
 
     def test_context_has_education_level(self):
         r = self.client.get(self._url())
@@ -288,11 +301,12 @@ class EducationLevelDetailsViewTests(ResourceBaseTestCase):
     def test_filter_by_learning_area(self):
         r = self.client.get(self._url() + f"?learning_area={self.learning_area.pk}")
         resources = list(r.context["resources"])
-        self.assertTrue(all(res.learning_area_id == self.learning_area.pk for res in resources))
+        self.assertTrue(
+            all(res.learning_area_id == self.learning_area.pk for res in resources)
+        )
 
 
 class LearningAreaDetailsViewTests(ResourceBaseTestCase):
-
     def setUp(self):
         cache.clear()
 
@@ -300,15 +314,17 @@ class LearningAreaDetailsViewTests(ResourceBaseTestCase):
         cache.clear()
 
     def _url(self):
-        return reverse("resources:learning_area_details",
-                       kwargs={"slug": self.learning_area.slug})
+        return reverse(
+            "resources:learning_area_details", kwargs={"slug": self.learning_area.slug}
+        )
 
     def test_returns_200(self):
         self.assertEqual(self.client.get(self._url()).status_code, 200)
 
     def test_uses_correct_template(self):
-        self.assertTemplateUsed(self.client.get(self._url()),
-                                "resources/learning_area_details.html")
+        self.assertTemplateUsed(
+            self.client.get(self._url()), "resources/learning_area_details.html"
+        )
 
     def test_context_has_learning_area(self):
         r = self.client.get(self._url())
@@ -331,7 +347,6 @@ class LearningAreaDetailsViewTests(ResourceBaseTestCase):
 
 
 class GradeDetailsViewTests(ResourceBaseTestCase):
-
     def setUp(self):
         cache.clear()
 
@@ -345,8 +360,9 @@ class GradeDetailsViewTests(ResourceBaseTestCase):
         self.assertEqual(self.client.get(self._url()).status_code, 200)
 
     def test_uses_correct_template(self):
-        self.assertTemplateUsed(self.client.get(self._url()),
-                                "resources/grade_details.html")
+        self.assertTemplateUsed(
+            self.client.get(self._url()), "resources/grade_details.html"
+        )
 
     def test_context_has_grade(self):
         r = self.client.get(self._url())
@@ -357,12 +373,13 @@ class GradeDetailsViewTests(ResourceBaseTestCase):
         self.assertTemplateUsed(r, "resources/partials/resource_cards.html")
 
     def test_missing_slug_returns_404(self):
-        r = self.client.get(reverse("resources:grade_details", kwargs={"slug": "no-grade"}))
+        r = self.client.get(
+            reverse("resources:grade_details", kwargs={"slug": "no-grade"})
+        )
         self.assertEqual(r.status_code, 404)
 
 
 class AcademicSessionDetailViewTests(ResourceBaseTestCase):
-
     def setUp(self):
         cache.clear()
 
@@ -370,15 +387,17 @@ class AcademicSessionDetailViewTests(ResourceBaseTestCase):
         cache.clear()
 
     def _url(self):
-        return reverse("resources:academic_session_detail",
-                       kwargs={"slug": self.session.slug})
+        return reverse(
+            "resources:academic_session_detail", kwargs={"slug": self.session.slug}
+        )
 
     def test_returns_200(self):
         self.assertEqual(self.client.get(self._url()).status_code, 200)
 
     def test_uses_correct_template(self):
-        self.assertTemplateUsed(self.client.get(self._url()),
-                                "resources/academic_session_detail.html")
+        self.assertTemplateUsed(
+            self.client.get(self._url()), "resources/academic_session_detail.html"
+        )
 
     def test_context_has_academic_session(self):
         r = self.client.get(self._url())
@@ -396,7 +415,6 @@ class AcademicSessionDetailViewTests(ResourceBaseTestCase):
 
 
 class LearningAreaListViewTests(ResourceBaseTestCase):
-
     URL = "/resources/learning-areas/"
 
     def _list_url(self):
@@ -412,7 +430,9 @@ class LearningAreaListViewTests(ResourceBaseTestCase):
         self.assertEqual(self.client.get(self.URL).status_code, 200)
 
     def test_uses_correct_template(self):
-        self.assertTemplateUsed(self.client.get(self.URL), "resources/learning_areas_list.html")
+        self.assertTemplateUsed(
+            self.client.get(self.URL), "resources/learning_areas_list.html"
+        )
 
     def test_context_has_filters(self):
         self.assertIn("filters", self.client.get(self.URL).context)
@@ -428,7 +448,6 @@ class LearningAreaListViewTests(ResourceBaseTestCase):
 
 
 class GradeListViewTests(ResourceBaseTestCase):
-
     URL = "/resources/grades/"
 
     def setUp(self):
@@ -457,7 +476,6 @@ class GradeListViewTests(ResourceBaseTestCase):
 
 
 class AcademicSessionListViewTests(ResourceBaseTestCase):
-
     URL = "/resources/academic-sessions/"
 
     def setUp(self):
@@ -470,8 +488,9 @@ class AcademicSessionListViewTests(ResourceBaseTestCase):
         self.assertEqual(self.client.get(self.URL).status_code, 200)
 
     def test_uses_correct_template(self):
-        self.assertTemplateUsed(self.client.get(self.URL),
-                                "resources/academic_session_list.html")
+        self.assertTemplateUsed(
+            self.client.get(self.URL), "resources/academic_session_list.html"
+        )
 
     def test_context_has_academic_sessions(self):
         self.assertIn("academic_sessions", self.client.get(self.URL).context)
@@ -482,7 +501,6 @@ class AcademicSessionListViewTests(ResourceBaseTestCase):
 
 
 class ResourceCreateViewTests(ResourceBaseTestCase):
-
     URL = reverse_lazy = None  # use _url() instead
 
     def _url(self):
@@ -530,14 +548,14 @@ class ResourceCreateViewTests(ResourceBaseTestCase):
         self.login_as_vendor()
         f = make_pdf("create.pdf")
         self.client.post(self._url(), data={**self._payload(), "file": f})
-        self.assertTrue(
-            ResourceItem.objects.filter(title="Uploaded Resource").exists()
-        )
+        self.assertTrue(ResourceItem.objects.filter(title="Uploaded Resource").exists())
 
     def test_valid_post_sets_vendor_to_current_user(self):
         self.login_as_vendor()
         f = make_pdf("vendor.pdf")
-        self.client.post(self._url(), data={**self._payload(title="Vendor Upload"), "file": f})
+        self.client.post(
+            self._url(), data={**self._payload(title="Vendor Upload"), "file": f}
+        )
         r = ResourceItem.objects.filter(title="Vendor Upload").first()
         if r:
             self.assertEqual(r.vendor, self.vendor)
@@ -545,12 +563,15 @@ class ResourceCreateViewTests(ResourceBaseTestCase):
     def test_valid_post_redirects_to_dashboard(self):
         self.login_as_vendor()
         f = make_pdf("redir.pdf")
-        r = self.client.post(self._url(), data={**self._payload(title="Redirect Test"), "file": f})
-        self.assertRedirects(r, reverse("accounts:dashboard"), fetch_redirect_response=False)
+        r = self.client.post(
+            self._url(), data={**self._payload(title="Redirect Test"), "file": f}
+        )
+        self.assertRedirects(
+            r, reverse("accounts:dashboard"), fetch_redirect_response=False
+        )
 
 
 class ResourceUpdateViewTests(ResourceBaseTestCase):
-
     def setUp(self):
         cache.clear()
         self.owned = ResourceItem.objects.create(
@@ -568,8 +589,9 @@ class ResourceUpdateViewTests(ResourceBaseTestCase):
         cache.clear()
 
     def _url(self, slug=None):
-        return reverse("resources:manage_edit",
-                       kwargs={"slug": slug or self.owned.slug})
+        return reverse(
+            "resources:manage_edit", kwargs={"slug": slug or self.owned.slug}
+        )
 
     def _payload(self, **kw):
         defaults = {
@@ -617,7 +639,6 @@ class ResourceUpdateViewTests(ResourceBaseTestCase):
 
 
 class ResourceDeleteViewTests(ResourceBaseTestCase):
-
     def setUp(self):
         cache.clear()
         self.target = ResourceItem.objects.create(
@@ -635,8 +656,9 @@ class ResourceDeleteViewTests(ResourceBaseTestCase):
         cache.clear()
 
     def _url(self, slug=None):
-        return reverse("resources:manage_delete",
-                       kwargs={"slug": slug or self.target.slug})
+        return reverse(
+            "resources:manage_delete", kwargs={"slug": slug or self.target.slug}
+        )
 
     def test_anonymous_denied(self):
         r = self.client.post(self._url())
@@ -661,14 +683,16 @@ class ResourceDeleteViewTests(ResourceBaseTestCase):
     def test_delete_redirects_to_dashboard(self):
         self.login_as_vendor()
         r = self.client.post(self._url())
-        self.assertRedirects(r, reverse("accounts:dashboard"), fetch_redirect_response=False)
+        self.assertRedirects(
+            r, reverse("accounts:dashboard"), fetch_redirect_response=False
+        )
 
 
 class ResourceCommentViewTests(ResourceBaseTestCase):
-
     def _url(self):
-        return reverse("resources:resource_comment_post",
-                       kwargs={"resource_id": self.resource.pk})
+        return reverse(
+            "resources:resource_comment_post", kwargs={"resource_id": self.resource.pk}
+        )
 
     def test_authenticated_post_creates_comment(self):
         self.login_as_user()
@@ -690,7 +714,7 @@ class ResourceCommentViewTests(ResourceBaseTestCase):
         self.assertEqual(comment.name, "Guest")
 
     def test_invalid_post_returns_422(self):
-        data = {"body": ""} # body is required
+        data = {"body": ""}  # body is required
         r = self.client.post(self._url(), data=data)
         self.assertEqual(r.status_code, 422)
         self.assertTemplateUsed(r, "components/comment_form.html")
@@ -699,4 +723,3 @@ class ResourceCommentViewTests(ResourceBaseTestCase):
         url = reverse("resources:resource_comment_post", kwargs={"resource_id": 99999})
         r = self.client.post(url, data={"body": "test"})
         self.assertEqual(r.status_code, 404)
-
